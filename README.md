@@ -67,10 +67,10 @@ To start using Tivo Desk Companion, follow these steps:
 
 ## Contributors
 
-- [Buddhika Ariyarathne - E/20/024]
-- [Yasiru Harinda - E/20/089]
-- [Yohan Senadheera - E/20/361]
-- [Bhagya Senevirathna - E/20/366]
+- Buddhika Ariyarathne - E/20/024
+- Yasiru Harinda - E/20/089
+- Yohan Senadheera - E/20/361
+- Bhagya Senevirathna - E/20/366
 
 ## License
 
