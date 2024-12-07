@@ -1,117 +1,55 @@
-/* Custom styles for Tivo Desk Companion */
-
-/* Global styles */
+/* General */
 body {
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f0f0f0;
-}
-
-h2, h4 {
-  color: #333;
+    font-family: 'Orbitron', sans-serif;
+    background-color: #121212;
+    color: #f0f0f0;
 }
 
 /* Hero Section */
-.hero {
-  height: 100vh;
-  background: linear-gradient(45deg, #4e73df, #1cc88a);
-  color: white;
-  text-align: center;
-  padding: 80px 0;
+.hero-section {
+    height: 120vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden; /* Ensures nothing bleeds out */
 }
 
-.hero h1 {
-  font-size: 3.5rem;
-  font-weight: 700;
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('bot.png') no-repeat center center/cover;
+    background-size: cover;
+    filter: brightness(0.5) blur(5px); /* Darken and blur the image */
+    z-index: -1; /* Place behind other elements */
 }
 
-.hero .lead {
-  font-size: 1.25rem;
-  font-weight: 400;
+.hero-section .overlay {
+    background: rgba(0, 0, 0, 0.45); /* Additional darkening */
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
 }
 
-.hero .btn {
-  background-color: #ff5722;
-  border: none;
+/* Feature Cards */
+.feature-card p, .problem-card p, .solution-card p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.1rem;
 }
 
-.hero .btn:hover {
-  background-color: #e64a19;
-}
-
-/* Feature Box */
-.feature-box {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-bottom: 30px;
-}
-
-.feature-box i {
-  color: #4e73df;
-}
-
-.feature-box h4 {
-  font-size: 1.5rem;
-  margin-top: 10px;
-}
-
-/* Problem & Solution */
-#problem {
-  background-color: #f8f9fc;
-}
-
-/* Team Section */
-#team img {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-}
-
-#team h4 {
-  font-size: 1.25rem;
-  margin-top: 10px;
-}
-
-#team p {
-  font-size: 1rem;
-  color: #666;
-}
-
-/* Back to Top Button */
-.back-to-top {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #007bff;
-  color: white;
-  padding: 10px;
-  border-radius: 50%;
-  display: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.back-to-top.active {
-  display: block;
-}
-
-/* Footer */
-footer {
-  background-color: #343a40;
-  color: white;
-}
-
-/* AOS Animation */
-[data-aos="fade-up"] {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-}
-
-[data-aos="fade-up"].aos-animate {
-  opacity: 1;
-  transform: translateY(0);
+/* Team Images */
+.team-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #4e73df;
 }

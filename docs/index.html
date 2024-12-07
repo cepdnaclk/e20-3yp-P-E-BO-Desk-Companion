@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tivo Desk Companion</title>
+    <title>Tivo - Your Desk Companion</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -15,27 +15,28 @@
     <!-- AOS CSS -->
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
-    <!-- Favicon -->
-    <link rel="icon" href="favicon.png" type="image/png">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body class="dark-mode">
 
-    <!-- Navbar Section -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-lg">
         <div class="container">
-            <a class="navbar-brand" href="#">Tivo Desk Companion</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="#">Tivo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#hero">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#problem">Problem & Solution</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#problem">Problem</a></li>
                     <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
                 </ul>
             </div>
@@ -43,105 +44,130 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero d-flex align-items-center" id="home">
-        <div class="container text-center text-white">
-            <h1 class="display-4 mb-3">Welcome to Tivo Desk Companion</h1>
-            <p class="lead mb-5">Your interactive robot assistant for daily tasks and entertainment.</p>
-            <a href="#features" class="btn btn-light btn-lg">Explore Features</a>
+    <section id="hero" class="hero-section text-center text-white">
+        <div class="overlay"></div>
+        <div class="container">
+            <h1 class="display-3 fw-bold mb-3" data-aos="fade-up">Welcome to Tivo</h1>
+            <p class="lead mb-4" data-aos="fade-up" data-aos-delay="100">Your Ultimate Futuristic Desk Companion</p>
+            <a href="#features" class="btn btn-primary btn-lg" data-aos="fade-up" data-aos-delay="200">Explore
+                Features</a>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="container mt-5" data-aos="fade-up">
-        <h2 class="text-center mb-4">Features</h2>
-        <div class="row">
-            <div class="col-md-4">
-                <div class="feature-box text-center">
-                    <i class="bi bi-mic fs-1 mb-3"></i>
-                    <h4>Voice Recognition</h4>
-                    <p>Seamlessly interact using voice commands.</p>
+    <section id="features" class="py-5">
+        <div class="container" data-aos="fade-up">
+            <h2 class="text-center text-white mb-4">Features</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-mic fs-1 text-primary"></i>
+                        <h5 class="mt-3">Voice Commands</h5>
+                        <p>Request reminders, quick info, music, or anything you need with simple voice prompts.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-hand-index-thumb fs-1 text-success"></i>
+                        <h5 class="mt-3">Gesture Control</h5>
+                        <p>Control Tivo with intuitive gestures like waves, thumbs-ups, or points.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-calendar2-check fs-1 text-info"></i>
+                        <h5 class="mt-3">Task Automation</h5>
+                        <p>Automate meetings, deadlines, and daily plans with ease.</p>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="feature-box text-center">
-                    <i class="bi bi-person fs-1 mb-3"></i>
-                    <h4>Face Recognition</h4>
-                    <p>Personalize responses based on user identity.</p>
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-emoji-laughing fs-1 text-warning"></i>
+                        <h5 class="mt-3">Interactive Personality</h5>
+                        <p>Your desk buddy that jokes, chats, and plays games to keep you entertained.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-box text-center">
-                    <i class="bi bi-cloud fs-1 mb-3"></i>
-                    <h4>Cloud-Based Communication</h4>
-                    <p>Enable multi-device synchronization in real-time.</p>
+                <div class="col-md-4">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-cloud-arrow-down fs-1 text-danger"></i>
+                        <h5 class="mt-3">Cloud-Synced Settings</h5>
+                        <p>Access personalized settings from anywhere with seamless cloud integration.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-shield-check fs-1 text-primary"></i>
+                        <h5 class="mt-3">Emergency Alerts</h5>
+                        <p>Get real-time alerts for emergencies like smoke, gas leaks, or loud noises.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Problem & Solution Section -->
-    <section id="problem" class="bg-light py-5" data-aos="fade-up">
-        <div class="container">
-            <h2 class="text-center mb-4">Problem & Solution</h2>
+    <section id="problem" class="py-5 bg-gradient">
+        <div class="container" data-aos="fade-up">
+            <h2 class="text-center text-white mb-4">Problem & Solution</h2>
             <div class="row">
                 <div class="col-md-6">
-                    <h4>Problem</h4>
-                    <p>Managing daily tasks and smart device interactions can be cumbersome without a unified solution.
-                    </p>
+                    <div class="problem-card p-4">
+                        <h4>Problem</h4>
+                        <p>Managing daily tasks and devices can be overwhelming without a unified solution.</p>
+                    </div>
                 </div>
                 <div class="col-md-6">
-                    <h4>Solution</h4>
-                    <p>Tivo Desk Companion combines IoT, AI, and user-centric design for seamless task automation and
-                        assistance.</p>
+                    <div class="solution-card p-4">
+                        <h4>Solution</h4>
+                        <p>Tivo simplifies your life by integrating AI and IoT for seamless interactions.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Meet the Team Section -->
-    <section id="team" class="container py-5" data-aos="fade-up">
-        <h2 class="text-center mb-4">Meet the Team</h2>
-        <div class="row">
-            <div class="col-md-4">
-                <img src="Member1.png" class="img-fluid rounded-circle mb-3" alt="Team Member">
-                <h4>Buddhika Ariyarathne</h4>
-                <p>E/20/024</p>
-            </div>
-            <div class="col-md-4">
-                <img src="Member2.png" class="img-fluid rounded-circle mb-3" alt="Team Member">
-                <h4>Yasiru Edirimanna</h4>
-                <p>E/20/089</p>
-            </div>
-            <div class="col-md-4">
-                <img src="Member3.png" class="img-fluid rounded-circle mb-3" alt="Team Member">
-                <h4>Yohan Senadheera</h4>
-                <p>E/20/361</p>
-            </div>
-            <div class="col-md-4">
-                <img src="Member4.png" class="img-fluid rounded-circle mb-3" alt="Team Member">
-                <h4>Bhagya Senevirathna</h4>
-                <p>E/20/366</p>
+    <!-- Team Section -->
+    <section id="team" class="py-5">
+        <div class="container" data-aos="fade-up">
+            <h2 class="text-center text-white mb-4">Meet the Team</h2>
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <img src="Member1.png" alt="Buddhika" class="team-img mb-3">
+                    <h5 class="text-white">Buddhika Ariyarathne</h5>
+                    <p>E/20/024</p>
+                </div>
+                <div class="col-md-3">
+                    <img src="Member2.png" alt="Yasiru" class="team-img mb-3">
+                    <h5 class="text-white">Yasiru Edirimanna</h5>
+                    <p>E/20/089</p>
+                </div>
+                <div class="col-md-3">
+                    <img src="Member3.png" alt="Yohan" class="team-img mb-3">
+                    <h5 class="text-white">Yohan Senadheera</h5>
+                    <p>E/20/361</p>
+                </div>
+                <div class="col-md-3">
+                    <img src="Member4.png" alt="Bhagya" class="team-img mb-3">
+                    <h5 class="text-white">Bhagya Senevirathna</h5>
+                    <p>E/20/366</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Back to Top Button -->
-    <a href="#" class="back-to-top d-flex align-items-center justify-content-center">
-        <i class="bi bi-arrow-up-short"></i>
-    </a>
-
     <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-4">
-        <p>&copy; 2024 Tivo Desk Companion. All rights reserved.</p>
+    <footer class="text-center py-4">
+        <p class="text-white">&copy; 2024 Tivo. All rights reserved.</p>
     </footer>
 
-    <!-- Bootstrap JS and AOS JS -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-
-    <!-- Custom JS -->
-    <script src="script.js"></script>
-
+    <script>
+        AOS.init();
+    </script>
 </body>
 
 </html>
