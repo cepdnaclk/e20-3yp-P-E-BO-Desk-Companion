@@ -9,8 +9,7 @@
 Tivo Desk Companion is an intelligent, interactive robot assistant designed to help with daily tasks and home automation. By integrating IoT, voice recognition, and face recognition, Tivo adapts to the user's environment, maximizing convenience and interactivity. The system offers a seamless user experience with features like task automation, real-time communication, and emergency alerts, all controlled through voice commands and gestures.
 
 <p align="center">
-  <img src="/docs/images/alert.png" height="200">
-  <img scr="/docs/images/alert.png" height="200">
+  <img src="/docs/images/alert.png" height="20">
   <img src="/render2.png" height="200">
 </p>
 
