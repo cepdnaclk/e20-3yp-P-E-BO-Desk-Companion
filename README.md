@@ -1,57 +1,77 @@
-___
-# DELETE THIS INSTRUCTIONS AND ADD AN INTRODUCTION ABOUT YOUR PROJECT
-___
+<p align="center">
+  <img src="/docs/images/tivo-logo.png" height="200">
+</p>
 
-# eYY-3yp-project-template
+## Overview
 
-This is a sample repository you can use for your Embedded Systems project. Once you followed these instructions, remove the text and add a brief introduction to here.
+Tivo Desk Companion is an intelligent, interactive robot assistant designed to help with daily tasks and home automation. By integrating IoT, voice recognition, and face recognition, Tivo adapts to the user's environment, maximizing convenience and interactivity. The system offers a seamless user experience with features like task automation, real-time communication, and emergency alerts, all controlled through voice commands and gestures.
 
-### Enable GitHub Pages
+<p align="center">
+  <img src="/render1.png" height="200">
+  <img src="/render2.png" height="200">
+</p>
 
-You can put the things to be shown in GitHub pages into the _docs/_ folder. Both html and md file formats are supported. You need to go to settings and enable GitHub pages and select _main_ branch and _docs_ folder from the dropdowns, as shown in the below image.
+## Features
 
-![image](https://user-images.githubusercontent.com/11540782/98789936-028d3600-2429-11eb-84be-aaba665fdc75.png)
+### 1. Voice Recognition
 
-### Special Configurations
+- Ability to understand and respond to user commands.
+- Integration with cloud-based services for seamless communication.
 
-These projects will be automatically added into [https://projects.ce.pdn.ac.lk](). If you like to show more details about your project on this site, you can fill the parameters in the file, _/docs/index.json_
+### 2. Face Recognition
 
-```
-{
-  "title": "This is the title of the project",
-  "team": [
-    {
-      "name": "Team Member Name 1",
-      "email": "email@eng.pdn.ac.lk",
-      "eNumber": "E/yy/xxx"
-    },
-    {
-      "name": "Team Member Name 2",
-      "email": "email@eng.pdn.ac.lk",
-      "eNumber": "E/yy/xxx"
-    },
-    {
-      "name": "Team Member Name 3",
-      "email": "email@eng.pdn.ac.lk",
-      "eNumber": "E/yy/xxx"
-    }
-  ],
-  "supervisors": [
-    {
-      "name": "Dr. Supervisor 1",
-      "email": "email@eng.pdn.ac.lk"
-    },
-    {
-      "name": "Supervisor 2",
-      "email": "email@eng.pdn.ac.lk"
-    }
-  ],
-  "tags": ["Web", "Embedded Systems"]
-}
-```
+- Personalized interaction by identifying users.
+- Ability to adapt the robot’s responses based on the user.
 
-Once you filled this _index.json_ file, please verify the syntax is correct. (You can use [this](https://jsonlint.com/) tool).
+### 3. Task Automation
 
-### Page Theme
+- Integration with IoT devices to automate tasks like turning on/off lights, controlling appliances, etc.
+- Remote management of smart devices.
 
-A custom theme integrated with this GitHub Page, which is based on [github.com/cepdnaclk/eYY-project-theme](https://github.com/cepdnaclk/eYY-project-theme). If you like to remove this default theme, you can remove the file, _docs/\_config.yml_ and use HTML based website.
+### 4. Real-time Data Syncing
+
+- Syncs data with the cloud for real-time updates on task status, alerts, and performance.
+- Allows for monitoring the status of connected devices remotely.
+
+### 5. Emergency Alerts
+
+- Instant notifications in case of security breaches or emergencies (e.g., motion detection, smoke detection).
+- Provides real-time alerts to other devices and users.
+
+### 6. Gesture Control
+
+- Control the robot with simple hand gestures detected by the built-in camera.
+- A gesture-based interface for an enhanced user experience.
+
+## Problem Statement
+
+Managing multiple home automation systems and keeping track of daily tasks manually can be overwhelming. There is also a lack of seamless interaction between devices and users, which leads to inefficiencies in home management.
+
+## Solution
+
+Tivo Desk Companion solves this problem by integrating IoT, AI, and real-time communication to streamline task management and home automation. By using voice and gesture recognition, users can interact with the robot easily, ensuring a seamless and efficient experience. The robot’s ability to manage tasks, send alerts, and control devices from a single interface helps improve daily living.
+
+## Getting Started
+
+To start using Tivo Desk Companion, follow these steps:
+
+1. **Setup**: Install the Tivo Desk Companion and connect it to your Wi-Fi and IoT devices.
+2. **Voice Command Setup**: Configure the voice recognition system and train the robot to recognize your commands.
+3. **Control Devices**: Use the mobile application or voice commands to control IoT devices and manage tasks.
+
+## Future Enhancements
+
+- Integration with smart home systems for more advanced automation.
+- Expansion of voice command capabilities to include more complex actions.
+- Enhanced gesture recognition for more interactive controls.
+
+## Contributors
+
+- [Buddhika Ariyarathne - E/20/024]
+- [Yasiru Harinda - E/20/089]
+- [Yohan Senadheera - E/20/361]
+- [Bhagya Senevirathna - E/20/366]
+
+## License
+
+This project is licensed under the [MIT License] - see the [LICENSE.md](LICENSE.md) file for details.
