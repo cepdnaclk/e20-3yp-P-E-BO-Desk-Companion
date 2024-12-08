@@ -1,6 +1,6 @@
 ---
 layout: home
-permalink: index.html
+
 
 repository-name: e20-3yp-tivo-desk-companion
 title: Tivo – Your Friendly Interactive Assistant
