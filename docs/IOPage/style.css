@@ -5,6 +5,20 @@ body {
     color: #f0f0f0;
 }
 
+/* Navbar */
+.navbar {
+    background-color: #1f1f1f;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.navbar-brand, .nav-link {
+    color: #f0f0f0 !important;
+}
+
+.navbar-brand:hover, .nav-link:hover {
+    color: #4e73df !important;
+}
+
 /* Hero Section */
 .hero-section {
     height: 120vh;
@@ -13,7 +27,7 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    overflow: hidden; /* Ensures nothing bleeds out */
+    overflow: hidden;
 }
 
 .hero-section::before {
@@ -25,12 +39,12 @@ body {
     height: 100%;
     background: url('bot.png') no-repeat center center/cover;
     background-size: cover;
-    filter: brightness(0.5) blur(5px); /* Darken and blur the image */
-    z-index: -1; /* Place behind other elements */
+    filter: brightness(0.5) blur(5px);
+    z-index: -1;
 }
 
 .hero-section .overlay {
-    background: rgba(0, 0, 0, 0.45); /* Additional darkening */
+    background: rgba(0, 0, 0, 0.6);
     position: absolute;
     width: 100%;
     height: 100%;
@@ -39,17 +53,83 @@ body {
     z-index: -1;
 }
 
-/* Feature Cards */
-.feature-card p, .problem-card p, .solution-card p {
-    font-family: 'Roboto', sans-serif;
-    font-size: 1.1rem;
+.hero-section h1, .hero-section p {
+    color: #ffffff;
 }
 
-/* Team Images */
+.hero-section .btn {
+    background-color: #4e73df;
+    color: #ffffff;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.hero-section .btn:hover {
+    background-color: #3a5db3;
+}
+
+/* Section Headings */
+h2 {
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+/* Feature Cards */
+.feature-card {
+    background-color: #1f1f1f;
+    border: 1px solid #2a2a2a;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.feature-card i {
+    color: #4e73df;
+}
+
+.feature-card h5 {
+    color: #ffffff;
+}
+
+/* List Items */
+ul li {
+    color: #d0d0d0;
+}
+
+/* Team Section */
 .team-img {
     width: 150px;
     height: 150px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #4e73df;
+}
+
+.team-section h5 {
+    color: #ffffff;
+}
+
+.team-section p {
+    color: #b0b0b0;
+}
+
+/* Footer */
+footer {
+    background-color: #1f1f1f;
+    color: #b0b0b0;
+    padding: 20px 0;
+    text-align: center;
+}
+
+footer a {
+    color: #4e73df;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #3a5db3;
 }
