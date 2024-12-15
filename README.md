@@ -15,9 +15,6 @@ Tivo Desk Companion is an intelligent, interactive robot assistant designed to h
     <img src="/docs/images/gesture.png" height="20">
     <img src="/docs/images/iot.png" height="20">
     <img src="/docs/images/microphone.png" height="20">
-    
-
-
 </p>
 
 ## Features
