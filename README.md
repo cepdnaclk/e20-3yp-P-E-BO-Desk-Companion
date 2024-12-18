@@ -1,7 +1,7 @@
 # TIVO - DESK COMPANION
 
 <p align="center">
-  <img src="/docs/images/tivo-logo.png" height="200">
+  <img src="/docs/images/bot.png" height="200">
 </p>
 
 ## Overview
