@@ -1,118 +1,251 @@
-/* General Styles */
-body.dark-mode {
+/* Importing Modern and Futuristic Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron&family=Russo+One&display=swap');
+
+/* Body and General Styles */
+body {
+    font-family: 'Orbitron', sans-serif, 'Roboto', sans-serif;
     background-color: #121212;
-    color: #f5f5f5;
-    font-family: 'Lato', sans-serif;
-}
-
-a {
-    color: #1f9bff;
-    text-decoration: none;
-}
-
-a:hover {
-    color: #0d6efd;
-    text-decoration: underline;
+    color: #f1f1f1;
+    margin: 0;
+    padding: 0;
 }
 
 /* Navbar */
-.navbar-dark .navbar-brand {
-    font-size: 1.5rem;
-    font-weight: 700;
+.navbar {
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #444;
 }
 
-.nav-link {
-    font-weight: 400;
-    margin-right: 15px;
+.navbar .navbar-brand {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
 }
 
-.nav-link:hover {
-    color: #1f9bff;
+.navbar .nav-link {
+    color: #bbb !important;
+    text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+}
+
+.navbar .nav-link:hover {
+    color: #f1f1f1 !important;
+    text-shadow: 0 0 12px #ff0000, 0 0 20px #ff0000;
 }
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(120deg, #6a11cb, #2575fc);
+    background: url('bot.png') no-repeat center center;
+    background-size: cover;
+    position: relative;
+    padding: 120px 0;
     color: #fff;
-    padding: 150px 0;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1;
+}
+
+.hero-section > .container {
+    position: relative;
+    z-index: 2;
 }
 
 .hero-section h1 {
-    font-size: 3rem;
+    font-size: 4rem;
+    font-weight: 900;
+    color: #4CAF50;
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.7), 0 0 30px rgba(0, 255, 0, 0.5);
+    z-index: 3;
+    position: relative;
 }
 
-.hero-section p {
-    font-size: 1.25rem;
+/* Section Backgrounds */
+#solution-architecture, #testing, .bg-dark, #team, #features, #links {
+    background-color: #121212 !important;
+    color: #f1f1f1;
 }
 
-.hero-section .btn {
-    border: 2px solid #fff;
-    color: #fff;
+#solution-architecture ul, #testing ul {
+    list-style-type: none;
+    padding-left: 0;
 }
 
-/* Section Titles */
-section h2 {
-    font-size: 2.5rem;
-    color: #f5f5f5;
-    margin-bottom: 20px;
+#solution-architecture ul li, #testing ul li {
+    margin-bottom: 10px;
 }
 
-/* Features Section */
-.feature-card {
-    background-color: #1e1e1e;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s;
+/* Budget and Useful Links Section */
+#budget, #useful-links {
+    background-color: #1a1a1a;
+    padding: 40px 0;
 }
 
-.feature-card:hover {
-    transform: translateY(-10px);
-}
-
-.feature-card i {
-    color: #1f9bff;
+#budget h2, #useful-links h2 {
+    color: #29b6f6;
+    text-shadow: 0 0 10px #29b6f6, 0 0 20px #29b6f6;
 }
 
 /* Team Section */
 #team {
-    padding: 50px 0;
-    background-color: #1c1c1c;
+    background-color: #121212;
 }
 
-#team .team-member {
-    text-align: center;
+.team-img {
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 3px solid #fff;
+}
+
+#team .col-md-3 {
     margin-bottom: 30px;
 }
 
-#team .team-member img {
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    margin-bottom: 15px;
+#team h5 {
+    font-size: 1.2rem;
+    margin-top: 10px;
+    text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
 }
 
-#team .team-member h5 {
-    font-size: 1.25rem;
-    margin-bottom: 5px;
+/* Links Section */
+#links {
+    background-color: #121212;
+    color: #fff;
+    padding: 60px 0;
 }
 
-#team .team-member p {
+#links .list-inline-item {
+    margin-right: 10px;
+}
+
+#links .btn-outline-dark {
+    border-color: #fff;
+    color: #fff;
+    border-radius: 25px;
+    padding: 12px 24px;
+    margin: 10px 0;
+    text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+}
+
+#links .btn-outline-dark:hover {
+    background-color: #fff;
+    color: #121212;
+    text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+}
+
+/* Footer */
+footer {
+    background-color: #1a1a1a;
+    color: #bbb;
+}
+
+footer p {
+    margin: 0;
     font-size: 0.9rem;
-    color: #b3b3b3;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Feature Section */
+.feature-card {
+    background-color: #1a1a1a;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 2px solid #ff6f61;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.feature-card i {
+    color: #ff6f61;
+    text-shadow: 0 0 10px #ff6f61, 0 0 18px #ff6f61;
+}
+
+.feature-card i:hover {
+    color: #f1f1f1;
+    text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
+}
+
+/* Custom Table Styling */
+table {
+    background-color: #1a1a1a;
+    color: #f1f1f1;
+    width: 100%;
+    margin-top: 30px;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    text-align: center;
+    padding: 15px;
+}
+
+table th {
+    background-color: #333;
+    color: #fff;
+    font-weight: bold;
+}
+
+table td {
+    color: #f1f1f1;
+}
+
+table td strong {
+    color: #ff6f61;
+}
+
+/* General Section Padding */
+section {
+    padding: 60px 0;
+}
+
+section h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ff6f61;
+    text-shadow: 0 0 10px #ff6f61, 0 0 15px #ff6f61;
+}
+
+section p {
+    font-size: 1.1rem;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 767px) {
+    .navbar-toggler {
+        border-color: #fff;
+    }
+
+    .navbar-toggler-icon {
+        background-color: #fff;
+    }
+
     .hero-section h1 {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
 
-    .hero-section p {
-        font-size: 1rem;
+    .feature-card {
+        padding: 20px;
     }
 
-    .nav-link {
-        margin-right: 10px;
+    .team-img {
+        width: 120px;
+        height: 120px;
+    }
+
+    .btn-outline-dark {
+        padding: 10px 20px;
     }
 }

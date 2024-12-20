@@ -1,12 +1,27 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Simple smooth scrolling for navigation
-  const links = document.querySelectorAll("a[href^='#']");
-  links.forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      const target = document.querySelector(link.getAttribute("href"));
-      target.scrollIntoView({ behavior: "smooth" });
-    });
+// Smooth Scroll for Navigation Links
+document.querySelectorAll("a.nav-link").forEach((link) => {
+  link.addEventListener("click", function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute("href"));
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
-v
+
+// Dark Mode Toggle
+const toggleDarkMode = () => {
+  const body = document.body;
+  body.classList.toggle("dark-mode");
+  if (body.classList.contains("dark-mode")) {
+    localStorage.setItem("theme", "dark");
+  } else {
+    localStorage.setItem("theme", "light");
+  }
+};
+
+// Persist Dark Mode
+document.addEventListener("DOMContentLoaded", () => {
+  const theme = localStorage.getItem("theme");
+  if (theme === "dark") {
+    document.body.classList.add("dark-mode");
+  }
+});
