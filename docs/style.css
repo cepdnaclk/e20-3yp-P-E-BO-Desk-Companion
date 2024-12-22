@@ -1,6 +1,13 @@
 /* Importing Modern and Futuristic Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Orbitron&family=Russo+One&display=swap");
 
+/* General Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 /* Body and General Styles */
 body {
   font-family: "Orbitron", sans-serif, "Roboto", sans-serif;
@@ -29,8 +36,8 @@ body {
 }
 
 .navbar .nav-link:hover {
-  color: #f1f1f1 !important;
-  text-shadow: 0 0 12px #ff0000, 0 0 20px #ff0000;
+  color: #ffffff !important;
+  text-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000;
 }
 
 /* Hero Section */
@@ -47,14 +54,14 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  text-align: center; /* Ensure text is centered */
+  text-align: center;
 }
 
 .hero-section.shrink {
   height: 70vh; /* Height when shrunk */
   filter: blur(2px);
   transition: height 0.5s ease;
-    background-color: rgba(0, 0, 0, 0.8); /* Darker effect */
+  background-color: rgba(0, 0, 0, 0.8); /* Darker effect */
 }
 
 .hero-section::before {
@@ -206,6 +213,8 @@ footer p {
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border: 2px solid #ff6f61;
+  padding: 20px;
+  height: 100%; /* Make sure the card takes up full height of its column */
 }
 
 .feature-card:hover {
@@ -222,6 +231,30 @@ footer p {
   color: #f1f1f1;
   text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
 }
+
+/* Ensuring equal height of columns */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between; /* Aligns the cards evenly across the row */
+}
+
+.col-md-4 {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Ensures spacing between items in each column */
+  padding: 10px;
+  height: 100%; /* Makes the columns stretch to fill the row */
+}
+
+@media (max-width: 767px) {
+  .col-md-4 {
+    /* For smaller screens, stack the cards */
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
 
 /* Custom Table Styling */
 table {
@@ -289,46 +322,48 @@ section p {
   .team-img {
     width: 120px;
     height: 120px;
-    border: 5px solid orange; /* Orange outline */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Adds a subtle shadow */
-    transition: transform 0.3s ease; /* Smooth scaling effect */
+    border: 5px solid orange;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
   }
 
   .btn-outline-dark {
     padding: 10px 20px;
   }
-}
-/* General Reset */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+
+  .hero-section {
+    background-position: top;
+  }
 }
 
-/* Responsive layout for smaller screens */
 @media (max-width: 768px) {
   body {
-    font-size: 16px; /* Adjust font size */
+    font-size: 16px;
     padding: 10px;
   }
 
   .container {
     display: flex;
-    flex-direction: column; /* Stack elements vertically */
+    flex-direction: column;
     padding: 5px;
   }
 
   img {
-    width: 100%; /* Prevent images from overflowing */
+    width: 100%;
     height: auto;
   }
 
   nav {
     display: flex;
-    flex-direction: column; /* Adjust nav links */
+    flex-direction: column;
     gap: 10px;
   }
+
+  .bot-image {
+    width: 70%;
+  }
 }
+
 /* Scroll Animation */
 .animate-on-scroll {
   opacity: 0;
@@ -350,25 +385,21 @@ section p {
 .fade-in.visible {
   opacity: 1;
 }
+
 /* Description Fonts Styling */
 .description {
-  font-family: "Roboto", sans-serif; /* Modern and clean font */
-  font-size: 28px; /* Adjust to your preference */
-  line-height: 1.3; /* Better readability */
-  color: #ffffff; /* Neutral text color for readability */
-  letter-spacing: 0.3px; /* Slight spacing for clarity */
-  text-align: center; /* Clean alignment for longer text */
+  font-family: "Roboto", sans-serif;
+  font-size: 28px;
+  line-height: 1.3;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+  text-align: center;
 }
 
 .description em {
-  font-style: italic; /* Emphasized text */
+  font-style: italic;
 }
 
 .description strong {
-  font-weight: bold; /* Bold for important points */
-}
-@media (max-width: 768px) {
-  .bot-image {
-    width: 70%; /* Adjust for smaller screens */
-  }
+  font-weight: bold;
 }
