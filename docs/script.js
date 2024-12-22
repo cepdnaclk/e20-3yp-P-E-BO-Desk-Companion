@@ -129,3 +129,14 @@ const adjustFontSize = () => {
 
 window.addEventListener("resize", adjustFontSize);
 document.addEventListener("DOMContentLoaded", adjustFontSize);
+// Add scroll event listener
+window.addEventListener("scroll", () => {
+  const hero = document.getElementById("hero");
+  const scrollY = window.scrollY;
+
+  if (scrollY > 50) {
+    hero.classList.add("shrink");
+  } else {
+    hero.classList.remove("shrink");
+  }
+});
