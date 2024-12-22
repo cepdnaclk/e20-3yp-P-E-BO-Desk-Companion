@@ -333,3 +333,8 @@ section p {
 .description strong {
   font-weight: bold; /* Bold for important points */
 }
+@media (max-width: 768px) {
+  .bot-image {
+    width: 70%; /* Adjust for smaller screens */
+  }
+}
