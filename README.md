@@ -1,5 +1,4 @@
-#
-PE-BO - DESK COMPANION
+# PE-BO - DESK COMPANION
 
 <p align="center">
   <img src="/docs/images/bot.png" height="200">
@@ -7,8 +6,7 @@ PE-BO - DESK COMPANION
 
 ## Overview
 
-PE-BO Desk Companion is an intelligent, interactive robot assistant designed to help with daily tasks and home automation. By integrating IoT, voice recognition, and face recognition,
- PE-BO adapts to the user's environment, maximizing convenience and interactivity. The system offers a seamless user experience with features like task automation, real-time communication, and emergency alerts, all controlled through voice commands and gestures.
+PE-BO Desk Companion is an intelligent, interactive robot assistant designed to help with daily tasks and home automation. By integrating IoT, voice recognition, and face recognition, PE-BO adapts to the user's environment, maximizing convenience and interactivity. The system offers a seamless user experience with features like task automation, real-time communication, and emergency alerts, all controlled through voice commands and gestures.
 
 <p align="center">
     <img src="/docs/images/alert.png" height="20">
@@ -61,11 +59,9 @@ PE-BO Desk Companion solves this problem by integrating IoT, AI, and real-time c
 
 ## Getting Started
 
-To start using
-PE-BO Desk Companion, follow these steps:
+To start using PE-BO Desk Companion, follow these steps:
 
-1. **Setup**: Install the
-PE-BO Desk Companion and connect it to your Wi-Fi and IoT devices.
+1. **Setup**: Install the PE-BO Desk Companion and connect it to your Wi-Fi and IoT devices.
 2. **Voice Command Setup**: Configure the voice recognition system and train the robot to recognize your commands.
 3. **Control Devices**: Use the mobile application or voice commands to control IoT devices and manage tasks.
 
