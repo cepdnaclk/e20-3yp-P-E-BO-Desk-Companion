@@ -12,6 +12,33 @@ document.querySelectorAll("a.nav-link").forEach((link) => {
   });
 });
 
+// Function to open modal
+function openModal() {
+  var modal = document.getElementById("myModal");
+  var modalImg = document.getElementById("img01");
+  
+  // Get the image that was clicked
+  var img = document.querySelector("#solution-architecture img");
+  
+  // Set the source of the modal image to be the clicked image
+  modal.style.display = "block";
+  modalImg.src = img.src;
+}
+
+// Function to close modal
+function closeModal() {
+  var modal = document.getElementById("myModal");
+  modal.style.display = "none";
+}
+
+// Close modal when clicked outside of the image
+window.onclick = function(event) {
+  var modal = document.getElementById("myModal");
+  if (event.target == modal) {
+    closeModal();
+  }
+}
+
 // Dark Mode Toggle with Animation
 const toggleDarkMode = () => {
   const body = document.body;

@@ -300,6 +300,162 @@ section h2 {
 section p {
   font-size: 1.1rem;
 }
+/* Solution Architecture Section */
+
+/* Modal Styles */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Fixed position */
+  z-index: 1; /* On top of other content */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scrolling if the image is too large */
+  background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent background */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  display: flex; /* Ensures the modal centers properly */
+  opacity: 0; /* Initially hidden */
+  visibility: hidden; /* Initially not visible */
+  transition: opacity 0.5s ease, visibility 0.5s ease; /* Smooth fade-in/fade-out */
+}
+
+/* Show the modal when it is active */
+.modal.show {
+  opacity: 1; /* Make the modal visible */
+  visibility: visible; /* Show the modal */
+}
+
+/* The Modal Image */
+.modal-content {
+  max-width: 80%; /* Restrict image size */
+  max-height: 80%; /* Restrict image height */
+  margin: auto;
+  transition: transform 0.3s ease;
+}
+
+/* Modal Image Hover Effect */
+.modal-content:hover {
+  transform: scale(1.05); /* Slight zoom effect */
+}
+
+/* Close Button */
+.close {
+  color: #fff;
+  font-size: 30px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 35px;
+  transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+  color: #f1f1f1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Solution Architecture Bullet Points */
+#solution-architecture ul {
+  list-style-type: none; /* Remove default bullet points */
+  padding-left: 0;
+  text-align: left;
+}
+
+#solution-architecture ul li {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  position: relative; /* Positioning for custom bullet points */
+  padding-left: 30px; /* Space for custom bullets */
+}
+
+#solution-architecture ul li::before {
+  content: "•"; /* Custom bullet symbol */
+  font-size: 2rem; /* Size of the bullet */
+  color: #ff6f61; /* Color of the bullet */
+  position: absolute; /* Position the bullet inside the li */
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%); /* Center the bullet vertically */
+}
+
+#solution-architecture ul li:hover {
+  color: #29b6f6; /* Change text color on hover */
+  transition: color 0.3s ease; /* Smooth color transition */
+}
+
+/* Solution Architecture Image */
+#solution-architecture img {
+  display: block;
+  max-width: 100%; /* Ensures the image doesn't overflow its container */
+  height: auto;
+  border-radius: 15px; /* Rounded corners for the image */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+  margin: 0 auto; /* Centers the image */
+  border: 5px solid #ff6f61; /* Light blue border */
+}
+
+/* Hover effects for the image */
+#solution-architecture img:hover {
+  transform: scale(1.05); /* Slight zoom effect */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Stronger shadow effect on hover */
+}
+/* Button Style for Portfolio Links */
+#team .btn-outline-light {
+    text-decoration: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#team .btn-outline-light:hover {
+    background-color: #ff6f61;  /* Color on hover */
+    color: #121212;
+}
+
+
+/* AOS Animation */
+[data-aos="fade-up"] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease-in-out;
+}
+
+[data-aos="fade-up"]:not([data-aos="fade-up"][data-aos-delay]) {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-aos="fade-up"]:not([data-aos="fade-up"][data-aos-delay]) {
+  transition-delay: 0.2s;
+}
+
+/* Responsiveness */
+@media (max-width: 767px) {
+  #solution-architecture h2 {
+    font-size: 2rem;
+  }
+
+  #solution-architecture p {
+    font-size: 1rem;
+  }
+
+  #solution-architecture ul li {
+    font-size: 1rem;
+  }
+
+  #solution-architecture img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px; /* Adjust border radius on smaller screens */
+  }
+}
 
 /* Media Queries for Responsiveness */
 @media (max-width: 767px) {
