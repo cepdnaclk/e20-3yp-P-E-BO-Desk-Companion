@@ -412,6 +412,8 @@ section p {
     padding: 10px 20px;
     font-size: 1rem;
     transition: background-color 0.3s, color 0.3s;
+    border: 1px solid orange;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 #team .btn-outline-light:hover {
