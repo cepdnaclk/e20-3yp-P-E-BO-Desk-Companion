@@ -10,19 +10,35 @@
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap');
 
-/* Apply Orbitron to all headings */
+//* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap');
+
+/* Headings - Orbitron */
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Orbitron', sans-serif;
     font-weight: 700; /* Bold for emphasis */
 }
 
-/* Apply Roboto to all body text */
-body, p, span, li, a, div {
+/* Body text - Roboto */
+body, p, span, li, div {
     font-family: 'Roboto', sans-serif;
-    font-weight: 400; /* Normal weight for readability */
+    font-weight: 500; /* Normal weight for readability */
 }
 
-/* Specific adjustments */
+/* Navbar, Hero Section, and Specific Elements - Orbitron */
+nav, .hero-section, .member-name, .numbers, a, button {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700; /* Emphasized look */
+    text-transform: uppercase; /* Optional: Gives a modern look */
+}
+
+/* Ensure buttons and links stand out */
+button, a {
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+/* Adjustments for readability */
 h1 {
     font-size: 2.5rem;
 }
@@ -37,8 +53,9 @@ h3 {
 
 p {
     font-size: 1rem;
-    line-height: 1.6; /* Improve readability */
+    line-height: 1.6;
 }
+
 
 /* Body and General Styles */
 body {
@@ -68,24 +85,69 @@ body {
 .navbar {
   background-color: #1a1a1a;
   border-bottom: 1px solid #444;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
+/* Navbar Brand (Logo) */
 .navbar .navbar-brand {
   font-size: 1.8rem;
   font-weight: bold;
+  font-family: 'Orbitron', sans-serif;
   color: #fff;
   text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
 }
 
-.navbar .nav-link {
-  color: #bbb !important;
-  text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+/* Navbar Links */
+.navbar .nav-links {
+  display: flex;
+  gap: 25px; /* Ensures proper spacing */
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
+/* Individual Navigation Items */
+.navbar .nav-links li {
+  display: inline-block;
+}
+
+/* Navigation Link Styles */
+.navbar .nav-link {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  color: #bbb !important;
+  text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+  text-decoration: none;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+/* Hover Effects */
 .navbar .nav-link:hover {
   color: #ffffff !important;
   text-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+}
+
 
 /* Hero Section */
 .hero-section {
