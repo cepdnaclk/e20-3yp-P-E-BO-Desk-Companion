@@ -6,7 +6,7 @@ import playsound
 import google.generativeai as genai
 
 # Set Gemini API Key
-genai.configure(api_key="AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q")  
+genai.configure(api_key="")  
 
 # Function to capture speech from microphone
 def listen():
