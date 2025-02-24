@@ -1,13 +1,12 @@
 
-
 import speech_recognition as sr
 from gtts import gTTS
 import playsound
 import google.generativeai as genai
+import os
 
-# Set Gemini API Key
-genai.configure(api_key="")  
-
+os.environ["GOOGLE_API_KEY"] = "AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 # Function to capture speech from microphone
 def listen():
     recognizer = sr.Recognizer()
@@ -28,13 +27,20 @@ def listen():
             print("Speech recognition service not available.")
             return None
 
+
+
 def chat_with_gemini(prompt):
-    # Assuming you have the correct Gemini API and methods for generating responses
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModelAPI(model_name="gemini-1.5-flash")
     response = model.generate_content(prompt)
+    
+    response_text = response.text if hasattr(response, "text") else "Sorry, I couldn't generate a response."
+
     with open("conversation_log.txt", "a") as file:
-        file.write("Gemini: " + response.text + "\n")
-    return response.text
+        file.write("Gemini: " + response_text + "\n")
+
+    return response_text
+
+
 
 def speak(text):
     tts = gTTS(text=text, lang='en')
