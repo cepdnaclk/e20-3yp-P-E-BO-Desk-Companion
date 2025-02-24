@@ -11,7 +11,7 @@ from datetime import date
 pygame.mixer.init()
 
 # Set the Google Gemini API key (replace with your actual API key)
-genai.configure(api_key="AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q")
+genai.configure(api_key="")
 
 today = str(date.today())
 

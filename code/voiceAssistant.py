@@ -27,7 +27,7 @@ import speech_recognition as sr
 import google.generativeai as genai
 
 # Configure API key
-genai.configure(api_key="YOURAIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q")
+genai.configure(api_key="")
 
 # Correct way to initialize the model
 model = genai.GenerativeModel(model_name="gemini-1.5-flash")

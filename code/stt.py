@@ -5,7 +5,7 @@ import playsound
 import google.generativeai as genai
 import os
 
-os.environ["GOOGLE_API_KEY"] = "AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"
+os.environ["GOOGLE_API_KEY"] = ""
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 # Function to capture speech from microphone
 def listen():
