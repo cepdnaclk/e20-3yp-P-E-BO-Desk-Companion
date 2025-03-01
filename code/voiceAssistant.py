@@ -1,4 +1,3 @@
-
 from datetime import date
 from io import BytesIO
 import threading
@@ -13,28 +12,42 @@ os.environ["GLOG_minloglevel"] = "2"
 
 import google.generativeai as genai
 from gtts import gTTS
-#from gpiozero import LED
+from gpiozero import LED
  
 from pygame import mixer 
 import speech_recognition as sr
 
-#import sounddevice 
+import sounddevice 
 
 # Using Raspberry Pi's 3.3v GPIO pins 24 and 25 for LEDs
-#gled = LED(24) 
-#rled = LED(25)
+gled = LED(24) 
+rled = LED(25)
 
-import google.generativeai as genai
+mixer.pre_init(frequency=24000, buffer=2048) 
+mixer.init()
 
-# Configure API key
-genai.configure(api_key="")
+# add your Google Gemini API key here
+my_api_key = " api"
 
-# Correct way to initialize the model
-model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+if len(my_api_key) < 5:
+    print(f"Please add your Google Gemini API key in the program. \n " )
+    quit() 
 
-# Example usage
-response = model.generate_content("Hello, how does AI work?")
-print(response.text)
+# set Google Gemini API key as a system environment variable or add it here
+genai.configure(api_key= my_api_key)
+
+# model of Google Gemini API
+model = genai.GenerativeModel('gemini-1.5-flash',
+    generation_config=genai.GenerationConfig(
+        candidate_count=1,
+        top_p = 0.95,
+        top_k = 64,
+        max_output_tokens=60, # 100 tokens correspond to roughly 60-80 words.
+        temperature = 0.9,
+    ))
+
+# start the chat model 
+chat = model.start_chat(history=[])
 
 
 today = str(date.today())
@@ -122,11 +135,11 @@ def speak_text(text):
     except KeyboardInterrupt:
         mixer.music.stop()
         mp3file = None
-        #rled.off() 
+        rled.off() 
 
     mp3file = None
 
-    #rled.off() 
+    rled.off() 
   
 # thread 2 for tts    
 def text2speech(text_queue, tts_done, llm_done, audio_queue, stop_event):
@@ -177,7 +190,7 @@ def play_audio(audio_queue,tts_done, stop_event):
         mp3audio1 = BytesIO() 
         mp3audio1 = audio_queue.get()  
         mp3audio1.seek(0)          
-        #rled.on()
+        rled.on()
         
         mixer.music.load(mp3audio1, "mp3")
         mixer.music.play()
@@ -192,7 +205,7 @@ def play_audio(audio_queue,tts_done, stop_event):
         
         #print("\n numtts, numaudio : ", numtts , numaudio)
             
-        #rled.off()
+        rled.off()
  
         if tts_done.is_set() and numtts  == numaudio: 
             mp3audio1 = None
@@ -209,15 +222,16 @@ def append2log(text):
       
 # define default language to work with the AI model 
 slang = "en-EN"
+# Define a list to store the conversation history
+conversation_history = []
 
-# Main function  
 def main():
     global today, slang, numtext, numtts, numaudio, messages, rled, gled
     
     rec = sr.Recognizer()
     mic = sr.Microphone()
     
-    rec.dynamic_energy_threshold=False
+    rec.dynamic_energy_threshold = False
     rec.energy_threshold = 400   
   
     sleeping = True 
@@ -225,81 +239,59 @@ def main():
     while True:     
         
         with mic as source:            
-            rec.adjust_for_ambient_noise(source, duration= 0.5)
+            rec.adjust_for_ambient_noise(source, duration=0.5)
 
             try: 
                 gled.on()
                 print("Listening ...")                
-                audio = rec.listen(source, timeout = 10 ) #, phrase_time_limit = 30) 
-                text =  rec.recognize_google(audio, language=slang) #   # rec.recognize_wit(audio, key=wit_api_key ) #
-                # print(text)
+                audio = rec.listen(source, timeout=10) 
+                text = rec.recognize_google(audio, language=slang)
                 
-                if len(text)>0:
-                    print(f"You: {text}\n " )
+                if len(text) > 0:
+                    print(f"You: {text}\n")
                 else:
-                    #print(f"Unable to recognize your speech. Program will exit. \n " )
                     continue  
                 
                 gled.off()                 
+                
                 # AI is in sleeping mode
-                if sleeping == True:
-                    # User can start the conversation with the wake word "Jack"
-                    # This word can be chagned below. 
+                if sleeping:
                     if "jack" in text.lower():
                         request = text.lower().split("jack")[1]
                         
-                        # User said wake word, AI is awake now,
+                        # Wake AI
                         sleeping = False
-                         
-                        # start a new conversation
                         chat = model.start_chat(history=[])
-
-                        append2log(f"_"*40)                    
+                        append2log(f"_" * 40)                    
                         today = str(date.today())  
-                        
-                        messages = []                      
-                     
-                        # if the user's question is none or too short, skip 
+                        messages = []  
+
                         if len(request) < 2:
- 
-                            speak_text("Hi, there, how can I help?")
-                            #append2log(f"AI: Hi, there, how can I help? \n")
-                            continue                      
- 
-                    # if user did not say the wake word, nothing will happen 
+                            speak_text("Hi there, how can I help?")
+                            continue   
                     else:
-                        #print(f"Please start the conversation with the wake word. \n " )
                         continue
-                      
-                # AI is awake         
                 else: 
-                    
                     request = text.lower()
 
                     if "that's all" in request:
-                                               
                         append2log(f"You: {request}\n")
-                        
                         speak_text("Bye now")
-                        
-                        append2log(f"AI: Bye now. \n")                        
- 
+                        append2log(f"AI: Bye now.\n")                        
                         sleeping = True
-                        # AI goes back to speeling mode
                         continue
                     
                     if "jack" in request:
                         request = request.split("jack")[1]
                         
                 if len(request) == 0:
-                    #print(f"Unable to recognize your question. Program will exit. \n " )
                     continue                
-                        
-                # process user's request (question)
-                append2log(f"You: {request}\n ")
 
-                #print(f"AI: ", end='')
-                
+                # 🆕 Add conversation history before calling AI
+                conversation_history.append({"role": "user", "parts": ["Answer briefly with max two sentences: " + request]})
+
+                append2log(f"You: {request}\n")
+
                 # Initialize the counters before each reply from AI 
                 numtext = 0 
                 numtts = 0 
@@ -315,13 +307,13 @@ def main():
                 stop_event = threading.Event()                
      
                 # Thread 1 for handling the LLM responses 
-                llm_thread = threading.Thread(target=chatfun, args=(request, text_queue,llm_done,stop_event,))
+                llm_thread = threading.Thread(target=chatfun, args=(request, text_queue, llm_done, stop_event,))
 
                 # Thread 2 for text-to-speech 
-                tts_thread = threading.Thread(target=text2speech, args=(text_queue,tts_done,llm_done, audio_queue, stop_event,))
+                tts_thread = threading.Thread(target=text2speech, args=(text_queue, tts_done, llm_done, audio_queue, stop_event,))
                 
                 # Thread 3 for audio playback 
-                play_thread = threading.Thread(target=play_audio, args=(audio_queue,tts_done, stop_event,))
+                play_thread = threading.Thread(target=play_audio, args=(audio_queue, tts_done, stop_event,))
  
                 llm_thread.start()
                 tts_thread.start()
@@ -329,22 +321,20 @@ def main():
                 
                 # wait for LLM to finish responding
                 llm_done.wait()
-
                 llm_thread.join() 
                 
                 tts_done.wait()
-                
                 audio_queue.join()
  
                 stop_event.set()  
                 tts_thread.join()
- 
                 play_thread.join()  
  
                 print('\n')
  
             except Exception as e:
                 continue 
+ 
  
 if __name__ == "__main__":
     main()

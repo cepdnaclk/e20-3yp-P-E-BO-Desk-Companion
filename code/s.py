@@ -9,7 +9,7 @@ import edge_tts
 pygame.mixer.init()
 
 # Set up Google Gemini API key
-GOOGLE_API_KEY = "AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"  # Replace with your actual API key
+GOOGLE_API_KEY = "api"  
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Initialize the Gemini model
