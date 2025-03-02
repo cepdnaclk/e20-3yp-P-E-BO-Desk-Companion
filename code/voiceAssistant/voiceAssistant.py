@@ -20,14 +20,14 @@ import speech_recognition as sr
 import sounddevice 
 
 # Using Raspberry Pi's 3.3v GPIO pins 24 and 25 for LEDs
-gled = LED(24) 
-rled = LED(25)
+gled = LED(5) 
+rled = LED(6)
 
 mixer.pre_init(frequency=24000, buffer=2048) 
 mixer.init()
 
 # add your Google Gemini API key here
-my_api_key = " AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"
+my_api_key = "AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"
 
 if len(my_api_key) < 5:
     print(f"Please add your Google Gemini API key in the program. \n " )
