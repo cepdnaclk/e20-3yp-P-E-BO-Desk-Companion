@@ -3,7 +3,23 @@ Replace the mock GPIO class with:
 
     import RPi.GPIO as GPIO
 
+    Replace the mock GPIO class with the real one by uncommenting import RPi.GPIO as GPIO
+    Make sure pyttsx3 and pygame are installed
+    Run the program: python robot_controller.py
 
-Replace the mock GPIO class with the real one by uncommenting import RPi.GPIO as GPIO
-Make sure pyttsx3 and pygame are installed
-Run the program: python robot_controller.py
+
+arm movements
+
+Motion-Based Expressions: Each emotion now has a dedicated function that creates a unique sequence of movements:
+
+    ANGRY: Rapid up-and-down movements of both arms (3 repetitions)
+    SURPRISED: Quick raise of both arms followed by a slight lower and hold
+    HAPPY: Waving both arms up and down in a celebratory pattern
+    CALM: Slow, gentle movements from middle to slightly down and back
+    FEAR: Defensive position with a trembling effect
+    DISGUSTED: One arm up, one down, with a pushing away motion
+    CONFUSED: Alternating arm positions to simulate uncertainty
+    SAD: Slow drooping of both arms from middle to down
+
+Reset Function: After each emotion expression, the arms return to a neutral position (90° for both servos)
+
