@@ -27,7 +27,7 @@ mixer.pre_init(frequency=24000, buffer=2048)
 mixer.init()
 
 # add your Google Gemini API key here
-my_api_key = " api"
+my_api_key = " AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"
 
 if len(my_api_key) < 5:
     print(f"Please add your Google Gemini API key in the program. \n " )
@@ -256,8 +256,8 @@ def main():
                 
                 # AI is in sleeping mode
                 if sleeping:
-                    if "jack" in text.lower():
-                        request = text.lower().split("jack")[1]
+                    if "Pebo" in text.lower():
+                        request = text.lower().split("Pebo")[1]
                         
                         # Wake AI
                         sleeping = False
@@ -281,8 +281,8 @@ def main():
                         sleeping = True
                         continue
                     
-                    if "jack" in request:
-                        request = request.split("jack")[1]
+                    if "Pebo" in request:
+                        request = request.split("Pebo")[1]
                         
                 if len(request) == 0:
                     continue                
