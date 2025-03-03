@@ -5,8 +5,8 @@ from time import sleep
 
 # AWS S3 Configuration
 # AWS S3 Configuration
-ACCESS_KEY = "ACCkEY"
-SECRET_KEY = "SEQ"
+ACCESS_KEY = ""
+SECRET_KEY = ""
 BUCKET_NAME = "pebo-user-images"
 IMAGE_NAME = "captured.jpg"
 LOCAL_IMAGE_PATH = f"/home/pi/{IMAGE_NAME}"
