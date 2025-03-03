@@ -16,7 +16,7 @@ CHANNELS = 1
 RATE = 44100  # CD quality sample rate
 RECORD_SECONDS = 5  # Record in 5-second chunks
 FRAMES_PER_CHUNK = int(RATE / CHUNK * RECORD_SECONDS)
-SILENCE_THRESHOLD = 300  # Threshold for silence detection
+SILENCE_THRESHOLD = 50  # Lowered threshold for silence detection (was 300)
 
 # MQTT settings
 MQTT_BROKER = "broker.emqx.io"
@@ -32,6 +32,7 @@ class LaptopVoiceCall:
         self.stream_thread = None
         self.audio_buffer = deque(maxlen=10)  # Playback buffer for 5-second chunks
         self.playing = False
+        self.silence_detection_enabled = True  # New flag to control silence detection
         
         # Initialize MQTT client
         client_id = f"laptop_{user_id}_{int(time.time())}"
@@ -124,14 +125,21 @@ class LaptopVoiceCall:
             print("Audio playback thread stopped")
     
     def is_silent(self, audio_data, threshold=None):
+        if not self.silence_detection_enabled:
+            return False  # Always return not silent when detection is disabled
+            
         if threshold is None:
             threshold = SILENCE_THRESHOLD
         
         try:
             data = np.frombuffer(audio_data, dtype=np.int16)
             amplitude = np.abs(data).mean()
-            return amplitude < threshold
-        except:
+            is_silent = amplitude < threshold
+            if is_silent:
+                print(f"Detected silence (amplitude: {amplitude}, threshold: {threshold})")
+            return is_silent
+        except Exception as e:
+            print(f"Error in silence detection: {e}")
             return False
     
     def initiate_call(self, recipient):
@@ -215,7 +223,7 @@ class LaptopVoiceCall:
                 # Combine all frames into one audio chunk
                 audio_chunk = b''.join(frames)
                 
-                # Check if the chunk is not silent
+                # Check if the chunk is not silent or if silence detection is disabled
                 if not self.is_silent(audio_chunk):
                     print(f"Sending 5-second audio chunk ({len(audio_chunk)/1024:.1f} KB)")
                     result = self.client.publish(f"laptop/voice/{self.other_user}", audio_chunk, qos=QOS_LEVEL)
@@ -239,6 +247,8 @@ class LaptopVoiceCall:
         print("  accept           - Accept incoming call")
         print("  end              - End current call")
         print("  status           - Show current status")
+        print("  silence <on/off> - Enable/disable silence detection")
+        print("  threshold <value> - Set silence detection threshold (default: 50)")
         print("  exit             - Exit application")
         
         while True:
@@ -259,6 +269,26 @@ class LaptopVoiceCall:
                         print(f"Call pending with {self.other_user}")
                     else:
                         print("Not in a call")
+                    print(f"Silence detection: {'Enabled' if self.silence_detection_enabled else 'Disabled'}")
+                    print(f"Silence threshold: {SILENCE_THRESHOLD}")
+                elif command.startswith("silence "):
+                    option = command.split(" ")[1]
+                    if option == "on":
+                        self.silence_detection_enabled = True
+                        print("Silence detection enabled")
+                    elif option == "off":
+                        self.silence_detection_enabled = False
+                        print("Silence detection disabled")
+                    else:
+                        print("Invalid option. Use 'on' or 'off'")
+                elif command.startswith("threshold "):
+                    try:
+                        value = int(command.split(" ")[1])
+                        global SILENCE_THRESHOLD
+                        SILENCE_THRESHOLD = value
+                        print(f"Silence threshold set to {value}")
+                    except:
+                        print("Invalid value. Please enter a number.")
                 elif command == "exit":
                     if self.call_active:
                         self.end_call()
