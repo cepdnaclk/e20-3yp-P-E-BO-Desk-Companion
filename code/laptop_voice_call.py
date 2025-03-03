@@ -9,17 +9,18 @@ import os
 import numpy as np
 from collections import deque
 
-# Enhanced audio settings for real-time communication
-CHUNK = 1024  # Increased chunk size for better stability
+# Enhanced audio settings for better quality
+CHUNK = 2048  # Larger chunk size for better processing
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
-RATE = 16000  # Reduced sample rate for lower bandwidth
-SILENCE_THRESHOLD = 300  # Threshold for silence detection
+RATE = 16000
+SILENCE_THRESHOLD = 300
+RECORDING_SECONDS = 6  # Record in 6-second segments
 
 # MQTT settings
-MQTT_BROKER = "broker.emqx.io"  # Consider using a local broker
+MQTT_BROKER = "broker.emqx.io"
 MQTT_PORT = 1883
-QOS_LEVEL = 0  # Changed to 0 for lower latency
+QOS_LEVEL = 1  # Using QoS 1 for better reliability
 
 # Network performance monitoring
 class NetworkStats:
@@ -42,14 +43,14 @@ class LaptopVoiceCall:
         self.other_user = None
         self.call_active = False
         self.audio = pyaudio.PyAudio()
-        self.stream_thread = None
+        self.record_thread = None
+        self.playback_thread = None
         
-        # Dynamic buffer size based on network conditions
-        self.min_buffer_size = 3
-        self.max_buffer_size = 15
-        self.current_buffer_size = 8
-        self.audio_buffer = deque(maxlen=self.current_buffer_size)
+        # Audio buffers
+        self.recording_buffer = []
+        self.playback_buffer = deque(maxlen=5)  # Store up to 5 audio segments
         
+        self.recording = False
         self.playing = False
         self.network_stats = NetworkStats()
         
@@ -59,7 +60,7 @@ class LaptopVoiceCall:
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         
-        print(f"Initializing voice call system as {client_id}...")
+        print(f"Initializing buffered voice call system as {client_id}...")
         
         # Connect to MQTT broker
         try:
@@ -98,12 +99,10 @@ class LaptopVoiceCall:
             elif action == "call_accept" and caller == self.other_user:
                 print(f"Call accepted by {caller}")
                 self.call_active = True
-                # Start ping thread for network monitoring
+                # Start network monitoring
                 threading.Thread(target=self.network_ping, daemon=True).start()
-                self.stream_thread = threading.Thread(target=self.stream_voice)
-                self.stream_thread.daemon = True
-                self.stream_thread.start()
-                threading.Thread(target=self.continuous_audio_playback, daemon=True).start()
+                # Start audio recording and playback
+                self.start_audio_streams()
                 
             elif action == "call_end":
                 if self.call_active or self.other_user == caller:
@@ -112,7 +111,7 @@ class LaptopVoiceCall:
                     self.other_user = None
             
             elif action == "ping":
-                # Respond to ping requests for latency measurement
+                # Respond to ping requests
                 response_data = {
                     "action": "pong",
                     "id": data.get("id"),
@@ -121,13 +120,11 @@ class LaptopVoiceCall:
                 self.client.publish(f"laptop/control/{caller}", json.dumps(response_data), qos=QOS_LEVEL)
             
             elif action == "pong":
-                # Calculate latency from ping response
+                # Calculate latency
                 now = int(time.time() * 1000)
-                ping_id = data.get("id")
                 sent_time = int(data.get("timestamp", 0))
                 latency = now - sent_time
                 self.network_stats.add_latency_sample(latency)
-                self._adjust_buffer_size()
                 
         except Exception as e:
             print(f"Error handling control message: {e}")
@@ -146,40 +143,77 @@ class LaptopVoiceCall:
                 }
                 self.client.publish(f"laptop/control/{self.other_user}", 
                                    json.dumps(ping_data), qos=QOS_LEVEL)
-                time.sleep(2)  # Send ping every 2 seconds
+                time.sleep(2)
             except Exception as e:
                 print(f"Ping error: {e}")
-    
-    def _adjust_buffer_size(self):
-        """Dynamically adjust buffer size based on network conditions"""
-        avg_latency = self.network_stats.get_average_latency()
-        
-        # Adjust buffer size based on latency
-        if avg_latency > 200:  # High latency
-            new_size = min(self.current_buffer_size + 1, self.max_buffer_size)
-        elif avg_latency < 50:  # Low latency
-            new_size = max(self.current_buffer_size - 1, self.min_buffer_size)
-        else:
-            return  # No change needed
-            
-        if new_size != self.current_buffer_size:
-            self.current_buffer_size = new_size
-            new_buffer = deque(self.audio_buffer, maxlen=self.current_buffer_size)
-            self.audio_buffer = new_buffer
-            print(f"Buffer size adjusted to {self.current_buffer_size} (Latency: {avg_latency}ms)")
     
     def handle_voice(self, payload):
         if self.call_active:
             timestamp = int(time.time() * 1000)
             if self.network_stats.last_packet_time > 0:
                 packet_interval = timestamp - self.network_stats.last_packet_time
-                if packet_interval > 500:  # Detect potential packet loss
+                if packet_interval > 7000:  # Detect potential packet loss for 6-second segments
                     self.network_stats.packet_loss += 1
             
             self.network_stats.last_packet_time = timestamp
-            self.audio_buffer.append(payload)
+            self.playback_buffer.append(payload)
     
-    def continuous_audio_playback(self):
+    def start_audio_streams(self):
+        """Start audio recording and playback threads"""
+        if not self.recording:
+            self.record_thread = threading.Thread(target=self.record_audio)
+            self.record_thread.daemon = True
+            self.record_thread.start()
+        
+        if not self.playing:
+            self.playback_thread = threading.Thread(target=self.playback_audio)
+            self.playback_thread.daemon = True
+            self.playback_thread.start()
+    
+    def record_audio(self):
+        """Record audio in 6-second segments and send"""
+        print("\nAudio recording started. Speak now! (Call in progress)")
+        print("------------------------------------------------------")
+        self.recording = True
+        
+        stream = self.audio.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
+            input=True,
+            frames_per_buffer=CHUNK
+        )
+        
+        try:
+            while self.call_active:
+                self.recording_buffer = []
+                
+                # Record for specified duration
+                for i in range(0, int(RATE / CHUNK * RECORDING_SECONDS)):
+                    if not self.call_active:
+                        break
+                    data = stream.read(CHUNK, exception_on_overflow=False)
+                    self.recording_buffer.append(data)
+                
+                # Check if we have a full segment and if it's not just silence
+                if self.recording_buffer and self.call_active:
+                    full_audio = b''.join(self.recording_buffer)
+                    
+                    # Only send if not silent
+                    if not self.is_silent(full_audio, threshold=SILENCE_THRESHOLD):
+                        print("Sending audio segment...")
+                        self.client.publish(f"laptop/voice/{self.other_user}", full_audio, qos=QOS_LEVEL)
+        
+        except Exception as e:
+            print(f"Error in audio recording: {e}")
+        finally:
+            stream.stop_stream()
+            stream.close()
+            self.recording = False
+            print("Audio recording stopped.")
+    
+    def playback_audio(self):
+        """Play received audio segments"""
         print("Audio playback thread started")
         self.playing = True
         
@@ -193,19 +227,20 @@ class LaptopVoiceCall:
         
         try:
             while self.call_active:
-                if len(self.audio_buffer) > 0:
-                    audio_data = self.audio_buffer.popleft()
+                if self.playback_buffer:
+                    audio_data = self.playback_buffer.popleft()
+                    print("Playing received audio segment...")
                     output_stream.write(audio_data)
                 else:
-                    time.sleep(0.01)
+                    time.sleep(0.1)  # Wait for more audio
                     
         except Exception as e:
-            print(f"Audio playback thread error: {e}")
+            print(f"Audio playback error: {e}")
         finally:
             output_stream.stop_stream()
             output_stream.close()
             self.playing = False
-            print("Audio playback thread stopped")
+            print("Audio playback stopped.")
     
     def is_silent(self, audio_data, threshold=None):
         if threshold is None:
@@ -249,13 +284,11 @@ class LaptopVoiceCall:
         self.client.publish(f"laptop/control/{self.other_user}", json.dumps(control_data), qos=QOS_LEVEL)
         self.call_active = True
         
-        # Start ping thread for network monitoring
+        # Start network monitoring
         threading.Thread(target=self.network_ping, daemon=True).start()
         
-        self.stream_thread = threading.Thread(target=self.stream_voice)
-        self.stream_thread.daemon = True
-        self.stream_thread.start()
-        threading.Thread(target=self.continuous_audio_playback, daemon=True).start()
+        # Start audio recording and playback
+        self.start_audio_streams()
         
         print(f"Call with {self.other_user} started!")
         return True
@@ -286,51 +319,13 @@ class LaptopVoiceCall:
         self.other_user = None
         return True
     
-    def stream_voice(self):
-        print("\nVoice streaming started. Speak now! (Call in progress)")
-        print("------------------------------------------------------")
-        
-        stream = self.audio.open(
-            format=FORMAT,
-            channels=CHANNELS,
-            rate=RATE,
-            input=True,
-            frames_per_buffer=CHUNK
-        )
-        
-        # Rate limiting for sending packets
-        last_sent = 0
-        min_send_interval = 15  # milliseconds
-        
-        while self.call_active:
-            try:
-                audio_data = stream.read(CHUNK, exception_on_overflow=False)
-                
-                # Basic rate limiting to avoid overwhelming network
-                now = int(time.time() * 1000)
-                if now - last_sent < min_send_interval:
-                    time.sleep(0.005)  # Short sleep
-                    continue
-                
-                if not self.is_silent(audio_data):
-                    result = self.client.publish(f"laptop/voice/{self.other_user}", audio_data, qos=QOS_LEVEL)
-                    last_sent = int(time.time() * 1000)
-            except Exception as e:
-                print(f"Error in voice streaming: {e}")
-                time.sleep(0.01)
-        
-        stream.stop_stream()
-        stream.close()
-        print("Voice streaming ended.")
-    
     def interactive_console(self):
-        print(f"=== Laptop Voice Call System ({self.user_id}) ===")
+        print(f"=== Laptop Buffered Voice Call System ({self.user_id}) ===")
         print("Commands:")
         print("  call <user_id>   - Start a call with another laptop")
         print("  accept           - Accept incoming call")
         print("  end              - End current call")
         print("  status           - Show current status")
-        print("  buffer <size>    - Set buffer size (3-15)")
         print("  exit             - Exit application")
         
         while True:
@@ -349,23 +344,11 @@ class LaptopVoiceCall:
                         avg_latency = self.network_stats.get_average_latency()
                         print(f"In call with {self.other_user}")
                         print(f"Network stats - Latency: {avg_latency:.1f}ms, " +
-                              f"Buffer size: {self.current_buffer_size}")
+                              f"Packet loss events: {self.network_stats.packet_loss}")
                     elif self.other_user:
                         print(f"Call pending with {self.other_user}")
                     else:
                         print("Not in a call")
-                elif command.startswith("buffer "):
-                    try:
-                        size = int(command.split(" ")[1])
-                        if 3 <= size <= 15:
-                            self.current_buffer_size = size
-                            new_buffer = deque(self.audio_buffer, maxlen=size)
-                            self.audio_buffer = new_buffer
-                            print(f"Buffer size set to {size}")
-                        else:
-                            print("Buffer size must be between 3 and 15")
-                    except:
-                        print("Invalid buffer size")
                 elif command == "exit":
                     if self.call_active:
                         self.end_call()
@@ -384,7 +367,7 @@ class LaptopVoiceCall:
         print("Exiting Laptop Voice Call System")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Laptop Voice Call System')
+    parser = argparse.ArgumentParser(description='Laptop Voice Call System with Buffered Audio')
     parser.add_argument('user_id', type=str, help='Unique user ID (e.g., alice, bob)')
     parser.add_argument('--broker', type=str, default=MQTT_BROKER, 
                         help=f'MQTT broker address (default: {MQTT_BROKER})')
@@ -394,8 +377,8 @@ if __name__ == "__main__":
                         help=f'Audio sample rate (default: {RATE})')
     parser.add_argument('--chunk', type=int, default=CHUNK, 
                         help=f'Audio chunk size (default: {CHUNK})')
-    parser.add_argument('--buffer', type=int, default=8, 
-                        help='Initial buffer size (3-15, default: 8)')
+    parser.add_argument('--record-time', type=int, default=RECORDING_SECONDS, 
+                        help=f'Recording time per segment in seconds (default: {RECORDING_SECONDS})')
     args = parser.parse_args()
     
     # Update global settings based on command line arguments
@@ -403,14 +386,10 @@ if __name__ == "__main__":
     MQTT_PORT = args.port
     RATE = args.rate
     CHUNK = args.chunk
+    RECORDING_SECONDS = args.record_time
     
     # Initialize the application
     laptop_call = LaptopVoiceCall(args.user_id)
     
-    # Set initial buffer size
-    if 3 <= args.buffer <= 15:
-        laptop_call.current_buffer_size = args.buffer
-        laptop_call.audio_buffer = deque(maxlen=args.buffer)
-    
     # Start the interactive console
-    laptop_call.interactive_console()
+    laptop_call.interactive_console()232222
