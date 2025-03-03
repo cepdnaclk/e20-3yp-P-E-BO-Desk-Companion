@@ -9,11 +9,13 @@ import os
 import numpy as np
 from collections import deque
 
-# Enhanced audio settings for real-time communication
-CHUNK = 512  # Smaller chunk size for lower latency
+# Audio settings for 5-second chunks
+CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100  # CD quality sample rate
+RECORD_SECONDS = 5  # Record in 5-second chunks
+FRAMES_PER_CHUNK = int(RATE / CHUNK * RECORD_SECONDS)
 SILENCE_THRESHOLD = 300  # Threshold for silence detection
 
 # MQTT settings
@@ -28,7 +30,7 @@ class LaptopVoiceCall:
         self.call_active = False
         self.audio = pyaudio.PyAudio()
         self.stream_thread = None
-        self.audio_buffer = deque(maxlen=20)  # Playback buffer
+        self.audio_buffer = deque(maxlen=10)  # Playback buffer for 5-second chunks
         self.playing = False
         
         # Initialize MQTT client
@@ -76,7 +78,7 @@ class LaptopVoiceCall:
             elif action == "call_accept" and caller == self.other_user:
                 print(f"Call accepted by {caller}")
                 self.call_active = True
-                self.stream_thread = threading.Thread(target=self.stream_voice)
+                self.stream_thread = threading.Thread(target=self.record_and_send_chunks)
                 self.stream_thread.daemon = True
                 self.stream_thread.start()
                 threading.Thread(target=self.continuous_audio_playback, daemon=True).start()
@@ -111,7 +113,7 @@ class LaptopVoiceCall:
                     audio_data = self.audio_buffer.popleft()
                     output_stream.write(audio_data)
                 else:
-                    time.sleep(0.01)
+                    time.sleep(0.1)  # Longer sleep since we're dealing with larger chunks
                     
         except Exception as e:
             print(f"Audio playback thread error: {e}")
@@ -162,7 +164,7 @@ class LaptopVoiceCall:
         
         self.client.publish(f"laptop/control/{self.other_user}", json.dumps(control_data), qos=QOS_LEVEL)
         self.call_active = True
-        self.stream_thread = threading.Thread(target=self.stream_voice)
+        self.stream_thread = threading.Thread(target=self.record_and_send_chunks)
         self.stream_thread.daemon = True
         self.stream_thread.start()
         threading.Thread(target=self.continuous_audio_playback, daemon=True).start()
@@ -190,8 +192,8 @@ class LaptopVoiceCall:
         self.other_user = None
         return True
     
-    def stream_voice(self):
-        print("\nVoice streaming started. Speak now! (Call in progress)")
+    def record_and_send_chunks(self):
+        print("\nVoice recording started. Recording in 5-second chunks! (Call in progress)")
         print("------------------------------------------------------")
         
         stream = self.audio.open(
@@ -204,18 +206,31 @@ class LaptopVoiceCall:
         
         while self.call_active:
             try:
-                audio_data = stream.read(CHUNK, exception_on_overflow=False)
-                if not self.is_silent(audio_data):
-                    result = self.client.publish(f"laptop/voice/{self.other_user}", audio_data, qos=QOS_LEVEL)
+                print("Recording 5-second chunk...")
+                frames = []
+                for i in range(0, FRAMES_PER_CHUNK):
+                    data = stream.read(CHUNK, exception_on_overflow=False)
+                    frames.append(data)
+                
+                # Combine all frames into one audio chunk
+                audio_chunk = b''.join(frames)
+                
+                # Check if the chunk is not silent
+                if not self.is_silent(audio_chunk):
+                    print(f"Sending 5-second audio chunk ({len(audio_chunk)/1024:.1f} KB)")
+                    result = self.client.publish(f"laptop/voice/{self.other_user}", audio_chunk, qos=QOS_LEVEL)
                     if not result.is_published():
-                        result.wait_for_publish(timeout=0.1)
+                        result.wait_for_publish(timeout=1.0)
+                else:
+                    print("Chunk was mostly silent, not sending")
+                    
             except Exception as e:
-                print(f"Error in voice streaming: {e}")
-                time.sleep(0.01)
+                print(f"Error in recording: {e}")
+                time.sleep(0.5)
         
         stream.stop_stream()
         stream.close()
-        print("Voice streaming ended.")
+        print("Voice recording ended.")
     
     def interactive_console(self):
         print(f"=== Laptop Voice Call System ({self.user_id}) ===")
