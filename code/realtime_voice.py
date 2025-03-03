@@ -16,7 +16,7 @@ CHANNELS = 1
 RATE = 44100  # CD quality sample rate
 RECORD_SECONDS = 5  # Record in 5-second chunks
 FRAMES_PER_CHUNK = int(RATE / CHUNK * RECORD_SECONDS)
-SILENCE_THRESHOLD = 50  # Lowered threshold for silence detection (was 300)
+SILENCE_THRESHOLD = 50  # Lowered threshold for silence detection
 
 # MQTT settings
 MQTT_BROKER = "broker.emqx.io"
@@ -33,6 +33,7 @@ class LaptopVoiceCall:
         self.audio_buffer = deque(maxlen=10)  # Playback buffer for 5-second chunks
         self.playing = False
         self.silence_detection_enabled = True  # New flag to control silence detection
+        self.silence_threshold = SILENCE_THRESHOLD  # Instance variable for threshold
         
         # Initialize MQTT client
         client_id = f"laptop_{user_id}_{int(time.time())}"
@@ -129,7 +130,7 @@ class LaptopVoiceCall:
             return False  # Always return not silent when detection is disabled
             
         if threshold is None:
-            threshold = SILENCE_THRESHOLD
+            threshold = self.silence_threshold
         
         try:
             data = np.frombuffer(audio_data, dtype=np.int16)
@@ -270,7 +271,7 @@ class LaptopVoiceCall:
                     else:
                         print("Not in a call")
                     print(f"Silence detection: {'Enabled' if self.silence_detection_enabled else 'Disabled'}")
-                    print(f"Silence threshold: {SILENCE_THRESHOLD}")
+                    print(f"Silence threshold: {self.silence_threshold}")
                 elif command.startswith("silence "):
                     option = command.split(" ")[1]
                     if option == "on":
@@ -284,8 +285,7 @@ class LaptopVoiceCall:
                 elif command.startswith("threshold "):
                     try:
                         value = int(command.split(" ")[1])
-                        global SILENCE_THRESHOLD
-                        SILENCE_THRESHOLD = value
+                        self.silence_threshold = value
                         print(f"Silence threshold set to {value}")
                     except:
                         print("Invalid value. Please enter a number.")
