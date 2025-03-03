@@ -22,7 +22,7 @@ MQTT_PORT = 1883
 QOS_LEVEL = 1
 
 class LaptopVoiceCall:
-    def __init__(self, user_id):
+    def _init_(self, user_id):
         self.user_id = user_id
         self.other_user = None
         self.call_active = False
@@ -261,7 +261,7 @@ class LaptopVoiceCall:
         
         print("Exiting Laptop Voice Call System")
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     parser = argparse.ArgumentParser(description='Laptop Voice Call System')
     parser.add_argument('user_id', type=str, help='Unique user ID (e.g., alice, bob)')
     args = parser.parse_args()
