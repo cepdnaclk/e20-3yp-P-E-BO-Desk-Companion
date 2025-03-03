@@ -392,4 +392,4 @@ if __name__ == "__main__":
     laptop_call = LaptopVoiceCall(args.user_id)
     
     # Start the interactive console
-    laptop_call.interactive_console()232222
+    laptop_call.interactive_console()
