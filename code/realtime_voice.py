@@ -16,7 +16,7 @@ CHANNELS = 1
 RATE = 44100  # CD quality sample rate
 RECORD_SECONDS = 5  # Record in 5-second chunks
 FRAMES_PER_CHUNK = int(RATE / CHUNK * RECORD_SECONDS)
-SILENCE_THRESHOLD = 50  # Lowered threshold for silence detection
+SILENCE_THRESHOLD = 10  # Lowered threshold for silence detection
 
 # MQTT settings
 MQTT_BROKER = "broker.emqx.io"

@@ -23,7 +23,7 @@ QOS_LEVEL = 0  # Changed to 0 for lower latency
 
 # Network performance monitoring
 class NetworkStats:
-    def _init_(self):
+    def __init__(self):
         self.latency_samples = deque(maxlen=50)
         self.packet_loss = 0
         self.last_packet_time = 0
@@ -37,7 +37,7 @@ class NetworkStats:
         return sum(self.latency_samples) / len(self.latency_samples)
 
 class LaptopVoiceCall:
-    def _init_(self, user_id):
+    def __init__(self, user_id):
         self.user_id = user_id
         self.other_user = None
         self.call_active = False
@@ -383,7 +383,7 @@ class LaptopVoiceCall:
         
         print("Exiting Laptop Voice Call System")
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Laptop Voice Call System')
     parser.add_argument('user_id', type=str, help='Unique user ID (e.g., alice, bob)')
     parser.add_argument('--broker', type=str, default=MQTT_BROKER, 
