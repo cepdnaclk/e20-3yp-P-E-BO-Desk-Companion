@@ -62,24 +62,7 @@ class _SetupScreenState extends State<SetupScreen> {
     }
   }
 
-  Future<void> _scanQRCode() async {
-    try {
-      final qrCode = await FlutterBarcodeScanner.scanBarcode(
-        '#009688',
-        'Cancel',
-        true,
-        ScanMode.QR,
-      );
 
-      if (qrCode != '-1' && mounted) {
-        setState(() => _deviceIdController.text = qrCode);
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _errorMessage = "QR scan failed: ${e.toString()}");
-      }
-    }
-  }
 
   void _navigateToTaskScreen() {
     Navigator.pushReplacement(
@@ -172,10 +155,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         decoration: InputDecoration(
                           labelText: 'PEBO Device ID',
                           prefixIcon: const Icon(Icons.device_hub),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.qr_code_scanner),
-                            onPressed: _scanQRCode,
-                          ),
+                          
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
