@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'screens/register_screen.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
 import 'screens/setup_screen.dart';
+import 'screens/base_screen.dart';
+import 'screens/task_screen.dart';
 import 'services/auth_service.dart';
 import 'firebase_options.dart';
 
@@ -36,7 +38,14 @@ class MyApp extends StatelessWidget {
         ),
         home: const AuthenticationWrapper(),
         routes: {
-          '/register': (context) => const RegisterScreen(), // Add this line
+          '/register': (context) => const RegisterScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/setup': (context) => const SetupScreen(),
+          '/tasks': (context) => const TaskScreen(),
+          '/home': (context) => const HomeScreen(
+            title: 'Home',
+            currentNavIndex: 0,
+          ),
         },
       ),
     );
@@ -50,9 +59,13 @@ class AuthenticationWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Provider.of<User?>(context);
 
-    // If the user is logged in, navigate to SetupScreen
+    // If the user is logged in, show the BaseScreen (which includes the navigation bar)
     if (user != null) {
-      return const SetupScreen();
+      return const HomeScreen(
+        title: 'Home',
+        
+        currentNavIndex: 0, // Default to Home
+      );
     }
 
     // Otherwise, show the login screen
