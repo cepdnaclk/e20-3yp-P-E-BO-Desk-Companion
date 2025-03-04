@@ -182,9 +182,10 @@
                 <li>Cloud-based data storage for personalized settings and backups.</li>
             </ul>
             <!-- Image with Click Event to Open Modal -->
-            <img id="solution-architecture-image" src="solution-architecture-diagram.png" alt="Solution Architecture Diagram"
-                class="img-fluid mt-4" data-aos="fade-up" data-aos-delay="200" onclick="openModal();">
-            
+            <img id="solution-architecture-image" src="solution-architecture-diagram.png"
+                alt="Solution Architecture Diagram" class="img-fluid mt-4" data-aos="fade-up" data-aos-delay="200"
+                onclick="openModal();">
+
             <!-- Modal for Full Image View -->
             <div id="imageModal" class="modal">
                 <span class="close" onclick="closeModal();">&times;</span>
@@ -221,28 +222,272 @@
             </div>
         </div>
     </section>
-    <section id="testing" class="py-5 bg-light">
+    <!-- Technology Stack Section -->
+    <section id="technology-stack" class="py-5 bg-dark">
         <div class="container">
-            <h2 class="text-center mb-4">Testing</h2>
-            <p data-aos="fade-up">
-                Comprehensive testing was conducted to ensure the reliability and functionality of P-E-BO.
-            </p>
-            <div class="row">
-                <div class="col-md-6" data-aos="fade-right">
-                    <h4>Hardware Testing</h4>
-                    <ul>
-                        <li>Sensor calibration for accurate detection.</li>
-                        <li>Stress testing for prolonged operation.</li>
-                        <li>Power consumption analysis for efficiency.</li>
-                    </ul>
+            <h2 class="text-center mb-5 section-title">Technology Stack</h2>
+    
+            <!-- Stack Tabs -->
+            <div class="row g-4">
+                <!-- Tab Navigation -->
+                <div class="col-lg-3" data-aos="fade-right">
+                    <div class="nav flex-column nav-pills stack-tabs">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#cloud-ai">
+                            <i class="bi bi-cloud-arrow-up me-2"></i>Cloud & AI
+                        </button>
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#frontend">
+                            <i class="bi bi-display me-2"></i>Frontend
+                        </button>
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#iot">
+                            <i class="bi bi-cpu me-2"></i>IoT & Hardware
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-6" data-aos="fade-left">
-                    <h4>Software Testing</h4>
-                    <ul>
-                        <li>Unit testing for individual modules.</li>
-                        <li>Integration testing for seamless operation.</li>
-                        <li>User acceptance testing with feedback iterations.</li>
-                    </ul>
+    
+                <!-- Tab Content -->
+                <div class="col-lg-9" data-aos="fade-left">
+                    <div class="tab-content">
+                        <!-- Cloud & AI Tab -->
+                        <div class="tab-pane fade show active" id="cloud-ai">
+                            <div class="stack-grid">
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-aws">
+                                        <img src="aws-rekognition-icon.svg" alt="AWS Rekognition">
+                                    </div>
+                                    <h5>AWS Rekognition</h5>
+                                    <ul>
+                                        <li>Real-time facial analysis</li>
+                                        <li>Emotion detection (7 emotions)</li>
+                                        <li>95% accuracy in varied lighting</li>
+                                        <li>Age range estimation</li>
+                                    </ul>
+                                </div>
+    
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-gemini">
+                                        <img src="gemini-icon.svg" alt="Gemini AI">
+                                    </div>
+                                    <h5>Gemini API</h5>
+                                    <ul>
+                                        <li>Natural language processing</li>
+                                        <li>Context-aware responses</li>
+                                        <li>Multi-turn conversations</li>
+                                        <li>Knowledge graph integration</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- IoT Tab -->
+                        <div class="tab-pane fade" id="iot">
+                            <div class="stack-grid">
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-servo">
+                                        <i class="bi bi-gear"></i>
+                                    </div>
+                                    <h5>Servo Control</h5>
+                                    <ul>
+                                        <li>Pan-tilt mechanism</li>
+                                        <li>0.1° precision</li>
+                                        <li>500ms response time</li>
+                                        <li>PID control system</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section>    <!-- Technology Stack Section - Frontend Tab -->
+    <div class="tab-pane fade" id="frontend">
+        <div class="row g-4">
+            <!-- Mobile App Section -->
+            <div class="col-md-6">
+                <div class="stack-item h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="stack-icon bg-flutter me-3">
+                            <img src="flutter-icon.svg" alt="Flutter">
+                        </div>
+                        <h5 class="mb-0">Mobile Application</h5>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <img src="mobile-app-screens.jpg" class="img-fluid rounded clickable-img"
+                                alt="Mobile App Screens" onclick="openModal(this)">
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="feature-list">
+                                <li><i class="bi bi-phone"></i> Cross-platform (iOS/Android)</li>
+                                <li><i class="bi bi-bell"></i> Real-time notifications</li>
+                                <li><i class="bi bi-gear"></i> Device configuration</li>
+                                <li><i class="bi bi-graph-up"></i> Usage analytics</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </section>
+
+            <!-- Robot Face Interface Section -->
+            <div class="col-md-6">
+                <div class="stack-item h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="stack-icon bg-robot me-3">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <h5 class="mb-0">Robot Face Interface</h5>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <img src="robot-face-ui.jpg" class="img-fluid rounded clickable-img" alt="Robot Face UI"
+                                onclick="openModal(this)">
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="feature-list">
+                                <li><i class="bi bi-eye"></i> Dynamic eye movements</li>
+                                <li><i class="bi bi-emoji-smile"></i> Emotion expressions</li>
+                                <li><i class="bi bi-lightning"></i> 60 FPS animation</li>
+                                <li><i class="bi bi-cpu"></i> OLED display powered</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Achievements Section -->
+    <section id="achievements" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-5 section-title">Implemented Features</h2>
+    
+            <div class="achievement-timeline">
+                <!-- Facial Recognition -->
+                <div class="timeline-item" data-aos="fade-up">
+                    <div class="timeline-badge bg-primary">
+                        <i class="bi bi-person-video3"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h5>Facial Recognition System</h5>
+                        <div class="progress-wrapper">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 95%">95% Accuracy</div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <img src="face-recognition-demo.jpg" class="img-fluid rounded clickable-img"
+                                    alt="Recognition Demo" onclick="openModal(this)">
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="achievement-meta">
+                                    <li><i class="bi bi-lightbulb"></i> Works in 50-1000 lux conditions</li>
+                                    <li><i class="bi bi-clock-history"></i> 200ms response time</li>
+                                    <li><i class="bi bi-people"></i> 5 simultaneous faces</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Voice Interaction -->
+                <div class="timeline-item" data-aos="fade-up">
+                    <div class="timeline-badge bg-success">
+                        <i class="bi bi-mic"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h5>Voice Interaction System</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <img src="voice-interface.jpg" class="img-fluid rounded clickable-img" alt="Voice Interface"
+                                    onclick="openModal(this)">
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="achievement-meta">
+                                    <li><i class="bi bi-globe"></i> 5 language support</li>
+                                    <li><i class="bi bi-speedometer2"></i> 300ms response latency</li>
+                                    <li><i class="bi bi-diagram-3"></i> Context-aware dialogs</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Challenges & Future Section -->
+    <section id="challenges-future" class="py-5 bg-secondary">
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="challenge-card p-4 rounded">
+                        <h3 class="text-warning mb-4"><i class="bi bi-exclamation-triangle me-2"></i>Challenges Overcome
+                        </h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card bg-dark text-light">
+                                    <div class="card-body">
+                                        <h5><i class="bi bi-cloud-slash"></i> Cloud Latency</h5>
+                                        <p>Reduced response time from 1200ms to 300ms through edge computing</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark text-light">
+                                    <div class="card-body">
+                                        <h5><i class="bi bi-moon-stars"></i> Low-Light Vision</h5>
+                                        <p>Implemented IR-assisted recognition for lux conditions</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="future-card p-4 rounded">
+                        <h3 class="text-info mb-4"><i class="bi bi-rocket-takeoff me-2"></i>Future Roadmap</h3>
+                        <div class="roadmap-visual">
+                            <img src="roadmap-timeline.png" class="img-fluid rounded clickable-img"
+                                alt="Development Timeline" onclick="openModal(this)">
+                        </div>
+                        <ul class="styled-list mt-3">
+                            <li>Q3 2024: Multi-user recognition system</li>
+                            <li>Q4 2024: Advanced emotion mapping</li>
+                            <li>Q1 2025: Predictive assistance engine</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Challenges & Future Section -->
+    <section id="challenges-future" class="py-5 gradient-bg">
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="challenge-card">
+                        <h3><i class="bi bi-exclamation-triangle"></i> Challenges</h3>
+                        <ul class="styled-list">
+                            <li>Real-time processing latency</li>
+                            <li>Hardware-software integration</li>
+                            <li>Multi-modal sensor synchronization</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="future-card">
+                        <h3><i class="bi bi-rocket-takeoff"></i> Future Roadmap</h3>
+                        <ul class="styled-list">
+                            <li>Advanced ML model integration</li>
+                            <li>Cross-platform compatibility</li>
+                            <li>Enhanced natural language processing</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -326,41 +571,41 @@
         </div>
 
     </section>
-<section id="team" class="py-5 bg-dark">
-    <div class="container" data-aos="fade-up">
-        <h2 class="text-center mb-4">Meet the Team</h2>
-        <div class="row text-center">
-            <div class="col-md-3">
-                <img src="Member1.png" alt="Buddhika" class="team-img mb-3">
-                <h5 class="text-light">Buddhika Ariyarathne</h5>
-                <p class="text-secondary">E/20/024</p>
-                <a href="https://portfolio1.com" class="btn btn-outline-light mt-2">View Portfolio</a>
-                <!-- Add portfolio link here -->
-            </div>
-            <div class="col-md-3">
-                <img src="Member2.png" alt="Yasiru" class="team-img mb-3">
-                <h5 class="text-light">Yasiru Edirimanna</h5>
-                <p class="text-secondary">E/20/089</p>
-                <a href="https://portfolio2.com" class="btn btn-outline-light mt-2">View Portfolio</a>
-                <!-- Add portfolio link here -->
-            </div>
-            <div class="col-md-3">
-                <img src="Member3.png" alt="Yohan" class="team-img mb-3">
-                <h5 class="text-light">Yohan Senadheera</h5>
-                <p class="text-secondary">E/20/361</p>
-                <a href="https://www.thecn.com/ES1366" class="btn btn-outline-light mt-2">View Portfolio</a>
-                <!-- Add portfolio link here -->
-            </div>
-            <div class="col-md-3">
-                <img src="Member4.png" alt="Bhagya" class="team-img mb-3">
-                <h5 class="text-light">Bhagya Senevirathna</h5>
-                <p class="text-secondary">E/20/366</p>
-                <a href="https://portfolio4.com" class="btn btn-outline-light mt-2">View Portfolio</a>
-                <!-- Add portfolio link here -->
+    <section id="team" class="py-5 bg-dark">
+        <div class="container" data-aos="fade-up">
+            <h2 class="text-center mb-4">Meet the Team</h2>
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <img src="Member1.png" alt="Buddhika" class="team-img mb-3">
+                    <h5 class="text-light">Buddhika Ariyarathne</h5>
+                    <p class="text-secondary">E/20/024</p>
+                    <a href="https://portfolio1.com" class="btn btn-outline-light mt-2">View Portfolio</a>
+                    <!-- Add portfolio link here -->
+                </div>
+                <div class="col-md-3">
+                    <img src="Member2.png" alt="Yasiru" class="team-img mb-3">
+                    <h5 class="text-light">Yasiru Edirimanna</h5>
+                    <p class="text-secondary">E/20/089</p>
+                    <a href="https://portfolio2.com" class="btn btn-outline-light mt-2">View Portfolio</a>
+                    <!-- Add portfolio link here -->
+                </div>
+                <div class="col-md-3">
+                    <img src="Member3.png" alt="Yohan" class="team-img mb-3">
+                    <h5 class="text-light">Yohan Senadheera</h5>
+                    <p class="text-secondary">E/20/361</p>
+                    <a href="https://www.thecn.com/ES1366" class="btn btn-outline-light mt-2">View Portfolio</a>
+                    <!-- Add portfolio link here -->
+                </div>
+                <div class="col-md-3">
+                    <img src="Member4.png" alt="Bhagya" class="team-img mb-3">
+                    <h5 class="text-light">Bhagya Senevirathna</h5>
+                    <p class="text-secondary">E/20/366</p>
+                    <a href="https://portfolio4.com" class="btn btn-outline-light mt-2">View Portfolio</a>
+                    <!-- Add portfolio link here -->
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
     <!-- Links Section -->
     <section id="links" class="py-5 bg-light">
@@ -372,18 +617,18 @@
                     <a href="https://github.com/cepdnaclk/e20-3yp-P-E-BO-Desk-Companion"
                         class="btn btn-outline-dark">GitHub</a>
                 </li>
-            
-                    <!-- Additional Links -->
-                    <li class="list-inline-item">
-                        <a href="https://www.ce.pdn.ac.lk/" class="btn btn-outline-dark">Computer Engineering Department</a>
-                    </li>
-                    <li class="list-inline-item">
-                        <a href="https://eng.pdn.ac.lk/" class="btn btn-outline-dark">Faculty of
-                            Engineering</a>
-                    </li>
-                    <li class="list-inline-item">
-                        <a href="https://www.pdn.ac.lk/" class="btn btn-outline-dark">University of Peradeniya</a>
-                    </li>
+
+                <!-- Additional Links -->
+                <li class="list-inline-item">
+                    <a href="https://www.ce.pdn.ac.lk/" class="btn btn-outline-dark">Computer Engineering Department</a>
+                </li>
+                <li class="list-inline-item">
+                    <a href="https://eng.pdn.ac.lk/" class="btn btn-outline-dark">Faculty of
+                        Engineering</a>
+                </li>
+                <li class="list-inline-item">
+                    <a href="https://www.pdn.ac.lk/" class="btn btn-outline-dark">University of Peradeniya</a>
+                </li>
                 <li class="list-inline-item">
                     <a href="https://projects.ce.pdn.ac.lk/3yp/e20/P-E-BO-Desk-Companion/"
                         class="btn btn-outline-dark">Project Page</a>

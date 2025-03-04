@@ -1,3 +1,5 @@
 {
-    "cmake.sourceDirectory": "C:/Users/yohan/Documents/GitHub/P-E-BO-Desk-Companion/code/pebo_app/linux"
+    "IDX.aI.enableInlineCompletion": true,
+    "IDX.aI.enableCodebaseIndexing": true,
+    "java.configuration.updateBuildConfiguration": "automatic"
 }
