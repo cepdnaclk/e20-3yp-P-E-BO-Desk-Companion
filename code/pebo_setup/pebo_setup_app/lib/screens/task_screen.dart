@@ -1,21 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart'; // For date and time formatting
 
 class Task {
   String id; // Unique ID for each task
   String title;
   bool isCompleted;
+  DateTime? deadline; // Nullable deadline (includes date and time)
 
-  Task({required this.id, required this.title, this.isCompleted = false});
+  Task({
+    required this.id,
+    required this.title,
+    this.isCompleted = false,
+    this.deadline,
+  });
 
   // Convert a Task object to a Map for Firestore
   Map<String, dynamic> toMap() {
-    return {'title': title, 'isCompleted': isCompleted};
+    return {
+      'title': title,
+      'isCompleted': isCompleted,
+      'deadline': deadline, // Include deadline in the map
+    };
   }
 
   // Create a Task object from a Firestore document
   factory Task.fromMap(String id, Map<String, dynamic> data) {
-    return Task(id: id, title: data['title'], isCompleted: data['isCompleted']);
+    return Task(
+      id: id,
+      title: data['title'],
+      isCompleted: data['isCompleted'],
+      deadline:
+          data['deadline']?.toDate(), // Convert Firestore Timestamp to DateTime
+    );
   }
 }
 
@@ -29,6 +46,7 @@ class TaskScreen extends StatefulWidget {
 class _TaskScreenState extends State<TaskScreen> {
   final TextEditingController _taskController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  DateTime? _selectedDeadline; // To store the selected deadline (date and time)
 
   // Add a new task to Firestore
   Future<void> _addTask() async {
@@ -36,8 +54,12 @@ class _TaskScreenState extends State<TaskScreen> {
       await _firestore.collection('tasks').add({
         'title': _taskController.text.trim(),
         'isCompleted': false,
+        'deadline': _selectedDeadline, // Include the deadline
       });
       _taskController.clear();
+      setState(() {
+        _selectedDeadline = null; // Reset the deadline after adding the task
+      });
     }
   }
 
@@ -51,6 +73,33 @@ class _TaskScreenState extends State<TaskScreen> {
   // Delete a task from Firestore
   Future<void> _deleteTask(String taskId) async {
     await _firestore.collection('tasks').doc(taskId).delete();
+  }
+
+  // Show a date and time picker to select the deadline
+  Future<void> _selectDeadline(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+      if (pickedTime != null) {
+        setState(() {
+          _selectedDeadline = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
+    }
   }
 
   @override
@@ -90,7 +139,24 @@ class _TaskScreenState extends State<TaskScreen> {
               ],
             ),
           ),
-
+          // Deadline selection
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Text(
+                  _selectedDeadline == null
+                      ? 'No deadline'
+                      : 'Deadline: ${DateFormat('yyyy-MM-dd HH:mm').format(_selectedDeadline!)}',
+                ),
+                const SizedBox(width: 16),
+                TextButton(
+                  onPressed: () => _selectDeadline(context),
+                  child: const Text('Set Deadline'),
+                ),
+              ],
+            ),
+          ),
           // Task list from Firestore
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -99,15 +165,12 @@ class _TaskScreenState extends State<TaskScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
-
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text('No tasks found.'));
                 }
-
                 final tasks =
                     snapshot.data!.docs.map((doc) {
                       return Task.fromMap(
@@ -115,7 +178,6 @@ class _TaskScreenState extends State<TaskScreen> {
                         doc.data() as Map<String, dynamic>,
                       );
                     }).toList();
-
                 return ListView.builder(
                   itemCount: tasks.length,
                   itemBuilder: (context, index) {
@@ -125,15 +187,29 @@ class _TaskScreenState extends State<TaskScreen> {
                         value: task.isCompleted,
                         onChanged: (_) => _toggleTaskStatus(task),
                       ),
-                      title: Text(
-                        task.title,
-                        style: TextStyle(
-                          decoration:
-                              task.isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                          color: task.isCompleted ? Colors.grey : Colors.black,
-                        ),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.title,
+                            style: TextStyle(
+                              decoration:
+                                  task.isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                              color:
+                                  task.isCompleted ? Colors.grey : Colors.black,
+                            ),
+                          ),
+                          if (task.deadline != null)
+                            Text(
+                              'Deadline: ${DateFormat('yyyy-MM-dd HH:mm').format(task.deadline!)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                        ],
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
@@ -154,12 +230,32 @@ class _TaskScreenState extends State<TaskScreen> {
             builder:
                 (context) => AlertDialog(
                   title: const Text('Add Task'),
-                  content: TextField(
-                    controller: _taskController,
-                    decoration: const InputDecoration(
-                      hintText: 'Task description',
-                    ),
-                    autofocus: true,
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: _taskController,
+                        decoration: const InputDecoration(
+                          hintText: 'Task description',
+                        ),
+                        autofocus: true,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Text(
+                            _selectedDeadline == null
+                                ? 'No deadline'
+                                : 'Deadline: ${DateFormat('yyyy-MM-dd HH:mm').format(_selectedDeadline!)}',
+                          ),
+                          const SizedBox(width: 16),
+                          TextButton(
+                            onPressed: () => _selectDeadline(context),
+                            child: const Text('Set Deadline'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   actions: [
                     TextButton(
