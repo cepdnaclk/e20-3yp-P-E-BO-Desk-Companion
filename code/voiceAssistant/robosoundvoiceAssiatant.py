@@ -12,7 +12,7 @@ from pydub.effects import low_pass_filter
 pygame.mixer.init()
 
 # Set up Google Gemini API key
-GOOGLE_API_KEY = "Api"  
+GOOGLE_API_KEY = ""  
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Initialize the Gemini model
