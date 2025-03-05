@@ -167,3 +167,24 @@ window.addEventListener("scroll", () => {
     hero.classList.remove("shrink");
   }
 });
+function openModal(img) {
+  const modal = document.getElementById("imageModal");
+  const modalImg = document.getElementById("img01");
+  const caption = document.getElementById("caption");
+
+  modal.style.display = "block";
+  modalImg.src = img.src;
+  caption.innerHTML = img.alt;
+}
+
+function closeModal() {
+  document.getElementById("imageModal").style.display = "none";
+}
+
+// Close when clicking outside
+window.onclick = function (event) {
+  const modal = document.getElementById("imageModal");
+  if (event.target === modal) {
+    modal.style.display = "none";
+  }
+};
