@@ -10,7 +10,7 @@ import speech_recognition as sr
 pygame.mixer.init()
 
 # Set up Google Gemini API key
-GOOGLE_API_KEY = "YOUR_GOOGLE_GEMINI_API_KEY"
+GOOGLE_API_KEY = ""
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Initialize the Gemini model
