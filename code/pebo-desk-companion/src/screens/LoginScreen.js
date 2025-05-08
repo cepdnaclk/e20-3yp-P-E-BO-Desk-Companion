@@ -6,15 +6,18 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "../services/firebase";
-import { Ionicons } from "@expo/vector-icons";
-import PopupModal from "../components/PopupModal";
 import { AuthContext } from "../context/AuthContext";
+import PopupModal from "../components/PopupModal";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -24,7 +27,6 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const { setUser } = useContext(AuthContext);
 
-  // Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState({
     title: "",
@@ -37,7 +39,6 @@ export default function LoginScreen({ navigation }) {
     setModalVisible(true);
   };
 
-  // Basic email validation
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   useEffect(() => {
@@ -53,20 +54,31 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      return showModal("Missing Fields", "Please enter email and password.", "alert-circle");
+      return showModal(
+        "Missing Fields",
+        "Please enter email and password.",
+        "alert-circle"
+      );
     }
 
     if (Object.keys(errors).length > 0) {
-      return showModal("Validation Error", "Fix the highlighted issues first.", "alert-circle");
+      return showModal(
+        "Validation Error",
+        "Fix the highlighted issues first.",
+        "alert-circle"
+      );
     }
 
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
-      setUser(userCredential.user); // Set user in context
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password.trim()
+      );
+      setUser(userCredential.user);
     } catch (err) {
       let msg = "Could not log in. Try again.";
-      let icon = "close-circle";
       switch (err.code) {
         case "auth/user-not-found":
           msg = "User not found.";
@@ -77,8 +89,14 @@ export default function LoginScreen({ navigation }) {
         case "auth/invalid-email":
           msg = "Invalid email address.";
           break;
+        case "auth/too-many-requests":
+          msg = "Too many attempts. Try again later.";
+          break;
+        case "auth/network-request-failed":
+          msg = "Network error. Check your internet connection.";
+          break;
       }
-      showModal("Login Error", msg, icon);
+      showModal("Login Error", msg, "close-circle");
     } finally {
       setLoading(false);
     }
@@ -86,116 +104,200 @@ export default function LoginScreen({ navigation }) {
 
   const handlePasswordReset = async () => {
     if (!email) {
-      return showModal("Enter Email", "Please enter your email to reset password.", "mail");
+      return showModal(
+        "Enter Email",
+        "Please enter your email to reset password.",
+        "mail"
+      );
     }
 
     if (errors.email) {
-      return showModal("Invalid Email", "Please enter a valid email.", "alert-circle");
+      return showModal(
+        "Invalid Email",
+        "Please enter a valid email.",
+        "alert-circle"
+      );
     }
 
     try {
       await sendPasswordResetEmail(auth, email.trim());
       showModal("Success", "Password reset email sent.", "checkmark-circle");
     } catch (error) {
-      showModal("Error", "Unable to send reset email. Try again.", "close-circle");
+      showModal(
+        "Error",
+        "Unable to send reset email. Try again.",
+        "close-circle"
+      );
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back 👋</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : null}
+      style={{ flex: 1 }}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.container}>
+          <View style={styles.card}>
+            <Text style={styles.title}>Welcome Back 👋</Text>
+            <Text style={styles.subtitle}>Login to your account</Text>
 
-      <TextInput
-        style={[styles.input, errors.email && styles.inputError]}
-        placeholder="Email"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-      {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {/* Email Field */}
+            <View
+              style={[styles.inputWrapper, errors.email && styles.inputError]}
+            >
+              <MaterialIcons
+                name="email"
+                size={20}
+                color="#888"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                placeholder="Email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                placeholderTextColor="#888"
+                onChangeText={setEmail}
+                style={styles.input}
+              />
+            </View>
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            )}
 
-      <View style={[styles.passwordContainer, errors.password && styles.inputError]}>
-        <TextInput
-          style={styles.passwordInput}
-          placeholder="Password"
-          secureTextEntry={!showPassword}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Ionicons
-            name={showPassword ? "eye-off" : "eye"}
-            size={24}
-            color="#666"
-            style={{ paddingRight: 8 }}
+            {/* Password Field */}
+            <View
+              style={[
+                styles.inputWrapper,
+                errors.password && styles.inputError,
+              ]}
+            >
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="#888"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                placeholder="Password"
+                secureTextEntry={!showPassword}
+                placeholderTextColor="#888"
+                value={password}
+                onChangeText={setPassword}
+                style={styles.input}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color="#888"
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.password && (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            )}
+
+            <TouchableOpacity onPress={handlePasswordReset}>
+              <Text style={styles.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            {/* Login Button */}
+            {loading ? (
+              <ActivityIndicator
+                size="large"
+                color="#007AFF"
+                style={{ marginVertical: 20 }}
+              />
+            ) : (
+              <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                <Text style={styles.buttonText}>Log In</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Or Divider */}
+            {/* <Text style={styles.orText}>— OR —</Text> */}
+
+            {/* Google Button (placeholder)
+            <TouchableOpacity style={styles.googleButton}>
+              <Ionicons name="logo-google" size={20} color="#fff" />
+              <Text style={styles.googleText}>Continue with Google</Text>
+            </TouchableOpacity> */}
+
+            {/* Sign Up Link */}
+            <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+              <Text style={styles.linkText}>
+                Don't have an account?{" "}
+                <Text style={styles.linkBold}>Sign Up</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <PopupModal
+            visible={modalVisible}
+            title={modalContent.title}
+            message={modalContent.message}
+            icon={modalContent.icon}
+            onClose={() => {
+              setModalVisible(false);
+              modalContent.onClose?.();
+            }}
           />
-        </TouchableOpacity>
-      </View>
-      {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-      <TouchableOpacity onPress={handlePasswordReset}>
-        <Text style={styles.forgotText}>Forgot Password?</Text>
-      </TouchableOpacity>
-
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={{ marginVertical: 20 }} />
-      ) : (
-        <TouchableOpacity
-          style={[styles.button, loading && { opacity: 0.6 }]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>Log In</Text>
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate("SignUp")}
-        style={styles.signUpLink}
-      >
-        <Text style={styles.linkText}>
-          Don't have an account? <Text style={styles.linkBold}>Sign Up</Text>
-        </Text>
-      </TouchableOpacity>
-
-      <PopupModal
-        visible={modalVisible}
-        title={modalContent.title}
-        message={modalContent.message}
-        icon={modalContent.icon}
-        onClose={() => {
-          setModalVisible(false);
-          if (modalContent.onClose) modalContent.onClose(); // Call after modal closes
-        }}
-      />
-    </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    backgroundColor: "#f1f4f9",
     justifyContent: "center",
-    backgroundColor: "#f4f7fb",
+    padding: 20,
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: 24,
+    borderRadius: 20,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
+    fontSize: 26,
+    fontWeight: "700",
     textAlign: "center",
-    marginBottom: 32,
+    marginBottom: 4,
     color: "#222",
   },
-  input: {
-    height: 50,
+  subtitle: {
+    fontSize: 15,
+    textAlign: "center",
+    marginBottom: 24,
+    color: "#777",
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#ccc",
     borderRadius: 10,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    backgroundColor: "#fff",
-    fontSize: 16,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+  },
+  input: {
+    flex: 1,
+    height: 48,
+    fontSize: 15,
+    color: "#333",
+  },
+  inputIcon: {
+    marginRight: 8,
   },
   inputError: {
     borderColor: "#FF3B30",
@@ -203,28 +305,13 @@ const styles = StyleSheet.create({
   errorText: {
     color: "#FF3B30",
     fontSize: 13,
-    marginBottom: 10,
+    marginBottom: 6,
     marginLeft: 4,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    paddingHorizontal: 10,
-    marginBottom: 8,
-  },
-  passwordInput: {
-    flex: 1,
-    fontSize: 16,
   },
   forgotText: {
     color: "#007AFF",
     textAlign: "right",
-    marginBottom: 16,
+    marginBottom: 20,
     fontSize: 14,
   },
   button: {
@@ -232,23 +319,36 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
-    marginTop: 10,
-    shadowColor: "#007AFF",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 5,
-    elevation: 3,
+    marginBottom: 20,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
-  signUpLink: {
-    marginTop: 24,
+  orText: {
+    textAlign: "center",
+    color: "#888",
+    marginBottom: 20,
+    fontSize: 13,
+  },
+  googleButton: {
+    flexDirection: "row",
+    backgroundColor: "#DB4437",
+    paddingVertical: 12,
+    borderRadius: 10,
+    justifyContent: "center",
     alignItems: "center",
+    marginBottom: 20,
+  },
+  googleText: {
+    color: "#fff",
+    marginLeft: 8,
+    fontSize: 15,
+    fontWeight: "600",
   },
   linkText: {
+    textAlign: "center",
     color: "#555",
     fontSize: 14,
   },

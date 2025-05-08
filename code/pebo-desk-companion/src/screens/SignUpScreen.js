@@ -6,6 +6,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../services/firebase";
@@ -60,21 +63,11 @@ export default function SignUpScreen({ navigation }) {
 
   const handleSignUp = async () => {
     if (!email || !password || !confirm) {
-      return showModal(
-        "Missing Fields",
-        "Please fill in all fields.",
-        "alert-circle"
-      );
+      return showModal("Missing Fields", "Please fill in all fields.");
     }
-
     if (Object.keys(errors).length > 0) {
-      return showModal(
-        "Fix Errors",
-        "Please fix the highlighted issues.",
-        "alert-circle"
-      );
+      return showModal("Fix Errors", "Please fix the highlighted issues.");
     }
-
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
@@ -95,130 +88,150 @@ export default function SignUpScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign Up 👤</Text>
-      <Text style={styles.welcome}>
-        👋 Let’s get you started with a new account.
-      </Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Sign Up 👤</Text>
+          <Text style={styles.subtitle}>
+            👋 Let’s get you started with a new account.
+          </Text>
 
-      {/* Email Input */}
-      <TextInput
-        style={[styles.input, errors.email && styles.inputError]}
-        placeholder="Email"
-        placeholderTextColor="#888"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-      {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-      {/* Password Input */}
-      <View style={[styles.inputRow, errors.password && styles.inputError]}>
-        <TextInput
-          style={styles.flexInput}
-          placeholder="Password"
-          placeholderTextColor="#888"
-          secureTextEntry={!showPassword}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Ionicons
-            name={showPassword ? "eye-off" : "eye"}
-            size={22}
-            color="#666"
+          {/* Email Input */}
+          <TextInput
+            style={[styles.input, errors.email && styles.inputError]}
+            placeholder="Email"
+            placeholderTextColor="#888"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
           />
-        </TouchableOpacity>
-      </View>
-      {errors.password && (
-        <Text style={styles.errorText}>{errors.password}</Text>
-      )}
+          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
-      {/* Confirm Password */}
-      <View style={[styles.inputRow, errors.confirm && styles.inputError]}>
-        <TextInput
-          style={styles.flexInput}
-          placeholder="Confirm Password"
-          placeholderTextColor="#888"
-          secureTextEntry={!showConfirm}
-          value={confirm}
-          onChangeText={setConfirm}
+          {/* Password */}
+          <View style={[styles.inputRow, errors.password && styles.inputError]}>
+            <TextInput
+              style={styles.flexInput}
+              placeholder="Password"
+              placeholderTextColor="#888"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={22}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+          {errors.password && (
+            <Text style={styles.errorText}>{errors.password}</Text>
+          )}
+
+          {/* Confirm Password */}
+          <View style={[styles.inputRow, errors.confirm && styles.inputError]}>
+            <TextInput
+              style={styles.flexInput}
+              placeholder="Confirm Password"
+              placeholderTextColor="#888"
+              secureTextEntry={!showConfirm}
+              value={confirm}
+              onChangeText={setConfirm}
+            />
+            <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
+              <Ionicons
+                name={showConfirm ? "eye-off" : "eye"}
+                size={22}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+          {errors.confirm && (
+            <Text style={styles.errorText}>{errors.confirm}</Text>
+          )}
+
+          {loading ? (
+            <ActivityIndicator
+              size="large"
+              color="#007AFF"
+              style={{ marginVertical: 20 }}
+            />
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+              <Text style={styles.buttonText}>Create Account</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Login")}
+            style={styles.loginLink}
+          >
+            <Text style={styles.linkText}>
+              Already have an account?{" "}
+              <Text style={styles.linkBold}>Log in</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <PopupModal
+          visible={modalVisible}
+          onClose={() => {
+            setModalVisible(false);
+            if (redirectToDashboard) {
+              setRedirectToDashboard(false);
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Dashboard" }],
+              });
+            }
+          }}
+          title={modalContent.title}
+          message={modalContent.message}
+          icon={modalContent.icon}
         />
-        <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
-          <Ionicons
-            name={showConfirm ? "eye-off" : "eye"}
-            size={22}
-            color="#666"
-          />
-        </TouchableOpacity>
-      </View>
-      {errors.confirm && <Text style={styles.errorText}>{errors.confirm}</Text>}
-
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#007AFF"
-          style={{ marginVertical: 20 }}
-        />
-      ) : (
-        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-          <Text style={styles.buttonText}>Create Account</Text>
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Login")}
-        style={styles.loginLink}
-      >
-        <Text style={styles.linkText}>
-          Already have an account? <Text style={styles.linkBold}>Log in</Text>
-        </Text>
-      </TouchableOpacity>
-
-      {/* Modal */}
-      <PopupModal
-        visible={modalVisible}
-        onClose={() => {
-          setModalVisible(false);
-          if (redirectToDashboard) {
-            setRedirectToDashboard(false);
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Dashboard" }],
-            });
-          }
-        }}
-        title={modalContent.title}
-        message={modalContent.message}
-        icon={modalContent.icon}
-      />
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    backgroundColor: "#f2f2f7",
+    paddingHorizontal: 20,
     justifyContent: "center",
-    backgroundColor: "#f2f2f7", // updated for soft tone
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: 24,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+    marginTop: 40,
+    marginBottom: 60,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "700",
-    textAlign: "center",
     color: "#222",
-    marginBottom: 12,
-  },
-  welcome: {
-    fontSize: 16,
-    color: "#555",
     textAlign: "center",
-    marginBottom: 28,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 24,
   },
   input: {
-    height: 50,
+    height: 48,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 12,
@@ -226,10 +239,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: "#fff",
     fontSize: 16,
-    color: "#000", // ✅ ensures text is visible
+    color: "#000",
   },
   inputRow: {
-    height: 50,
+    height: 48,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -242,7 +255,7 @@ const styles = StyleSheet.create({
   flexInput: {
     flex: 1,
     fontSize: 16,
-    color: "#000", // ✅ ensures text is visible
+    color: "#000",
   },
   inputError: {
     borderColor: "#FF3B30",
@@ -250,7 +263,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: "#FF3B30",
     fontSize: 13,
-    marginBottom: 10,
+    marginBottom: 6,
     marginLeft: 4,
   },
   button: {
@@ -271,7 +284,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   loginLink: {
-    marginTop: 24,
+    marginTop: 18,
     alignItems: "center",
   },
   linkText: {
@@ -281,5 +294,10 @@ const styles = StyleSheet.create({
   linkBold: {
     color: "#007AFF",
     fontWeight: "600",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 40,
   },
 });
