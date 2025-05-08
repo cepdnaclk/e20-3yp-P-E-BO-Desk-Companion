@@ -1,43 +1,87 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { getAuth } from "firebase/auth";
-import { getDeviceStatus, getTaskOverview } from "../services/firebase";
-
+import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import { getWifiName, getTaskOverview } from "../services/firebase";
 
 const DashboardScreen = () => {
-  const [deviceStatus, setDeviceStatus] = useState("");
-  const [taskOverview, setTaskOverview] = useState([]);
+  const [wifiDetails, setWifiDetails] = useState({
+    peboName: "",
+    wifiSSID: "",
+    wifiPassword: "",
+  });
+  const [upcomingTasks, setUpcomingTasks] = useState([]);
   const navigation = useNavigation();
 
   useEffect(() => {
     const fetchData = async () => {
-      const device = await getDeviceStatus();
-      const tasks = await getTaskOverview();
-      setDeviceStatus(device);
-      setTaskOverview(tasks);
+      try {
+        const wifi = await getWifiName(); // expects { peboName, wifiSSID, wifiPassword }
+        const tasks = await getTaskOverview();
+
+        const today = new Date();
+        const upcoming = tasks
+          .filter((task) => {
+            if (!task.deadline) return false;
+            const due = new Date(task.deadline);
+            const diffDays = (due - today) / (1000 * 60 * 60 * 24);
+            return diffDays >= 0 && diffDays <= 5;
+          })
+          .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+        setWifiDetails(wifi);
+        setUpcomingTasks(upcoming);
+      } catch (e) {
+        console.error("Dashboard fetch error:", e);
+      }
     };
+
     fetchData();
   }, []);
 
-const handleLogout = async () => {
-  await getAuth().signOut();
-  // Don't manually navigate — MainNavigator will render AuthNavigator based on user == null
-};
-
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Dashboard</Text>
+      <Text style={styles.appName}>PEBO</Text>
 
       <View style={styles.card}>
-        <Text style={styles.label}>Device Status</Text>
-        <Text style={styles.value}>{deviceStatus || "Loading..."}</Text>
+        <View style={styles.cardHeader}>
+          <MaterialIcons name="wifi" size={20} color="#007AFF" />
+          <Text style={styles.cardLabel}>Wi-Fi Details</Text>
+        </View>
+        <Text style={styles.cardValue}>Name: {wifiDetails.peboName}</Text>
+        <Text style={styles.cardValue}>SSID: {wifiDetails.wifiSSID}</Text>
+        <Text style={styles.cardValue}>
+          Password: {wifiDetails.wifiPassword}
+        </Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.label}>Upcoming Tasks</Text>
-        <Text style={styles.value}>{taskOverview.length}</Text>
+        <View style={styles.cardHeader}>
+          <FontAwesome5 name="tasks" size={18} color="#007AFF" />
+          <Text style={styles.cardLabel}>Tasks Due Soon</Text>
+        </View>
+        {upcomingTasks.length === 0 ? (
+          <Text style={styles.empty}>No tasks due in next few days</Text>
+        ) : (
+          <FlatList
+            data={upcomingTasks}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.taskItem}>
+                <Text style={styles.taskTitle}>{item.description}</Text>
+                <Text style={styles.taskDate}>
+                  {new Date(item.deadline).toLocaleString()}
+                </Text>
+              </View>
+            )}
+          />
+        )}
       </View>
 
       <TouchableOpacity
@@ -46,13 +90,6 @@ const handleLogout = async () => {
       >
         <Text style={styles.buttonText}>Go to Task Management</Text>
       </TouchableOpacity>
-
-      {/* <TouchableOpacity
-        style={[styles.button, styles.logoutButton]}
-        onPress={handleLogout}
-      >
-        <Text style={styles.buttonText}>Logout</Text>
-      </TouchableOpacity> */}
     </View>
   );
 };
@@ -60,50 +97,72 @@ const handleLogout = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F7FA",
-    padding: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "#F4F9FF",
+    padding: 24,
+    paddingTop: 50,
   },
-  title: {
-    fontSize: 28,
+  appName: {
+    fontSize: 32,
     fontWeight: "bold",
-    color: "#333333",
+    color: "#007AFF",
+    alignSelf: "center",
     marginBottom: 30,
+    letterSpacing: 1.5,
   },
   card: {
     backgroundColor: "#FFFFFF",
-    width: "100%",
+    borderRadius: 16,
     padding: 20,
-    borderRadius: 12,
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    shadowColor: "#000000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  label: {
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  cardLabel: {
     fontSize: 16,
-    color: "#666666",
+    color: "#007AFF",
+    fontWeight: "600",
+    marginLeft: 8,
   },
-  value: {
-    fontSize: 20,
-    fontWeight: "bold",
+  cardValue: {
+    fontSize: 16,
+    fontWeight: "500",
     color: "#222222",
-    marginTop: 6,
+    marginBottom: 6,
+  },
+  empty: {
+    color: "#999999",
+    fontStyle: "italic",
+  },
+  taskItem: {
+    marginTop: 10,
+    padding: 12,
+    backgroundColor: "#EAF2FC",
+    borderRadius: 10,
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1C1C1E",
+  },
+  taskDate: {
+    fontSize: 14,
+    color: "#636366",
+    marginTop: 4,
   },
   button: {
-    backgroundColor: "#3F51B5",
+    backgroundColor: "#007AFF",
     paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    marginTop: 20,
-    width: "100%",
+    borderRadius: 14,
     alignItems: "center",
-  },
-  logoutButton: {
-    backgroundColor: "#E53935",
+    marginTop: 24,
   },
   buttonText: {
     color: "#FFFFFF",

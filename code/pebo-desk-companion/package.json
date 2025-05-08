@@ -10,11 +10,12 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.2",
-    "@react-native-community/datetimepicker": "^8.3.0",
+    "@react-native-community/datetimepicker": "8.3.0",
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/bottom-tabs": "^7.3.12",
     "@react-navigation/native": "^7.1.8",
     "@react-navigation/stack": "^7.3.1",
+    "dayjs": "^1.11.13",
     "expo": "~53.0.8",
     "expo-dev-client": "~5.1.8",
     "expo-secure-store": "~14.2.3",
@@ -23,11 +24,18 @@
     "lottie-react-native": "7.2.2",
     "react": "19.0.0",
     "react-native": "0.79.2",
+    "react-native-dropdown-picker": "^5.4.6",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-modal-datetime-picker": "^18.0.0",
+    "react-native-paper": "^5.10.2",
+    "react-native-paper-dropdown": "^2.3.1",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "^5.4.0",
-    "react-native-screens": "~4.10.0"
+    "react-native-screens": "~4.10.0",
+    "react-native-ui-datepicker": "^3.1.2",
+    "react-native-vector-icons": "^10.2.0",
+    "@expo/vector-icons": "^14.1.0",
+    "expo-updates": "~0.28.12"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

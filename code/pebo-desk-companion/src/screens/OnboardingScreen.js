@@ -7,19 +7,13 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-
-// Import your local PNG image
-import backgroundImage from "../../assets/images/bot.png"; // Adjust path as necessary
 
 const { width, height } = Dimensions.get("window");
 
-const OnboardingScreen = () => {
-  const navigation = useNavigation();
-
+const OnboardingScreen = ({ onFinish, navigation }) => {
   return (
     <ImageBackground
-      source={backgroundImage} // Use local image here
+      source={require("../../assets/images/bot.png")} // Adjust path as necessary
       style={styles.background}
       resizeMode="cover"
     >
@@ -32,7 +26,9 @@ const OnboardingScreen = () => {
         </Text>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.replace("Login")}
+          onPress={() => {
+            onFinish(navigation); // Pass navigation to onFinish
+          }}
         >
           <Text style={styles.buttonText}>Get Started</Text>
         </TouchableOpacity>
@@ -51,17 +47,19 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay for better readability
   },
   content: {
     padding: 24,
     alignItems: "center",
+    zIndex: 1, // Ensures the content is above the overlay
   },
   title: {
     fontSize: 36,
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
+    marginBottom: 10,
   },
   subtitle: {
     fontSize: 22,
@@ -81,6 +79,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 30,
     elevation: 4,
+    marginTop: 20, // Add spacing between content and button
   },
   buttonText: {
     color: "#fff",

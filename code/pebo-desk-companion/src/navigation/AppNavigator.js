@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import SplashScreen from "../screens/SplashScreen";
@@ -14,19 +15,15 @@ import { MaterialIcons } from "@expo/vector-icons";
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Auth Flow
+// Auth Stack
 const AuthNavigator = () => (
-  <Stack.Navigator
-    initialRouteName="Login"
-    screenOptions={{ headerShown: false }}
-  >
-    <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="SignUp" component={SignUpScreen} />
   </Stack.Navigator>
 );
 
-// Main App (after login)
+// Bottom Tabs after login
 const TabNavigator = () => (
   <Tab.Navigator
     initialRouteName="Dashboard"
@@ -71,10 +68,19 @@ const TabNavigator = () => (
   </Tab.Navigator>
 );
 
-// Main Entry
 const MainNavigator = () => {
   const { user, authReady } = useContext(AuthContext);
   const [showSplash, setShowSplash] = useState(true);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(null);
+
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const seen = await AsyncStorage.getItem("hasSeenOnboarding");
+      setHasSeenOnboarding(seen === "true");
+    };
+
+    checkOnboarding();
+  }, []);
 
   useEffect(() => {
     if (authReady) {
@@ -83,11 +89,27 @@ const MainNavigator = () => {
     }
   }, [authReady]);
 
-  if (!authReady || showSplash) {
+  if (!authReady || showSplash || hasSeenOnboarding === null) {
     return <SplashScreen />;
   }
 
-  return user ? <TabNavigator /> : <AuthNavigator />;
+  if (!user) {
+    if (!hasSeenOnboarding) {
+      return (
+        <OnboardingScreen
+          onFinish={async (navigation) => {
+            // Pass navigation here
+            await AsyncStorage.setItem("hasSeenOnboarding", "true");
+            setHasSeenOnboarding(true);
+            navigation.replace("Login"); // Navigate to Login after onboarding is done
+          }}
+        />
+      );
+    }
+    return <AuthNavigator />;
+  }
+
+  return <TabNavigator />;
 };
 
 export default MainNavigator;

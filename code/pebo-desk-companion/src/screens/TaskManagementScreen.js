@@ -1,280 +1,302 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   FlatList,
-  ActivityIndicator,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Picker,
   Alert,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
 } from "react-native";
-import { addTask, getTaskOverview } from "../services/firebase";
+import {
+  TextInput,
+  Button,
+  Card,
+  Text,
+  Menu,
+  Provider as PaperProvider,
+  DefaultTheme,
+  ActivityIndicator,
+} from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { addTask, getTaskOverview } from "../services/firebase";
+import { SafeAreaView } from "react-native";
+const { width } = Dimensions.get("window");
 
-const TaskManagementScreen = () => {
+
+export default function TaskManagementScreen() {
   const [task, setTask] = useState("");
   const [deadline, setDeadline] = useState(null);
+  const [isPickerVisible, setPickerVisible] = useState(false);
+  const [category, setCategory] = useState("Work");
   const [priority, setPriority] = useState("Medium");
-  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
-  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  const [sortPreference, setSortPreference] = useState("deadline");
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showCatMenu, setShowCatMenu] = useState(false);
+  const [showPriorityMenu, setShowPriorityMenu] = useState(false);
+  const [tasks, setTasks] = useState([]);
 
+  // Fetch & sort on mount or sortPreference change
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    fetchAndSortTasks();
+  }, [sortPreference]);
 
-  const fetchTasks = async () => {
+  async function fetchAndSortTasks() {
     setLoading(true);
     try {
-      const tasksData = await getTaskOverview();
-      setTasks(tasksData.reverse());
-    } catch (error) {
-      Alert.alert("Error", "Failed to fetch tasks. Please try again.");
+      const data = await getTaskOverview();
+      if (!Array.isArray(data)) throw new Error();
+      setTasks(sortTasks(data));
+    } catch {
+      Alert.alert("Error", "Failed to fetch tasks.");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const handleAddTask = async () => {
-    if (task.trim() === "") {
-      Alert.alert("Input Error", "Please enter a task description.");
-      return;
+  function sortTasks(data) {
+    if (sortPreference === "priority") {
+      const order = { High: 0, Medium: 1, Low: 2 };
+      return data.sort((a, b) => order[a.priority] - order[b.priority]);
     }
+    return data.sort(
+      (a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+    );
+  }
 
-    if (!deadline) {
-      Alert.alert("Input Error", "Please select a deadline.");
-      return;
-    }
+  async function handleAddTask() {
+    if (!task.trim()) return Alert.alert("Input Error", "Enter a task.");
+    if (!deadline) return Alert.alert("Input Error", "Select deadline.");
 
     setAdding(true);
-    const newTask = {
-      description: task.trim(),
-      completed: false,
-      deadline: deadline.toISOString(),
-      priority,
-    };
-
     try {
-      await addTask(newTask);
+      await addTask({
+        description: task.trim(),
+        completed: false,
+        deadline: deadline.toISOString(),
+        category,
+        priority,
+      });
       setTask("");
       setDeadline(null);
+      setCategory("Work");
       setPriority("Medium");
-      await fetchTasks();
-    } catch (error) {
-      Alert.alert("Error", "Failed to add task. Please try again.");
+      await fetchAndSortTasks();
+    } catch {
+      Alert.alert("Error", "Failed to add task.");
     } finally {
       setAdding(false);
     }
-  };
+  }
 
-  const renderItem = ({ item }) => (
-    <View style={styles.taskItem}>
-      <Text style={styles.taskText}>{item.description}</Text>
-      {item.deadline && (
-        <Text style={styles.deadlineText}>
-          Deadline: {new Date(item.deadline).toLocaleString()}
-        </Text>
-      )}
-      <Text style={styles.priorityText}>Priority: {item.priority}</Text>
-    </View>
+  const renderTask = ({ item }) => (
+    <Card style={styles.card}>
+      <Card.Title title={item.description} />
+      <Card.Content>
+        <Text>📅 {new Date(item.deadline).toLocaleString()}</Text>
+        <Text>🚦 {item.priority}</Text>
+        <Text>📂 {item.category}</Text>
+      </Card.Content>
+    </Card>
   );
 
-  const showDatePicker = () => {
-    setDatePickerVisible(true);
-  };
-
-  const hideDatePicker = () => {
-    setDatePickerVisible(false);
-  };
-
-  const handleDateConfirm = (date) => {
-    setDeadline(date);
-    hideDatePicker();
-  };
+  const renderMenu = (title, value, items, visible, setVisible, onChange) => (
+    <Menu
+      visible={visible}
+      onDismiss={() => setVisible(false)}
+      anchor={
+        <Button
+          mode="outlined"
+          onPress={() => setVisible(true)}
+          style={styles.input}
+        >
+          {title}: {value}
+        </Button>
+      }
+    >
+      {items.map((v) => (
+        <Menu.Item
+          key={v}
+          title={v}
+          onPress={() => {
+            onChange(v);
+            setVisible(false);
+          }}
+        />
+      ))}
+    </Menu>
+  );
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.container}
-    >
-      <Text style={styles.header}>📝 Task Management</Text>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter a task..."
-          value={task}
-          onChangeText={setTask}
-        />
-        <View style={styles.row}>
-          <TouchableOpacity style={styles.input} onPress={showDatePicker}>
-            <Text style={styles.dateText}>
-              {deadline ? deadline.toLocaleString() : "Select a deadline"}
-            </Text>
-          </TouchableOpacity>
-
-          <Picker
-            selectedValue={priority}
-            style={styles.picker}
-            onValueChange={(itemValue) => setPriority(itemValue)}
-          >
-            <Picker.Item label="High" value="High" />
-            <Picker.Item label="Medium" value="Medium" />
-            <Picker.Item label="Low" value="Low" />
-          </Picker>
-        </View>
-      </View>
-
-      <View style={styles.addButtonContainer}>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleAddTask}
-          disabled={adding}
+    <PaperProvider theme={theme}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#0f0f0f" }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <Text style={styles.addButtonText}>
-            {adding ? "Adding..." : "Add Task"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.container}>
+            <Text style={styles.header}>🗒️ My Tasks</Text>
 
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#007AFF"
-          style={{ marginTop: 40 }}
-        />
-      ) : tasks.length === 0 ? (
-        <Text style={styles.noTasksText}>No tasks found.</Text>
-      ) : (
-        <>
-          <Text style={styles.countText}>Total Tasks: {tasks.length}</Text>
-          <FlatList
-            data={tasks}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            style={styles.taskList}
-          />
-        </>
-      )}
+            <TextInput
+              label="Task description"
+              value={task}
+              onChangeText={setTask}
+              mode="outlined"
+              style={styles.input}
+            />
 
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="datetime"
-        onConfirm={handleDateConfirm}
-        onCancel={hideDatePicker}
-      />
-    </KeyboardAvoidingView>
+            <Button
+              mode="outlined"
+              icon="calendar"
+              onPress={() => setPickerVisible(true)}
+              style={styles.input}
+            >
+              {deadline ? deadline.toLocaleString() : "Select deadline & time"}
+            </Button>
+
+            <DateTimePickerModal
+              isVisible={isPickerVisible}
+              mode="datetime"
+              onConfirm={(date) => {
+                setDeadline(date);
+                setPickerVisible(false);
+              }}
+              onCancel={() => setPickerVisible(false)}
+            />
+
+            {renderMenu(
+              "🚦 Priority",
+              priority,
+              ["High", "Medium", "Low"],
+              showPriorityMenu,
+              setShowPriorityMenu,
+              setPriority
+            )}
+
+            {renderMenu(
+              "📂 Category",
+              category,
+              ["Work", "Personal", "Study"],
+              showCatMenu,
+              setShowCatMenu,
+              setCategory
+            )}
+
+            <Button
+              mode="contained"
+              onPress={handleAddTask}
+              loading={adding}
+              style={styles.addBtn}
+            >
+              ➕ Add Task
+            </Button>
+
+            <View style={styles.sortRow}>
+              <Text>Sort by:</Text>
+              {renderMenu(
+                "Sort",
+                sortPreference,
+                ["Deadline", "Priority"],
+                showSortMenu,
+                setShowSortMenu,
+                (val) => setSortPreference(val.toLowerCase())
+              )}
+            </View>
+
+            <View style={styles.flex}>
+              {loading ? (
+                <ActivityIndicator style={{ marginTop: 24 }} />
+              ) : tasks.length === 0 ? (
+                <Text
+                  style={{ textAlign: "center", marginTop: 24, color: "#888" }}
+                >
+                  No tasks available.
+                </Text>
+              ) : (
+                <FlatList
+                  data={tasks}
+                  renderItem={renderTask}
+                  keyExtractor={(item, index) => item.id || index.toString()}
+                  contentContainerStyle={{ paddingBottom: 100 }}
+                  keyboardShouldPersistTaps="handled"
+                />
+              )}
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </PaperProvider>
   );
+}
+
+// Light theme override
+const theme = {
+  ...DefaultTheme,
+  roundness: 10,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#007AFF", // iOS blue
+    accent: "#FF9500", // iOS orange for highlights
+    background: "#F2F2F7", // iOS system background
+    surface: "#FFFFFF",
+    text: "#1C1C1E", // dark gray for text
+    placeholder: "#A1A1A1",
+    disabled: "#D1D1D6",
+    elevation: {
+      level2: "#FFFFFF",
+    },
+  },
 };
 
+
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   container: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
-    paddingHorizontal: 20,
-    paddingTop: 60,
+    padding: 16,
+    paddingTop: 50,
+    alignItems: "center",
+    backgroundColor: "#F2F2F7",
+  },
+  scroll: {
+    alignItems: "center",
+    padding: 16,
+    minWidth: width,
   },
   header: {
     fontSize: 26,
     fontWeight: "bold",
+    color: "#1C1C1E",
     marginBottom: 20,
-    textAlign: "center",
-    color: "#333",
-  },
-  inputContainer: {
-    flexDirection: "column",
-    marginBottom: 16,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
   },
   input: {
-    flex: 1,
-    height: 48,
-    backgroundColor: "#fff",
+    width: "100%",
+    marginBottom: 12,
+    backgroundColor: "#FFFFFF",
     borderRadius: 10,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    marginBottom: 10,
   },
-  picker: {
-    height: 48,
-    width: "48%",
+  addBtn: {
+    width: "100%",
+    marginVertical: 16,
     borderRadius: 10,
-    backgroundColor: "#fff",
-    borderColor: "#ccc",
-    borderWidth: 1,
-    paddingLeft: 10,
+    paddingVertical: 6,
   },
-  dateText: {
-    fontSize: 16,
-    color: "#007AFF",
-    textAlign: "center",
-  },
-  addButtonContainer: {
+  sortRow: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
-    marginBottom: 20,
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 16,
   },
-  addButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 40,
-    paddingVertical: 12,
-    justifyContent: "center",
-    borderRadius: 10,
-    alignItems: "center",
-    width: "60%",
-  },
-  addButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  taskList: {
-    marginTop: 10,
-  },
-  taskItem: {
-    backgroundColor: "#fff",
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 10,
+  card: {
+    width: "100%",
+    marginBottom: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
     elevation: 2,
   },
-  taskText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  deadlineText: {
-    fontSize: 14,
-    color: "#777",
-    marginTop: 5,
-  },
-  priorityText: {
-    fontSize: 14,
-    color: "#007AFF",
-    marginTop: 5,
-  },
-  noTasksText: {
-    textAlign: "center",
-    fontSize: 16,
-    color: "#666",
-    marginTop: 40,
-  },
-  countText: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-  },
 });
-
-export default TaskManagementScreen;

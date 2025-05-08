@@ -1,3 +1,5 @@
+// src/context/AuthContext.js
+
 import React, { createContext, useState, useEffect, useContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "../services/firebase";
@@ -37,27 +39,23 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    // Fallback: if listener never calls back, force loading off after 5s
-    const timeout = setTimeout(() => {
-      console.warn("⏰ onAuthStateChanged timeout, forcing loading=false");
-      setLoading(false);
-    }, 5000);
-
-    return () => {
-      unsubscribe();
-      clearTimeout(timeout);
-    };
+    return () => unsubscribe();
   }, []);
 
-  const signIn = (email, password) =>
-    auth
-      .signInWithEmailAndPassword(email, password)
-      .then(() => ({ success: true }))
-      .catch((err) => ({ success: false, error: err.message }))
-      .finally(() => setLoading(false));
+  const signIn = async (email, password) => {
+    setLoading(true); // Start loading
+    try {
+      await auth.signInWithEmailAndPassword(email, password);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false); // Stop loading after sign-in process
+    }
+  };
 
   const signUp = async (email, password, displayName) => {
-    setLoading(true);
+    setLoading(true); // Start loading
     try {
       const cred = await auth.createUserWithEmailAndPassword(email, password);
       if (displayName) {
@@ -67,23 +65,29 @@ export function AuthProvider({ children }) {
     } catch (err) {
       return { success: false, error: err.message };
     } finally {
-      setLoading(false);
+      setLoading(false); // Stop loading after sign-up process
     }
   };
 
-  const signOut = () =>
-    auth
-      .signOut()
-      .then(() => ({ success: true }))
-      .catch((err) => ({ success: false, error: err.message }))
-      .finally(() => setLoading(false));
+  const signOut = async () => {
+    setLoading(true); // Start loading
+    try {
+      await auth.signOut();
+      setUser(null); // Make sure to reset the user state
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false); // Stop loading after sign-out process
+    }
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
-        authReady: !loading, // <- new alias
+        authReady: !loading, // Only show ready state when not loading
         signIn,
         signUp,
         signOut,
