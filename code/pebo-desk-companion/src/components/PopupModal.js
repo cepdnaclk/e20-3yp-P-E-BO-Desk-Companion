@@ -1,4 +1,3 @@
-// components/PopupModal.js
 import React from "react";
 import {
   Modal,
@@ -7,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Easing,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons"; // Make sure expo/vector-icons is installed
 
-const PopupModal = ({ visible, message, onClose }) => {
-  const scaleValue = new Animated.Value(0);
+const PopupModal = ({ visible, message, onClose, type = "info" }) => {
+  const scaleValue = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     if (visible) {
@@ -24,6 +23,21 @@ const PopupModal = ({ visible, message, onClose }) => {
       scaleValue.setValue(0);
     }
   }, [visible]);
+
+  const getIconDetails = () => {
+    switch (type) {
+      case "success":
+        return { name: "checkmark-circle", color: "#28a745" };
+      case "error":
+        return { name: "close-circle", color: "#dc3545" };
+      case "warning":
+        return { name: "alert-circle", color: "#ffc107" };
+      default:
+        return { name: "information-circle", color: "#007bff" };
+    }
+  };
+
+  const icon = getIconDetails();
 
   return (
     <Modal
@@ -39,8 +53,17 @@ const PopupModal = ({ visible, message, onClose }) => {
             { transform: [{ scale: scaleValue }] },
           ]}
         >
+          <Ionicons
+            name={icon.name}
+            size={48}
+            color={icon.color}
+            style={styles.icon}
+          />
           <Text style={styles.messageText}>{message}</Text>
-          <TouchableOpacity onPress={onClose} style={styles.okButton}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={[styles.okButton, { backgroundColor: icon.color }]}
+          >
             <Text style={styles.okButtonText}>OK</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -59,28 +82,32 @@ const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: "#fff",
     width: "80%",
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 10,
   },
+  icon: {
+    marginBottom: 12,
+  },
   messageText: {
     fontSize: 16,
-    marginBottom: 20,
     textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
   },
   okButton: {
-    backgroundColor: "#007bff",
     paddingVertical: 10,
-    paddingHorizontal: 25,
-    borderRadius: 8,
+    paddingHorizontal: 28,
+    borderRadius: 12,
   },
   okButtonText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "600",
   },
 });
 
