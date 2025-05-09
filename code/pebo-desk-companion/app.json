@@ -19,11 +19,14 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-        "jsEngine": "jsc"
+        "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.yokka361.pebodeskcompanion"
+      "package": "com.yokka361.pebodeskcompanion",
+      "permissions": [
+        "INTERNET",
+        "WAKE_LOCK"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,13 +37,11 @@
       }
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-async-storage/async-storage"
     ],
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
     "updates": {
-      "url": "https://u.expo.dev/325af024-4e4f-4aab-8007-0f5a064e9b2b"
+      "enabled": false
     }
   }
 }

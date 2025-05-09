@@ -75,19 +75,23 @@ const MainNavigator = () => {
 
   useEffect(() => {
     const checkOnboarding = async () => {
-      const seen = await AsyncStorage.getItem("hasSeenOnboarding");
-      setHasSeenOnboarding(seen === "true");
+      try {
+        const seen = await AsyncStorage.getItem("hasSeenOnboarding");
+        setHasSeenOnboarding(seen === "true");
+      } catch (err) {
+        console.error("Error reading onboarding status:", err);
+        setHasSeenOnboarding(false); // fallback
+      }
     };
-
     checkOnboarding();
   }, []);
 
   useEffect(() => {
-    if (authReady) {
+    if (authReady && hasSeenOnboarding !== null) {
       const timer = setTimeout(() => setShowSplash(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [authReady]);
+  }, [authReady, hasSeenOnboarding]);
 
   if (!authReady || showSplash || hasSeenOnboarding === null) {
     return <SplashScreen />;
@@ -97,11 +101,9 @@ const MainNavigator = () => {
     if (!hasSeenOnboarding) {
       return (
         <OnboardingScreen
-          onFinish={async (navigation) => {
-            // Pass navigation here
+          onFinish={async () => {
             await AsyncStorage.setItem("hasSeenOnboarding", "true");
             setHasSeenOnboarding(true);
-            navigation.replace("Login"); // Navigate to Login after onboarding is done
           }}
         />
       );

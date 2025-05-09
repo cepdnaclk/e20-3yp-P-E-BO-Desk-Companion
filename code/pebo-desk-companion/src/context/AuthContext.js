@@ -1,6 +1,10 @@
-// src/context/AuthContext.js
-
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useMemo,
+} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "../services/firebase";
 
@@ -11,51 +15,63 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("▶️ Attaching onAuthStateChanged listener");
-    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-      console.log("🔔 onAuthStateChanged:", currentUser);
-      if (currentUser) {
-        setUser(currentUser);
-        try {
-          await AsyncStorage.setItem(
-            "user",
-            JSON.stringify({
-              uid: currentUser.uid,
-              email: currentUser.email,
-              displayName: currentUser.displayName,
-            })
-          );
-        } catch (err) {
-          console.error("Error storing user data:", err);
-        }
-      } else {
-        setUser(null);
-        try {
-          await AsyncStorage.removeItem("user");
-        } catch (err) {
-          console.error("Error removing user data:", err);
-        }
-      }
+    const timeout = setTimeout(() => {
+      console.warn(
+        "⚠️ Auth fallback triggered — onAuthStateChanged may have failed."
+      );
       setLoading(false);
+    }, 5000);
+
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      const handleUser = async () => {
+        clearTimeout(timeout);
+        try {
+          if (__DEV__) console.log("🔔 Auth state changed:", currentUser);
+
+          if (currentUser) {
+            setUser(currentUser);
+            await AsyncStorage.setItem(
+              "user",
+              JSON.stringify({
+                uid: currentUser.uid,
+                email: currentUser.email,
+                displayName: currentUser.displayName,
+              })
+            );
+          } else {
+            setUser(null);
+            await AsyncStorage.removeItem("user");
+          }
+        } catch (err) {
+          console.error("❌ Auth state handling error:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      handleUser(); // safely handle async logic
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      unsubscribe();
+    };
   }, []);
 
   const signIn = async (email, password) => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       await auth.signInWithEmailAndPassword(email, password);
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
     } finally {
-      setLoading(false); // Stop loading after sign-in process
+      setLoading(false);
     }
   };
 
   const signUp = async (email, password, displayName) => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const cred = await auth.createUserWithEmailAndPassword(email, password);
       if (displayName) {
@@ -65,37 +81,36 @@ export function AuthProvider({ children }) {
     } catch (err) {
       return { success: false, error: err.message };
     } finally {
-      setLoading(false); // Stop loading after sign-up process
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       await auth.signOut();
-      setUser(null); // Make sure to reset the user state
+      setUser(null);
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
     } finally {
-      setLoading(false); // Stop loading after sign-out process
+      setLoading(false);
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        authReady: !loading, // Only show ready state when not loading
-        signIn,
-        signUp,
-        signOut,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      authReady: !loading,
+      signIn,
+      signUp,
+      signOut,
+    }),
+    [user, loading]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

@@ -10,7 +10,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 function AppContent() {
   const { loading } = useAuth();
-  console.log("AppContent loading:", loading);
 
   if (loading) {
     return (
@@ -28,9 +27,10 @@ function AppContent() {
   );
 }
 
+// ✅ Wrap everything and export this as default
 export default function App() {
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <AppContent />
       </AuthProvider>
@@ -39,7 +39,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   loader: {
     flex: 1,
     justifyContent: "center",
