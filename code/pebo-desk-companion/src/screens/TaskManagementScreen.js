@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { markTaskCompleted, updateTask } from "../services/firebase";
+import moment from "moment"; 
 import {
   View,
   FlatList,
@@ -22,8 +24,8 @@ import {
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { addTask, getTaskOverview } from "../services/firebase";
 import { SafeAreaView } from "react-native";
-const { width } = Dimensions.get("window");
 
+const { width } = Dimensions.get("window");
 
 export default function TaskManagementScreen() {
   const [task, setTask] = useState("");
@@ -43,6 +45,27 @@ export default function TaskManagementScreen() {
   useEffect(() => {
     fetchAndSortTasks();
   }, [sortPreference]);
+
+  // Update task completion status
+  async function toggleCompleted(taskItem) {
+    try {
+      // Update task completion status in the database
+      await updateTask(taskItem.id, {
+        completed: !taskItem.completed,
+      });
+
+      // Update the task in the local state without needing to fetch all tasks again
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskItem.id
+            ? { ...task, completed: !task.completed }
+            : task
+        )
+      );
+    } catch {
+      Alert.alert("Error", "Failed to update task.");
+    }
+  }
 
   async function fetchAndSortTasks() {
     setLoading(true);
@@ -93,12 +116,28 @@ export default function TaskManagementScreen() {
   }
 
   const renderTask = ({ item }) => (
-    <Card style={styles.card}>
-      <Card.Title title={item.description} />
+    <Card style={[styles.card, item.completed && styles.completedCard]}>
+      <Card.Title
+        titleStyle={[styles.cardTitle, item.completed && styles.completedText]}
+        title={item.description}
+        right={() => (
+          <Button
+            icon={
+              item.completed ? "check-circle" : "checkbox-blank-circle-outline"
+            }
+            onPress={() => toggleCompleted(item)}
+            compact
+          />
+        )}
+      />
       <Card.Content>
-        <Text>📅 {new Date(item.deadline).toLocaleString()}</Text>
-        <Text>🚦 {item.priority}</Text>
-        <Text>📂 {item.category}</Text>
+        <View style={styles.taskInfoRow}>
+          <Text style={styles.infoText}>
+            📅 {new Date(item.deadline).toLocaleString()}
+          </Text>
+          <Text style={styles.infoText}>🚦 {item.priority}</Text>
+          <Text style={styles.infoText}>📂 {item.category}</Text>
+        </View>
       </Card.Content>
     </Card>
   );
@@ -120,11 +159,12 @@ export default function TaskManagementScreen() {
       {items.map((v) => (
         <Menu.Item
           key={v}
-          title={v}
+          title={`• ${v}`}
           onPress={() => {
             onChange(v);
             setVisible(false);
           }}
+          leadingIcon="chevron-right"
         />
       ))}
     </Menu>
@@ -155,7 +195,9 @@ export default function TaskManagementScreen() {
               onPress={() => setPickerVisible(true)}
               style={styles.input}
             >
-              {deadline ? deadline.toLocaleString() : "Select deadline & time"}
+              {deadline
+                ? moment(deadline).format("DD MMM YYYY, hh:mm A")
+                : "Select deaddline & time"}
             </Button>
 
             <DateTimePickerModal
@@ -188,18 +230,20 @@ export default function TaskManagementScreen() {
 
             <Button
               mode="contained"
+              icon="plus-circle"
               onPress={handleAddTask}
               loading={adding}
               style={styles.addBtn}
             >
-              ➕ Add Task
+              Add New Task
             </Button>
 
             <View style={styles.sortRow}>
               <Text>Sort by:</Text>
               {renderMenu(
                 "Sort",
-                sortPreference,
+                sortPreference.charAt(0).toUpperCase() +
+                  sortPreference.slice(1),
                 ["Deadline", "Priority"],
                 showSortMenu,
                 setShowSortMenu,
@@ -223,6 +267,7 @@ export default function TaskManagementScreen() {
                   keyExtractor={(item, index) => item.id || index.toString()}
                   contentContainerStyle={{ paddingBottom: 100 }}
                   keyboardShouldPersistTaps="handled"
+                  
                 />
               )}
             </View>
@@ -236,67 +281,104 @@ export default function TaskManagementScreen() {
 // Light theme override
 const theme = {
   ...DefaultTheme,
-  roundness: 10,
+  roundness: 12,
   colors: {
     ...DefaultTheme.colors,
-    primary: "#007AFF", // iOS blue
-    accent: "#FF9500", // iOS orange for highlights
-    background: "#F2F2F7", // iOS system background
+    primary: "#4C9EEB", // Calming blue
+    accent: "#FFB64D", // Warm orange
+    background: "#FAFAFC", // Soft off-white
     surface: "#FFFFFF",
-    text: "#1C1C1E", // dark gray for text
-    placeholder: "#A1A1A1",
-    disabled: "#D1D1D6",
+    text: "#1E1E1E",
+    placeholder: "#9E9E9E",
+    disabled: "#E0E0E0",
     elevation: {
-      level2: "#FFFFFF",
+      level2: "#F2F2F2",
     },
   },
 };
 
 
+// Styles
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+
   container: {
     flex: 1,
-    padding: 16,
-    paddingTop: 50,
-    alignItems: "center",
-    backgroundColor: "#F2F2F7",
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: "#FAFAFC",
   },
-  scroll: {
-    alignItems: "center",
-    padding: 16,
-    minWidth: width,
-  },
+
   header: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "bold",
-    color: "#1C1C1E",
+    color: "#333",
     marginBottom: 20,
+    textAlign: "center",
   },
+
   input: {
-    width: "100%",
     marginBottom: 12,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    elevation: 2,
+    shadowColor: "#aaa",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
+
   addBtn: {
-    width: "100%",
     marginVertical: 16,
-    borderRadius: 10,
-    paddingVertical: 6,
+    borderRadius: 14,
+    paddingVertical: 12,
+    backgroundColor: "#4C9EEB",
+    elevation: 3,
   },
+
   sortRow: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    width: "100%",
-    marginBottom: 16,
+    alignItems: "center",
+    marginVertical: 10,
   },
+
+  taskInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+
+  infoText: {
+    color: "#6A6A6A",
+    fontSize: 13,
+  },
+
   card: {
-    width: "100%",
-    marginBottom: 12,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    elevation: 2,
+    backgroundColor: "#fff",
+    marginBottom: 14,
+    borderRadius: 16,
+    paddingVertical: 8,
+    width: width * 0.92,
+    alignSelf: "center",
+    elevation: 3,
+    shadowColor: "#ccc",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+  },
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1E1E1E",
+  },
+
+  completedCard: {
+    backgroundColor: "#F0F0F0",
+  },
+
+  completedText: {
+    textDecorationLine: "line-through",
+    color: "#9E9E9E",
   },
 });

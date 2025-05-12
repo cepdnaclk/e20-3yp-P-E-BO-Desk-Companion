@@ -7,7 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -22,11 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.yokka361.pebodeskcompanion",
-      "permissions": [
-        "INTERNET",
-        "WAKE_LOCK"
-      ]
+      "package": "com.yokka361.pebodeskcompanion"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,13 +30,6 @@
       "eas": {
         "projectId": "325af024-4e4f-4aab-8007-0f5a064e9b2b"
       }
-    },
-    "plugins": [
-      "expo-secure-store",
-      "@react-native-async-storage/async-storage"
-    ],
-    "updates": {
-      "enabled": false
     }
   }
 }

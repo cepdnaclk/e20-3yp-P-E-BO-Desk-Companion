@@ -1,312 +1,332 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
   StyleSheet,
-  ActivityIndicator,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  Alert,
+  Pressable,
 } from "react-native";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { auth, db } from "../services/firebase";
-import { ref, get, update } from "firebase/database";
-import { signOut } from "firebase/auth";
-import { AuthContext } from "../context/AuthContext";
-import PopupModal from "../components/PopupModal";
-import { useAuth } from "../context/AuthContext";
-
+import {
+  auth,
+  getWifiName,
+  setWifiName,
+  addPeboDevice,
+  saveWifiSettings,
+} from "../services/firebase";
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
-  const { setUser } = useContext(AuthContext);
-  const [peboName, setPeboName] = useState("");
   const [wifiSSID, setWifiSSID] = useState("");
   const [wifiPassword, setWifiPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const user = auth.currentUser;
-
+  const [peboName, setPeboName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalContent, setModalContent] = useState({
-    title: "",
-    message: "",
-    icon: "",
-    onClose: null,
-  });
-
-  const showModal = (title, message, icon, onClose = null) => {
-    setModalContent({ title, message, icon, onClose });
-    setModalVisible(true);
-  };
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      const userSettingsRef = ref(db, `users/${user.uid}/settings`);
-      get(userSettingsRef)
-        .then((snapshot) => {
-          const data = snapshot.val() || {};
-          setPeboName(data?.peboName ?? "");
-          setWifiSSID(data?.wifiSSID ?? "");
-          setWifiPassword(data?.wifiPassword ?? "");
-        })
-        .catch((error) => {
-          console.error("Error fetching settings: ", error);
-        })
-        .finally(() => setLoading(false));
-    }
+    const fetchWifi = async () => {
+      try {
+        const wifi = await getWifiName();
+        setWifiSSID(wifi.wifiSSID || "");
+        setWifiPassword(wifi.wifiPassword || "");
+      } catch (error) {
+        console.log("Error fetching Wi-Fi info:", error.message);
+      }
+    };
+    fetchWifi();
   }, []);
 
-  const saveSettingsToFirebase = () => {
-    const name = peboName.trim();
-    const ssid = wifiSSID.trim();
-    const password = wifiPassword.trim();
-
-    if (!name || !ssid || !password) {
-      showModal(
-        "Warning",
-        "All fields must be filled out.",
-        "alert-circle-outline"
-      );
-      return;
-    }
-
-    if (!user) return;
-
-    setSaving(true);
-    const settingsRef = ref(db, `users/${user.uid}/settings`);
-    update(settingsRef, {
-      peboName: name,
-      wifiSSID: ssid,
-      wifiPassword: password,
-    })
-      .then(() =>
-        showModal(
-          "Saved",
-          "Settings updated successfully!",
-          "checkmark-circle-outline"
-        )
-      )
-      .catch((error) => {
-        console.error("Error saving settings: ", error);
-        showModal(
-          "❌ Error",
-          "Failed to update settings.",
-          "close-circle-outline"
-        );
-      })
-      .finally(() => setSaving(false));
-  };
-
-const { signOut } = useAuth(); // Use signOut from AuthContext
-
-const handleLogout = async () => {
+const handleSaveWifi = async () => {
   try {
-    const result = await signOut(); // Call the signOut function from AuthContext
-    if (result.success) {
-      showModal(
-        "Logged Out",
-        "You have been logged out successfully.",
-        "log-out-outline",
-        () => navigation.replace("Login")
-      );
-    } else {
-      throw new Error(result.error);
-    }
+    await saveWifiSettings({
+      peboName: peboName,
+      wifiSSID: wifiSSID, // Corrected here
+      wifiPassword: wifiPassword, // Corrected here
+    });
+    Alert.alert("✅ Wi-Fi info updated for all PEBOs");
   } catch (error) {
-    console.error("Logout failed", error);
-    showModal(
-      "❌ Error",
-      "Failed to log out. Try again.",
-      "close-circle-outline"
-    );
+    Alert.alert("Error updating Wi-Fi", error.message);
   }
 };
 
+const handleAddPebo = async () => {
+  const trimmedName = peboName.trim();
+  if (!trimmedName) {
+    Alert.alert("Please enter a PEBO name");
+    return;
+  }
+  try {
+    await addPeboDevice({ name: trimmedName });
+    setModalVisible(false);
+    setPeboName("");
+    Alert.alert("✅ New PEBO added!");
+  } catch (error) {
+    Alert.alert("Error adding PEBO", error.message);
+  }
+};
+
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    } catch (error) {
+      Alert.alert("Logout Error", error.message);
+    }
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>
-          <Ionicons name="settings-outline" size={24} color="#00796b" /> PEBO
-          Settings
-        </Text>
+    <View style={styles.container}>
+      <Text style={styles.header}>Settings</Text>
+
+      {/* Wi-Fi Config */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <MaterialIcons name="wifi" size={20} color="#007AFF" />
+          <Text style={styles.cardLabel}>Wi-Fi Configuration</Text>
+        </View>
+
+        <TextInput
+          placeholder="SSID"
+          style={styles.input}
+          value={wifiSSID}
+          onChangeText={setWifiSSID}
+          placeholderTextColor="#999"
+        />
+
+        <View style={{ position: "relative" }}>
+          <TextInput
+            placeholder="Password"
+            style={styles.input}
+            secureTextEntry={!showPassword}
+            value={wifiPassword}
+            onChangeText={setWifiPassword}
+            placeholderTextColor="#999"
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            style={{ position: "absolute", right: 12, top: 12 }}
+          >
+            <Ionicons
+              name={showPassword ? "eye-off" : "eye"}
+              size={22}
+              color="#999"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.saveButton} onPress={handleSaveWifi}>
+          <Text style={styles.saveButtonText}>Save Wi-Fi</Text>
+        </TouchableOpacity>
       </View>
 
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#00796b"
-          style={{ marginTop: 50 }}
-        />
-      ) : (
-        <>
-          {/* Device Settings */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              <Ionicons name="hardware-chip-outline" size={20} color="#666" />{" "}
-              Device Name
-            </Text>
+      {/* Add PEBO */}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setModalVisible(true)}
+      >
+        <Ionicons name="add-circle-outline" size={22} color="white" />
+        <Text style={styles.addButtonText}>Add New PEBO</Text>
+      </TouchableOpacity>
+
+      {/* Logout */}
+      <TouchableOpacity
+        style={[styles.addButton, { backgroundColor: "#FF3B30" }]}
+        onPress={() => setLogoutModalVisible(true)}
+      >
+        <Ionicons name="log-out-outline" size={22} color="white" />
+        <Text style={styles.addButtonText}>Logout</Text>
+      </TouchableOpacity>
+
+      {/* Add PEBO Modal */}
+      <Modal
+        transparent
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add New PEBO</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Enter device name"
+              placeholder="Enter PEBO Name"
               value={peboName}
               onChangeText={setPeboName}
-            />
-          </View>
-
-          {/* Wi-Fi Settings */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              <Ionicons name="wifi-outline" size={20} color="#666" /> Wi-Fi SSID
-            </Text>
-            <TextInput
               style={styles.input}
-              placeholder="Wi-Fi SSID"
-              value={wifiSSID}
-              onChangeText={setWifiSSID}
+              placeholderTextColor="#999"
             />
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Wi-Fi Password"
-                value={wifiPassword}
-                onChangeText={setWifiPassword}
-                secureTextEntry={!showPassword}
-              />
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowPassword(!showPassword)}
+                style={[styles.modalButton, { backgroundColor: "#007AFF" }]}
+                onPress={handleAddPebo}
               >
-                <Ionicons
-                  name={showPassword ? "eye-off" : "eye"}
-                  size={24}
-                  color="#666"
-                />
+                <Text style={styles.modalButtonText}>Add PEBO</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: "#ccc" }]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={[styles.modalButtonText, { color: "#333" }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+      </Modal>
 
-          {/* Save Button */}
-          <TouchableOpacity
-            style={[styles.saveBtn, saving && { opacity: 0.5 }]}
-            onPress={saveSettingsToFirebase}
-            disabled={saving}
-          >
-            <Ionicons name="save-outline" size={20} color="#fff" />
-            <Text style={styles.saveBtnText}>
-              {saving ? "Saving..." : "Save Settings"}
+      {/* Logout Modal */}
+      <Modal
+        transparent
+        visible={logoutModalVisible}
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              Are you sure you want to log out?
             </Text>
-          </TouchableOpacity>
-
-          {/* Logout Button */}
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#fff" />
-            <Text style={styles.logoutBtnText}>Log Out</Text>
-          </TouchableOpacity>
-
-          {/* Footer */}
-          <Text style={styles.footerText}>
-            <Ionicons name="warning-outline" size={16} color="#888" /> More
-            features coming soon!
-          </Text>
-        </>
-      )}
-
-      {/* Popup Modal */}
-      <PopupModal
-        visible={modalVisible}
-        title={modalContent.title}
-        message={modalContent.message}
-        icon={modalContent.icon}
-        onClose={() => {
-          setModalVisible(false);
-          if (modalContent.onClose) {
-            modalContent.onClose();
-            setModalContent((prev) => ({ ...prev, onClose: null }));
-          }
-        }}
-      />
-    </ScrollView>
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: "#FF3B30" }]}
+                onPress={handleLogout}
+              >
+                <Text style={styles.modalButtonText}>Logout</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: "#ccc" }]}
+                onPress={() => setLogoutModalVisible(false)}
+              >
+                <Text style={[styles.modalButtonText, { color: "#333" }]}>
+                  Cancel
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
+export default SettingsScreen;
+
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#f9f9f9", flex: 1 , paddingTop: 30},
-  content: { padding: 20, paddingBottom: 40 },
-  titleContainer: {
-    backgroundColor: "#e0f7fa",
-    padding: 15,
-    paddingTop: 10,
-    borderRadius: 12,
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F9FF",
+    padding: 24,
+    paddingTop: 50,
+  },
+  header: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#007AFF",
     marginBottom: 30,
-    alignItems: "center",
-    elevation: 3,
+    alignSelf: "center",
   },
-  title: { fontSize: 26, fontWeight: "700", color: "#00796b" },
-  section: { marginBottom: 25 },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 10,
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    borderColor: "#ddd",
-    borderWidth: 1,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  passwordContainer: {
-    position: "relative",
-    justifyContent: "center",
-  },
-  eyeIcon: {
-    position: "absolute",
-    right: 16,
-    top: 12,
-  },
-  saveBtn: {
+  cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#4CAF50",
-    padding: 15,
+    marginBottom: 16,
+  },
+  cardLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
+    color: "#007AFF",
+  },
+  input: {
+    backgroundColor: "#F0F4F8",
     borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    fontSize: 16,
+    color: "#1C1C1E",
+  },
+  saveButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  saveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "600",
+    padding: 8,
+  },
+  addButton: {
+    flexDirection: "row",
+    backgroundColor: "#007AFF",
+    borderRadius: 14,
+    padding: 14,
+    alignItems: "center",
     justifyContent: "center",
     marginTop: 10,
   },
-  saveBtnText: {
-    color: "#fff",
+  addButtonText: {
+    color: "white",
     fontSize: 16,
-    marginLeft: 8,
+    fontWeight: "600",
+    marginLeft: 10,
   },
-  logoutBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#e53935",
-    padding: 15,
-    borderRadius: 10,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
-    marginTop: 20,
+    alignItems: "center",
   },
-  logoutBtnText: {
-    color: "#fff",
-    fontSize: 16,
-    marginLeft: 8,
+  modalContent: {
+    width: "85%",
+    backgroundColor: "#FFF",
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+    elevation: 10,
   },
-  footerText: {
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 20,
     textAlign: "center",
-    marginTop: 30,
-    fontStyle: "italic",
-    color: "#888",
+    color: "#007AFF",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFF",
   },
 });
-
-export default SettingsScreen;
-
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { getWifiName, getTaskOverview } from "../services/firebase";
+import { useFocusEffect } from "@react-navigation/native";
 
 const DashboardScreen = () => {
   const [wifiDetails, setWifiDetails] = useState({
@@ -19,31 +20,58 @@ const DashboardScreen = () => {
   const [upcomingTasks, setUpcomingTasks] = useState([]);
   const navigation = useNavigation();
 
-  useEffect(() => {
+  
+useFocusEffect(
+  useCallback(() => {
     const fetchData = async () => {
       try {
-        const wifi = await getWifiName(); // expects { peboName, wifiSSID, wifiPassword }
+        // Fetch tasks
         const tasks = await getTaskOverview();
+        console.log("📅 All tasks fetched:", tasks);
 
+        // Filter upcoming tasks
         const today = new Date();
-        const upcoming = tasks
-          .filter((task) => {
-            if (!task.deadline) return false;
-            const due = new Date(task.deadline);
-            const diffDays = (due - today) / (1000 * 60 * 60 * 24);
-            return diffDays >= 0 && diffDays <= 5;
-          })
-          .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+        const upcoming = tasks.filter((task) => {
+          if (task.completed || !task.deadline) return false;
 
-        setWifiDetails(wifi);
+          let due = new Date(task.deadline);
+          if (isNaN(due)) {
+            if (typeof task.deadline === "number") due = new Date(task.deadline);
+            else return false;
+          }
+
+          const diffDays = (due - today) / (1000 * 60 * 60 * 24);
+          const isUpcoming = diffDays >= 0 && diffDays <= 5;
+
+          if (isUpcoming) return true;
+
+          if (task.frequency) {
+            const freq = task.frequency.toLowerCase();
+            return (
+              freq === "daily" ||
+              (freq === "weekly" && today.getDay() === due.getDay()) ||
+              (freq === "monthly" && today.getDate() === due.getDate())
+            );
+          }
+
+          return false;
+        });
+
         setUpcomingTasks(upcoming);
-      } catch (e) {
-        console.error("Dashboard fetch error:", e);
+
+        // ✅ Fetch Wi-Fi details here
+        const wifi = await getWifiName();
+        setWifiDetails(wifi);
+      } catch (error) {
+        console.error("Dashboard Error - fetchData:", error);
       }
     };
 
     fetchData();
-  }, []);
+  }, [])
+);
+
+
 
   return (
     <View style={styles.container}>
@@ -74,7 +102,11 @@ const DashboardScreen = () => {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.taskItem}>
-                <Text style={styles.taskTitle}>{item.description}</Text>
+                <Text style={styles.taskTitle}>
+                  {item.description}{" "}
+                  {item.frequency ? `(${item.frequency})` : ""}
+                </Text>
+
                 <Text style={styles.taskDate}>
                   {new Date(item.deadline).toLocaleString()}
                 </Text>
