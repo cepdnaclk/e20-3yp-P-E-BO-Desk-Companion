@@ -6,89 +6,114 @@ import {
   StyleSheet,
   FlatList,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
-import { getWifiName, getTaskOverview } from "../services/firebase";
-import { useFocusEffect } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
+import {
+  getWifiName,
+  getTaskOverview,
+  getPeboDevices,
+} from "../services/firebase";
 
 const DashboardScreen = () => {
   const [wifiDetails, setWifiDetails] = useState({
-    peboName: "",
     wifiSSID: "",
     wifiPassword: "",
   });
+  const [userPebos, setUserPebos] = useState([]);
   const [upcomingTasks, setUpcomingTasks] = useState([]);
   const navigation = useNavigation();
 
-  
-useFocusEffect(
-  useCallback(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch tasks
-        const tasks = await getTaskOverview();
-        console.log("📅 All tasks fetched:", tasks);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          // ✅ Fetch tasks
+          const tasks = await getTaskOverview();
+          console.log("📅 All tasks fetched:", tasks);
 
-        // Filter upcoming tasks
-        const today = new Date();
-        const upcoming = tasks.filter((task) => {
-          if (task.completed || !task.deadline) return false;
+          // ✅ Filter upcoming tasks
+          const today = new Date();
+          const upcoming = tasks.filter((task) => {
+            if (task.completed || !task.deadline) return false;
 
-          let due = new Date(task.deadline);
-          if (isNaN(due)) {
-            if (typeof task.deadline === "number") due = new Date(task.deadline);
-            else return false;
-          }
+            let due = new Date(task.deadline);
+            if (isNaN(due)) {
+              if (typeof task.deadline === "number")
+                due = new Date(task.deadline);
+              else return false;
+            }
 
-          const diffDays = (due - today) / (1000 * 60 * 60 * 24);
-          const isUpcoming = diffDays >= 0 && diffDays <= 5;
+            const diffDays = (due - today) / (1000 * 60 * 60 * 24);
+            const isUpcoming = diffDays >= 0 && diffDays <= 5;
 
-          if (isUpcoming) return true;
+            if (isUpcoming) return true;
 
-          if (task.frequency) {
-            const freq = task.frequency.toLowerCase();
-            return (
-              freq === "daily" ||
-              (freq === "weekly" && today.getDay() === due.getDay()) ||
-              (freq === "monthly" && today.getDate() === due.getDate())
-            );
-          }
+            if (task.frequency) {
+              const freq = task.frequency.toLowerCase();
+              return (
+                freq === "daily" ||
+                (freq === "weekly" && today.getDay() === due.getDay()) ||
+                (freq === "monthly" && today.getDate() === due.getDate())
+              );
+            }
 
-          return false;
-        });
+            return false;
+          });
 
-        setUpcomingTasks(upcoming);
+          setUpcomingTasks(upcoming);
 
-        // ✅ Fetch Wi-Fi details here
-        const wifi = await getWifiName();
-        setWifiDetails(wifi);
-      } catch (error) {
-        console.error("Dashboard Error - fetchData:", error);
-      }
-    };
+          // ✅ Fetch Wi-Fi details
+          const wifi = await getWifiName();
+          setWifiDetails(wifi);
 
-    fetchData();
-  }, [])
-);
+          // ✅ Fetch current user's PEBOs
+          const pebos = await getPeboDevices(); // This fetches PEBOs assigned to the current user
+          setUserPebos(pebos);
+        } catch (error) {
+          console.error("Dashboard Error - fetchData:", error);
+        }
+      };
 
-
+      fetchData();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.appName}>PEBO</Text>
 
+      {/* ✅ PEBOs Assigned to Current User */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Ionicons name="home-outline" size={20} color="#007AFF" />
+          <Text style={styles.cardLabel}>Your PEBOs</Text>
+        </View>
+        {userPebos.length === 0 ? (
+          <Text style={styles.empty}>No PEBOs assigned to you</Text>
+        ) : (
+          userPebos.map((pebo, index) => (
+            <View key={index}>
+              <Text style={styles.cardValue}>
+                {pebo.name} ({pebo.location || "No location"})
+              </Text>
+            </View>
+          ))
+        )}
+      </View>
+
+      {/* ✅ Wi-Fi Details */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <MaterialIcons name="wifi" size={20} color="#007AFF" />
           <Text style={styles.cardLabel}>Wi-Fi Details</Text>
         </View>
-        <Text style={styles.cardValue}>Name: {wifiDetails.peboName}</Text>
         <Text style={styles.cardValue}>SSID: {wifiDetails.wifiSSID}</Text>
         <Text style={styles.cardValue}>
           Password: {wifiDetails.wifiPassword}
         </Text>
       </View>
 
+      {/* ✅ Upcoming Tasks */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <FontAwesome5 name="tasks" size={18} color="#007AFF" />
@@ -106,7 +131,6 @@ useFocusEffect(
                   {item.description}{" "}
                   {item.frequency ? `(${item.frequency})` : ""}
                 </Text>
-
                 <Text style={styles.taskDate}>
                   {new Date(item.deadline).toLocaleString()}
                 </Text>
@@ -116,11 +140,20 @@ useFocusEffect(
         )}
       </View>
 
+      {/* ✅ Navigate to Task Management */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate("Tasks")}
+        onPress={() => navigation.navigate("Settings")}
       >
-        <Text style={styles.buttonText}>Go to Task Management</Text>
+        <View style={styles.buttonContent}>
+          <Ionicons
+            name="settings-outline"
+            size={24}
+            color="white"
+            style={styles.icon}
+          />
+          <Text style={styles.buttonText}>Change Settings of PEBO</Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -132,6 +165,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F9FF",
     padding: 24,
     paddingTop: 50,
+  },
+  button: {
+    flexDirection: "row", // Aligns the icon and text horizontally
+    alignItems: "center", // Vertically centers them
+    padding: 10,
+    backgroundColor: "#3498db", // Button background color
+    borderRadius: 5,
+    margin: 10, // Adds some margin to the button
+  },
+  buttonContent: {
+    flexDirection: "row", // Aligns icon and text in a row
+    alignItems: "center", // Vertically aligns the icon and text
+  },
+  icon: {
+    marginRight: 10, // Adds space between the icon and text
+  },
+  buttonText: {
+    color: "white", // Text color
+    fontSize: 16,
+    fontWeight: "600",
   },
   appName: {
     fontSize: 32,
