@@ -16,9 +16,12 @@
     "@react-navigation/bottom-tabs": "^7.3.12",
     "@react-navigation/native": "^7.1.8",
     "@react-navigation/stack": "^7.3.1",
+    "aws-sdk": "^2.1692.0",
+    "axios": "^1.9.0",
     "dayjs": "^1.11.13",
     "expo": "53.0.9",
     "expo-dev-client": "~5.1.8",
+    "expo-image-picker": "~16.1.4",
     "expo-secure-store": "~14.2.3",
     "expo-status-bar": "~2.2.3",
     "expo-updates": "~0.28.12",
@@ -32,6 +35,8 @@
     "react-native": "0.79.2",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-gesture-handler": "~2.24.0",
+    "react-native-image-picker": "^8.2.1",
+    "react-native-image-resizer": "^1.4.5",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-paper": "^5.10.2",
     "react-native-paper-dropdown": "^2.3.1",
@@ -45,5 +50,9 @@
     "@babel/core": "^7.20.0",
     "@react-native-community/cli": "^18.0.0"
   },
-  "private": true
+  "private": true,
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

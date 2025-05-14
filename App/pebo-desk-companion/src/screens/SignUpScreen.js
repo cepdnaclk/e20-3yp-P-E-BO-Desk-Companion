@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { getDatabase, ref, set } from "firebase/database"; // Add this import
 import { auth } from "../services/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import PopupModal from "../components/PopupModal";
@@ -23,7 +24,7 @@ export default function SignUpScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
+  const [name, setName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState({
     title: "",
@@ -38,6 +39,9 @@ export default function SignUpScreen({ navigation }) {
 
   useEffect(() => {
     const newErrors = {};
+    if (name.trim() === "") {
+      newErrors.name = "Name is required";
+    }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Invalid email format";
     }
@@ -48,7 +52,7 @@ export default function SignUpScreen({ navigation }) {
       newErrors.confirm = "Passwords do not match";
     }
     setErrors(newErrors);
-  }, [email, password, confirm]);
+  }, [email, password, confirm, name]);
 
   const [redirectToDashboard, setRedirectToDashboard] = useState(false);
 
@@ -62,27 +66,67 @@ export default function SignUpScreen({ navigation }) {
   }, [redirectToDashboard, modalVisible]);
 
   const handleSignUp = async () => {
-    if (!email || !password || !confirm) {
+    // Validate required fields
+    if (!email || !password || !confirm || !name.trim()) {
       return showModal("Missing Fields", "Please fill in all fields.");
     }
+
+    // Validate if the password and confirm fields match
+    if (password !== confirm) {
+      return showModal("Password Mismatch", "Passwords do not match.");
+    }
+    // If there are any errors in the form (e.g., from input validation)
     if (Object.keys(errors).length > 0) {
       return showModal("Fix Errors", "Please fix the highlighted issues.");
     }
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email.trim(), password);
-      setRedirectToDashboard(true);
+      // Attempt to create the user with email and password
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+      const user = userCredential.user;
+      console.log("User created: ", user);
+
+      // Set the display name for the Firebase Auth user
+      await user.updateProfile({
+        displayName: name.trim(),
+      });
+
+      // Verify the display name is updated after `updateProfile`
+      console.log("Updated display name: ", user.displayName);
+
+      const db = getDatabase();
+      // Save user info to Firebase Realtime DB
+      await set(ref(db, `users/${user.uid}`), {
+        name: name.trim(),
+        email: email.trim(),
+      });
+
+      console.log(
+        "Writing user data to DB:",
+        user.uid,
+        name.trim(),
+        email.trim()
+      );
+
+      // Success modal
       showModal("Success", "Account created!", "checkmark-circle");
+      // Redirect to dashboard only after saving data and showing the success modal
+      setRedirectToDashboard(true);
     } catch (err) {
       let msg = "Could not sign up. Try again.";
-      let icon = "close-circle";
       if (err.code === "auth/email-already-in-use")
         msg = "Email already in use.";
       else if (err.code === "auth/invalid-email")
         msg = "Invalid email address.";
       else if (err.code === "auth/weak-password") msg = "Password is too weak.";
-      showModal("Signup Error", msg, icon);
+      // Error modal
+      showModal("Signup Error", msg, "close-circle");
     } finally {
+      // Stop the loading spinner after the sign-up process completes
       setLoading(false);
     }
   };
@@ -96,9 +140,18 @@ export default function SignUpScreen({ navigation }) {
         <View style={styles.card}>
           <Text style={styles.title}>Sign Up 👤</Text>
           <Text style={styles.subtitle}>
-            👋 Let’s get you started with a new account.
+            👋 Let's get you started with a new account.
           </Text>
-
+          {/* Name Input */}
+          <TextInput
+            style={[styles.input, errors.name && styles.inputError]}
+            placeholder="Full Name"
+            placeholderTextColor="#888"
+            autoCapitalize="words"
+            value={name}
+            onChangeText={setName}
+          />
+          {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
           {/* Email Input */}
           <TextInput
             style={[styles.input, errors.email && styles.inputError]}
@@ -110,7 +163,6 @@ export default function SignUpScreen({ navigation }) {
             onChangeText={setEmail}
           />
           {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
           {/* Password */}
           <View style={[styles.inputRow, errors.password && styles.inputError]}>
             <TextInput
@@ -132,7 +184,6 @@ export default function SignUpScreen({ navigation }) {
           {errors.password && (
             <Text style={styles.errorText}>{errors.password}</Text>
           )}
-
           {/* Confirm Password */}
           <View style={[styles.inputRow, errors.confirm && styles.inputError]}>
             <TextInput
@@ -154,7 +205,6 @@ export default function SignUpScreen({ navigation }) {
           {errors.confirm && (
             <Text style={styles.errorText}>{errors.confirm}</Text>
           )}
-
           {loading ? (
             <ActivityIndicator
               size="large"
@@ -166,9 +216,8 @@ export default function SignUpScreen({ navigation }) {
               <Text style={styles.buttonText}>Create Account</Text>
             </TouchableOpacity>
           )}
-
           <TouchableOpacity
-            onPress={() => navigation.navigate("Login")}
+            onPress={() => navigation.replace("Login")}
             style={styles.loginLink}
           >
             <Text style={styles.linkText}>

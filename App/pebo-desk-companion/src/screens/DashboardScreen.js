@@ -13,7 +13,9 @@ import {
   getTaskOverview,
   getPeboDevices,
 } from "../services/firebase";
+import { auth } from "../services/firebase";
 
+import { getUserName } from "../services/firebase";
 const DashboardScreen = () => {
   const [wifiDetails, setWifiDetails] = useState({
     wifiSSID: "",
@@ -22,11 +24,20 @@ const DashboardScreen = () => {
   const [userPebos, setUserPebos] = useState([]);
   const [upcomingTasks, setUpcomingTasks] = useState([]);
   const navigation = useNavigation();
-
+  // const getUserName = () => {
+  //   const user = auth.currentUser;
+  //   if (user && user.displayName) {
+  //     return user.displayName;
+  //   } else {
+  //     return "Guest"; // Fallback if the user is not logged in
+  //   }
+  // };
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
         try {
+     
+          
           // ✅ Fetch tasks
           const tasks = await getTaskOverview();
           console.log("📅 All tasks fetched:", tasks);
@@ -66,8 +77,8 @@ const DashboardScreen = () => {
           const wifi = await getWifiName();
           setWifiDetails(wifi);
 
-          // ✅ Fetch current user's PEBOs
-          const pebos = await getPeboDevices(); // This fetches PEBOs assigned to the current user
+          // ✅ Fetch user's PEBO devices
+          const pebos = await getPeboDevices();
           setUserPebos(pebos);
         } catch (error) {
           console.error("Dashboard Error - fetchData:", error);
@@ -77,7 +88,7 @@ const DashboardScreen = () => {
       fetchData();
     }, [])
   );
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.appName}>PEBO</Text>
