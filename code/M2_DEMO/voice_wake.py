@@ -55,11 +55,13 @@ async def speak_text(text):
     pygame.mixer.music.unload()  # Unload before deleting
     os.remove(filename)  # Safe to delete now
 
-def listen_continuously(stop_event, wake_word="hey pebo"):
+def listen_continuously(stop_event, wake_words=None):
     """
     Continuously listen for the wake word and put commands in the queue.
     This function runs in its own thread.
     """
+    if wake_words is None:
+        wake_words = ["hey bebo", "hey pebo", "bebo", "pebo"]
     print("Listening for wake word...")
     
     with mic as source:
