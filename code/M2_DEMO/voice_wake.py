@@ -11,11 +11,7 @@ import json
 import queue
 import signal
 import cv2
-try:
-    import mediapipe_rpi as mp  # Use Raspberry Pi-optimized fork
-except ImportError:
-    import mediapipe as mp  # Fallback to standard Mediapipe (may not work on ARM)
-    print("Warning: Standard Mediapipe may not work on Raspberry Pi. Consider installing mediapipe-rpi.")
+import mediapipe as mp
 import RPi.GPIO as GPIO
 from picamera2 import Picamera2
 import boto3
@@ -47,7 +43,7 @@ face_tracking_active = False
 face_detected = False
 stop_event = threading.Event()
 
-# Face tracking variables
+# Face tracking variables (from face_tracking.py)
 GPIO.setwarnings(False)
 h_servo_pin = 23  # pin 16
 v_servo_pin = 24  # pin 18
@@ -63,12 +59,7 @@ picam2 = Picamera2()
 picam2.configure(picam2.create_video_configuration(main={"size": (640, 480)}))
 picam2.start()
 
-try:
-    mp_face = mp.solutions.face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5)
-except Exception as e:
-    print(f"Error initializing MediaPipe face detection: {e}")
-    mp_face = None  # Set to None to trigger fallback logic
-
+mp_face = mp.solutions.face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5)
 width = 640
 height = 480
 
@@ -87,7 +78,7 @@ v_current_partition = 2
 last_detection_time = time.time()
 face_timeout = 1.0
 
-# User identification variables
+# User identification variables (from user_identifier.py)
 rekognition = boto3.client('rekognition')
 bucket_name = "pebo-user-images"
 captured_image = "captured.jpg"
@@ -97,7 +88,7 @@ REGION = os.getenv("AWS_REGION")
 LOCAL_IMAGE_PATH = f"/home/pi/Documents/PEBO_project_aws/{captured_image}"
 camera = Picamera2()
 
-# Audio communication variables
+# Audio communication variables (from inter_device_communication_send_audio.py)
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 48000
@@ -335,11 +326,6 @@ def face_tracking_thread_function():
     global face_tracking_active, face_detected, h_current_angle, v_current_angle, h_current_partition, v_current_partition, last_detection_time
     print("Starting face tracking thread...")
     face_tracking_active = True
-    if mp_face is None:
-        print("MediaPipe face detection unavailable. Consider offloading to a server.")
-        asyncio.run(speak_text("Face tracking is unavailable on this device."))
-        face_tracking_active = False
-        return
     try:
         while not stop_event.is_set():
             frame = picam2.capture_array()
@@ -380,7 +366,6 @@ def face_tracking_thread_function():
             time.sleep(0.01)
     except Exception as e:
         print(f"Face tracking thread error: {e}")
-        asyncio.run(speak_text("Error in face tracking. Continuing without tracking."))
     finally:
         face_tracking_active = False
 
@@ -393,7 +378,7 @@ def user_identifier_thread_function():
         asyncio.run(speak_text(greeting))
     else:
         asyncio.run(speak_text("I don't recognize you. Please tell me your name."))
-        # Note: Manual name input via speech can be added here if needed.
+        # Note: Manual name input is not implemented here due to voice-based interaction preference.
 
 def send_audio_message(receiver_ip):
     """Record and send an audio message."""
@@ -434,10 +419,8 @@ def main():
             event_type, data = command_queue.get(timeout=1)
             if event_type == "WAKE":
                 asyncio.run(speak_text("Hello, how can I help you?"))
-                if not face_tracking_active and mp_face is not None:
+                if not face_tracking_active:
                     threading.Thread(target=face_tracking_thread_function, daemon=True).start()
-                elif mp_face is None:
-                    asyncio.run(speak_text("Face tracking is not available on this device."))
             elif event_type == "COMMAND":
                 command = data
                 if "send message" in command:
