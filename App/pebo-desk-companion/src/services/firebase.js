@@ -1,21 +1,16 @@
 // src/services/firebase.js
+
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/database";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   getStorage,
   ref as storageRef,
   uploadBytes,
   getDownloadURL,
+  deleteObject,
 } from "firebase/storage";
-import {
-  getDatabase,
-  ref,
-  set,
-  onValue,
-  push,
-  update,
-} from "firebase/database";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -37,273 +32,218 @@ if (!firebase.apps.length) {
 export const auth = firebase.auth();
 export const db = firebase.database();
 
-//
-// 🔒 LOGOUT FUNCTION
-//
-export const logout = () => {
-  return auth.signOut();
+// ------------------ 🔐 AUTH ------------------ //
+export const logout = () => auth.signOut();
+
+
+// Get User Name
+export const getUserName = () => {
+  const user = auth.currentUser;
+  if (user && user.displayName) {
+    return user.displayName;
+  } else {
+    return "Guest"; // Or handle the case where the user is not signed in
+  }
 };
 
-//
-// 📋 ADD TASK
-//
+// ------------------ ✅ TASKS ------------------ //
 export const addTask = async (task) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  try {
-    const newRef = db.ref(`users/${user.uid}/tasks`).push();
-    await newRef.set({ ...task, id: newRef.key });
-    return true;
-  } catch (err) {
-    console.error("Firebase Error - addTask:", err);
-    throw err;
-  }
+  const newRef = db.ref(`users/${user.uid}/tasks`).push();
+  await newRef.set({ ...task, id: newRef.key });
+  return true;
 };
 
-//
-// 📥 GET TASKS
-//
 export const getTaskOverview = async () => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  try {
-    const snapshot = await db.ref(`users/${user.uid}/tasks`).once("value");
-    const val = snapshot.val();
-    console.log("📥 Raw tasks from Firebase:", val);
-
-    if (!val || typeof val !== "object") return [];
-    return Object.values(val);
-  } catch (err) {
-    console.error("Firebase Error - getTaskOverview:", err);
-    throw err;
-  }
+  const snapshot = await db.ref(`users/${user.uid}/tasks`).once("value");
+  const val = snapshot.val();
+  if (!val || typeof val !== "object") return [];
+  return Object.values(val);
 };
 
-//
-// ✏️ UPDATE TASK
-//
 export const updateTask = async (taskId, updates) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  try {
-    await db.ref(`users/${user.uid}/tasks/${taskId}`).update(updates);
-    return true;
-  } catch (err) {
-    console.error("Firebase Error - updateTask:", err);
-    throw err;
-  }
+  await db.ref(`users/${user.uid}/tasks/${taskId}`).update(updates);
+  return true;
 };
 
-//
-// ➕ ADD PEBO DEVICE
-//
+// ------------------ 🧠 PEBO DEVICES ------------------ //
 export const addPeboDevice = async ({ name, location }) => {
-  const userId = auth.currentUser.uid;
-  const deviceRef = db.ref(`users/${userId}/peboDevices`).push();
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
+
+  const deviceRef = db.ref(`users/${user.uid}/peboDevices`).push();
   await deviceRef.set({
     name,
     location,
     createdAt: Date.now(),
   });
+
+  return deviceRef.key;
 };
 
-//
-// 📄 GET PEBO DEVICES
-//
 export const getPeboDevices = async () => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
   const snapshot = await db.ref(`users/${user.uid}/peboDevices`).once("value");
-
   const devices = [];
+
   snapshot.forEach((child) => {
-    const deviceData = { id: child.key, ...child.val() };
-    devices.push({
-      id: deviceData.id,
-      name: deviceData.name,
-      location: deviceData.location,
-    });
+    devices.push({ id: child.key, ...child.val() });
   });
 
   return devices;
 };
 
-//
-// 💾 SAVE WIFI SETTINGS
-//
+// ------------------ 📶 WIFI SETTINGS ------------------ //
 export const saveWifiSettings = async (settings) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  try {
-    await db.ref(`users/${user.uid}/settings`).set(settings);
-    return true;
-  } catch (error) {
-    console.error("Error saving Wi-Fi data:", error);
-    throw error;
-  }
+  await db.ref(`users/${user.uid}/settings`).set(settings);
+  return true;
 };
 
-//
-// 📶 GET WIFI SETTINGS
-//
 export const getWifiName = async () => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  try {
-    const snapshot = await db.ref(`users/${user.uid}/settings`).once("value");
-    const data = snapshot.val();
-    console.log("📶 Wi-Fi settings from Firebase:", data);
+  const snapshot = await db.ref(`users/${user.uid}/settings`).once("value");
+  const data = snapshot.val();
 
-    return {
-      peboName: data?.peboName || "Unknown PEBO",
-      wifiSSID: data?.wifiSSID || "N/A",
-      wifiPassword: data?.wifiPassword || "N/A",
-    };
-  } catch (error) {
-    console.error("Error fetching Wi-Fi data:", error);
-    return {
-      peboName: "Unavailable",
-      wifiSSID: "Unavailable",
-      wifiPassword: "Unavailable",
-    };
-  }
+  return {
+    peboName: data?.peboName || "Unknown PEBO",
+    wifiSSID: data?.wifiSSID || "N/A",
+    wifiPassword: data?.wifiPassword || "N/A",
+  };
 };
 
-//
-// 🔐 SAVE S3 CONFIGURATION
-//
+// ------------------ 🪣 S3 CONFIGURATION ------------------ //
 export const saveS3Config = async (config) => {
-  try {
-    const { accessKey, secretKey, bucketName } = config;
-    const userId = auth.currentUser.uid;
-    const db = getDatabase();
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
 
-    await set(ref(db, `users/${userId}/s3Config`), {
-      accessKey,
-      secretKey,
-      bucketName,
-      updatedAt: new Date().toISOString(),
-    });
+  const { accessKey, secretKey, bucketName } = config;
 
-    return true;
-  } catch (error) {
-    console.error("Error saving S3 configuration:", error);
-    throw error;
-  }
+  await db.ref(`users/${user.uid}/s3Config`).set({
+    accessKey,
+    secretKey,
+    bucketName,
+    updatedAt: new Date().toISOString(),
+  });
+
+  return true;
 };
 
-//
-// 🔍 GET S3 CONFIGURATION
-//
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("User's name:", user.displayName);
+  }
+});
+
 export const getS3Config = async () => {
-  try {
-    const userId = auth.currentUser.uid;
-    const db = getDatabase();
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
 
-    return new Promise((resolve, reject) => {
-      onValue(
-        ref(db, `users/${userId}/s3Config`),
-        (snapshot) => {
-          resolve(snapshot.val() || {});
-        },
-        (error) => {
-          reject(error);
-        },
-        { once: true }
-      );
-    });
-  } catch (error) {
-    console.error("Error getting S3 configuration:", error);
-    throw error;
-  }
+  const snapshot = await db.ref(`users/${user.uid}/s3Config`).once("value");
+  return snapshot.val() || {};
 };
 
-//
-// 📸 TRIGGER CAMERA CAPTURE
-//
-export const triggerCameraCapture = async (peboId) => {
-  try {
-    const db = getDatabase();
-    const captureRef = ref(db, `peboActions/${peboId}/captureImage`);
+// ------------------ 👤 USER PROFILE IMAGE ------------------ //
+export const uploadUserProfileImage = async (imageUri) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
 
-    await set(captureRef, {
-      requestedAt: new Date().toISOString(),
-      status: "pending",
-    });
+  const storage = getStorage();
+  const imageName = `user_${user.uid}_${Date.now()}.jpg`;
+  const imageRef = storageRef(storage, `userImages/${imageName}`);
 
-    return true;
-  } catch (error) {
-    console.error("Error triggering camera capture:", error);
-    throw error;
-  }
+  const response = await fetch(imageUri);
+  const blob = await response.blob();
+
+  await uploadBytes(imageRef, blob);
+  const downloadURL = await getDownloadURL(imageRef);
+
+  await db.ref(`users/${user.uid}/profileImage`).set(downloadURL);
+  await db.ref(`users/${user.uid}/imageHistory`).push({
+    url: downloadURL,
+    timestamp: new Date().toISOString(),
+    path: `userImages/${imageName}`,
+  });
+
+  return downloadURL;
 };
 
-//
-// 🖼️ UPLOAD IMAGE TO FIREBASE STORAGE
-//
-export const uploadImageToStorage = async (uri, peboId) => {
-  try {
+export const getUserProfileImage = async () => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
+
+  const snapshot = await db.ref(`users/${user.uid}/profileImage`).once("value");
+  return snapshot.val() || null;
+};
+
+export const getUserImageHistory = async () => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
+
+  const snapshot = await db.ref(`users/${user.uid}/imageHistory`).once("value");
+  const data = snapshot.val() || {};
+
+  return Object.entries(data)
+    .map(([key, value]) => ({ id: key, ...value }))
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+};
+
+export const deleteUserImage = async (imageId) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
+
+  const imageSnap = await db
+    .ref(`users/${user.uid}/imageHistory/${imageId}`)
+    .once("value");
+  const imageData = imageSnap.val();
+  if (!imageData) throw new Error("Image not found");
+
+  if (imageData.path) {
     const storage = getStorage();
-    const imageName = `pebo_${peboId}_${new Date().getTime()}.jpg`;
-    const imageRef = storageRef(storage, `peboImages/${imageName}`);
-
-    const response = await fetch(uri);
-    const blob = await response.blob();
-
-    await uploadBytes(imageRef, blob);
-    const downloadURL = await getDownloadURL(imageRef);
-
-    const db = getDatabase();
-    await set(ref(db, `peboPhotos/${peboId}`), downloadURL);
-
-    const historyRef = push(ref(db, `peboPhotoHistory/${peboId}`));
-    await set(historyRef, {
-      url: downloadURL,
-      timestamp: new Date().toISOString(),
-    });
-
-    return downloadURL;
-  } catch (error) {
-    console.error("Error uploading image:", error);
-    throw error;
+    try {
+      await deleteObject(storageRef(storage, imageData.path));
+    } catch (err) {
+      console.warn("Image file could not be deleted:", err);
+    }
   }
+
+  await db.ref(`users/${user.uid}/imageHistory/${imageId}`).remove();
+
+  const profileSnap = await db
+    .ref(`users/${user.uid}/profileImage`)
+    .once("value");
+  if (profileSnap.val() === imageData.url) {
+    await db.ref(`users/${user.uid}/profileImage`).remove();
+  }
+
+  return true;
 };
 
-//
-// 🕓 GET IMAGE HISTORY FOR PEBO
-//
-export const getPeboImageHistory = async (peboId) => {
-  try {
-    const db = getDatabase();
+export const setProfileImageFromHistory = async (imageId) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
 
-    return new Promise((resolve, reject) => {
-      onValue(
-        ref(db, `peboPhotoHistory/${peboId}`),
-        (snapshot) => {
-          const data = snapshot.val() || {};
-          const history = Object.keys(data)
-            .map((key) => ({
-              id: key,
-              ...data[key],
-            }))
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const snapshot = await db
+    .ref(`users/${user.uid}/imageHistory/${imageId}`)
+    .once("value");
+  const imageData = snapshot.val();
+  if (!imageData) throw new Error("Image not found");
 
-          resolve(history);
-        },
-        (error) => {
-          reject(error);
-        },
-        { once: true }
-      );
-    });
-  } catch (error) {
-    console.error("Error getting image history:", error);
-    throw error;
-  }
+  await db.ref(`users/${user.uid}/profileImage`).set(imageData.url);
+  return true;
 };
+
