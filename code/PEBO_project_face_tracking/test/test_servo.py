@@ -22,7 +22,7 @@ def set_angle_smooth(current_angle, target_angle, step=1):
 
 # Move servo to different angles smoothly
 #set_angle_smooth(0, 180)    # Move from 0 to 90 degrees smoothly
-set_angle_smooth(90, 180)  # Move from 90 to 180 degrees smoothly
+set_angle_smooth(0, 90)  # Move from 90 to 180 degrees smoothly
 # set_angle_smooth(180, 90)  # Move from 180 to 90 degrees smoothly
 # set_angle_smooth(90, 0)    # Move from 90 to 0 degrees smoothly
 

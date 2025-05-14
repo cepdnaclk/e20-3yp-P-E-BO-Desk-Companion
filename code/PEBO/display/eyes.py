@@ -37,7 +37,7 @@ NW = 8  # north-west, top left
 
 
 class RoboEyesDual:
-    def __init__(self, left_address=0x3C, right_address=0x3D):
+    def __init__(self, left_address=0x3D, right_address=0x3C):
         i2c = busio.I2C(board.SCL, board.SDA)
 
         # Create the displays with their actual dimensions
