@@ -36,41 +36,67 @@ async def speak_text(text):
     pygame.mixer.music.load("response.mp3")
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
-        time.sleep(0.1)
-    os.remove("response.mp3")
+        time.sleep(0.25)
+    pygame.mixer.music.stop()
+    pygame.mixer.music.unload()  # Unload before deleting
+    os.remove(filename)  # Safe to delete now
 
-# Speech recognition function
-def recognize_speech():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        print("Listening for command...")
+def listen_continuously(stop_event, wake_words=None):
+    """
+    Continuously listen for the wake word and put commands in the queue.
+    This function runs in its own thread.
+    """
+    if wake_words is None:
+        wake_words = ["hey bebo", "hey pebo", "bebo", "pebo"]
+    print("Listening for wake word...")
+    
+    with mic as source:
+        recognizer.adjust_for_ambient_noise(source, duration=1)
+    
+    while not stop_event.is_set():
         try:
-            audio = recognizer.listen(source, timeout=5, phrase_time_limit=8)
-            text = recognizer.recognize_google(audio)
-            print("Recognized:", text)
-            return text.lower()
-        except (sr.UnknownValueError, sr.RequestError, sr.WaitTimeoutError):
-            print("Speech not recognized.")
-            return ""
+            with mic as source:
+                print("Listening for wake word...")
+                audio = recognizer.listen(source, timeout=10, phrase_time_limit=5)
+            
+            try:
+                text = recognizer.recognize_google(audio).lower()
+                print(f"Heard: {text}")
+                
+                # Check for wake word
+                if wake_word in text:
+                    command_queue.put(("WAKE", None))
+                    
+                    # After wake word detected, listen for a command
+                    with mic as source:
+                        print("Wake word detected! Listening for command...")
+                        command_audio = recognizer.listen(source, timeout=5, phrase_time_limit=5)
+                    try:
+                        command = recognizer.recognize_google(command_audio).lower()
+                        print(f"Command: {command}")
+                        command_queue.put(("COMMAND", command))
+                    except sr.UnknownValueError:
+                        print("Couldn't understand command.")
+                        command_queue.put(("ERROR", "command_not_understood"))
+                    except sr.RequestError:
+                        print("Google Speech Recognition service unavailable")
+                
+            except sr.UnknownValueError:
+                # No speech detected, continue listening
+                pass
+            except sr.RequestError:
+                print("Google Speech Recognition service unavailable")
+                time.sleep(2)  # Wait before retrying
+                
+        except Exception as e:
+            print(f"Error in listen_continuously: {e}")
+            time.sleep(1)  # Prevent tight loop in case of repeated errors
 
-# Wake word detection
-def listen_for_wake_word():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        print("Listening for wake word...")
-        try:
-            audio = recognizer.listen(source, timeout=5, phrase_time_limit=4)
-            text = recognizer.recognize_google(audio).lower()
-            print("Heard:", text)
-            if "hey pebo" in text:
-                trigger_queue.put("WAKE")
-        except Exception:
-            pass
-
-# Face tracking thread
-face_tracking_active = False
-def face_tracking_thread_function():
-    global face_tracking_active
+def face_tracking_thread_function(stop_event):
+    """Run face tracking in a separate thread and detect when a face is found."""
+    global face_tracking_active, face_detected
+    
+    print("Starting face tracking thread...")
     face_tracking_active = True
     try:
         process = subprocess.Popen(["python3", "face_tracking.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)

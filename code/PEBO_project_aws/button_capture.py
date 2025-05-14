@@ -4,8 +4,8 @@ from picamera2 import Picamera2
 from time import sleep
 
 # AWS S3 Configuration
-ACCESS_KEY = "AKIATTSKFOHRLPXVE5PM"
-SECRET_KEY = "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"
+ACCESS_KEY = ""
+SECRET_KEY = ""
 BUCKET_NAME = "pebo-user-images"
 IMAGE_NAME = "captured.jpg"
 LOCAL_IMAGE_PATH = f"/home/pi/Documents/PEBO_project_aws/{IMAGE_NAME}"
