@@ -10,17 +10,17 @@ import subprocess
 import json
 import queue
 import signal
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+# load_dotenv()
 
 # Initialize pygame for audio playback
 pygame.mixer.init()
 
 # Set up Google Gemini API key
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-pro")
+GOOGLE_API_KEY = "AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"
+genai.configure(api_key=GOOGLE_API_KEY)
 conversation_history = []
 
 # Queues
