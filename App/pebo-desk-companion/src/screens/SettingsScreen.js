@@ -11,12 +11,10 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
-  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-// Import initialized Firebase compat services
 import {
   auth,
   db,
@@ -26,23 +24,18 @@ import {
   getPeboDevices,
 } from "../services/firebase";
 import PopupModal from "../components/PopupModal";
-// AWS S3 Configuration (to be used with fetch-based upload)
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
-  // Wi-Fi state
   const [wifiSSID, setWifiSSID] = useState("");
   const [wifiPassword, setWifiPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSavingWifi, setIsSavingWifi] = useState(false);
-  // PEBO management
   const [peboName, setPeboName] = useState("");
   const [peboLocation, setPeboLocation] = useState("");
   const [peboDevices, setPeboDevices] = useState([]);
-  // User photo state
   const [userImage, setUserImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  // Modals & popups
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [popupVisible, setPopupVisible] = useState(false);
@@ -51,15 +44,18 @@ const SettingsScreen = () => {
     message: "",
     icon: "checkmark-circle",
   });
-  // Username state
   const [username, setUsername] = useState("");
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
+
+  const BUCKET_NAME = "pebo-user-images"; // Update to pebo-user-images-free if new bucket
+  const API_GATEWAY_URL =
+    "https://aw8yn9cbj1.execute-api.us-east-1.amazonaws.com/prod/presigned"; // Replace with your API Gateway URL
 
   const showPopup = (title, message, icon = "checkmark-circle") => {
     setPopupContent({ title, message, icon });
     setPopupVisible(true);
   };
-  // Fetch PEBO devices once
+
   useEffect(() => {
     (async () => {
       try {
@@ -70,7 +66,7 @@ const SettingsScreen = () => {
       }
     })();
   }, []);
-  // Fetch Wi-Fi settings once
+
   useEffect(() => {
     (async () => {
       try {
@@ -83,36 +79,31 @@ const SettingsScreen = () => {
     })();
   }, []);
 
-  // User image capture and upload
   const captureUserImage = async () => {
     setUsernameModalVisible(true);
   };
 
-  // Launch camera after username is entered
   const launchCamera = async () => {
-    // Ask for camera permission
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       showPopup("Error", "Camera permission denied", "alert-circle");
       return;
     }
-    // Launch camera
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      quality: 0.8,
-      aspect: [1, 1], // Square aspect ratio for profile pictures
+      quality: 0.6, // Optimize for Free Tier
+      aspect: [1, 1],
     });
     if (!result.canceled && result.assets?.[0]?.uri) {
       setUserImage(result.assets[0].uri);
       showPopup(
         "Success",
-        "Image captured successfully. Please upload it.",
+        "Image captured successfully. Please Save it.",
         "camera"
       );
     }
   };
 
-  // Upload user image to S3
   const uploadUserImage = async () => {
     if (!userImage || !username.trim()) {
       showPopup("Error", "Image or username missing", "alert-circle");
@@ -122,61 +113,116 @@ const SettingsScreen = () => {
     setIsUploading(true);
 
     try {
-      // Request pre-signed URL from your backend
-      const presignResponse = await fetch(
-        "https://123339d6-a240-49e2-af25-f54694244a3d-00-6zd2xqyqvgq5.sisko.replit.dev/get-upload-url",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username }),
-        }
+      // Sanitize username
+      const sanitizedUsername = username
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "_");
+      const objectName = `user_${sanitizedUsername}.jpg`;
+      console.log("Username:", username);
+      console.log("Sanitized Username:", sanitizedUsername);
+      console.log(
+        "API URL:",
+        `${API_GATEWAY_URL}?username=${encodeURIComponent(sanitizedUsername)}`
       );
-      const { uploadURL, imageUrl } = await presignResponse.json();
+      console.log("S3 Bucket:", BUCKET_NAME);
 
-      // Convert image to blob
+      // Fetch pre-signed URL
+      const response = await fetch(
+        `${API_GATEWAY_URL}?username=${encodeURIComponent(sanitizedUsername)}`
+      );
+      console.log("Response Status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("API Response:", JSON.stringify(data, null, 2));
+
+      // Check for Lambda error
+      if (data.statusCode && data.statusCode !== 200) {
+        throw new Error(
+          `Lambda error: ${data.body.message || "Unknown error"}`
+        );
+      }
+
+      // Handle response formats
+      let presignedUrl;
+      if (data.body) {
+        const body =
+          typeof data.body === "string" ? JSON.parse(data.body) : data.body;
+        presignedUrl = body.presignedUrl;
+      } else if (data.presignedUrl) {
+        presignedUrl = data.presignedUrl;
+      } else {
+        throw new Error(
+          "Pre-signed URL not found in response: " + JSON.stringify(data)
+        );
+      }
+
+      if (!presignedUrl) {
+        throw new Error("Pre-signed URL is missing or invalid");
+      }
+
+      console.log("Pre-signed URL:", presignedUrl);
+
+      // Upload to S3
       const imageResponse = await fetch(userImage);
       const blob = await imageResponse.blob();
-
-      // Upload to S3 using pre-signed URL
-      const uploadResult = await fetch(uploadURL, {
+      const uploadResponse = await fetch(presignedUrl, {
         method: "PUT",
         body: blob,
-        headers: {
-          "Content-Type": "image/jpeg",
-        },
+        headers: { "Content-Type": "image/jpeg" },
       });
 
-      if (uploadResult.ok) {
-        showPopup("Success", "Image uploaded successfully", "checkmark-circle");
-
-        // Save image URL to Firebase
-        const userId = auth.currentUser?.uid;
-        if (userId) {
-          await db.ref(`users/${userId}/profileImage`).set(imageUrl);
-        }
-      } else {
-        throw new Error("Upload to S3 failed");
+      if (!uploadResponse.ok) {
+        throw new Error(`S3 upload failed: ${uploadResponse.statusText}`);
       }
+
+      // Save S3 URL to Firebase
+      const s3Url = `https://${BUCKET_NAME}.s3.amazonaws.com/${objectName}`;
+      const userId = auth.currentUser?.uid;
+      if (userId) {
+        await db.ref(`users/${userId}/profileImage`).set(s3Url);
+        await db.ref(`users/${userId}/imageHistory`).push({
+          url: s3Url,
+          timestamp: new Date().toISOString(),
+          path: objectName,
+        });
+      }
+
+      showPopup("Success", "Image Saved", "checkmark-circle");
+      setUserImage(null);
+      setUsername("");
     } catch (error) {
       console.error("Upload error:", error);
-      showPopup("Error", "Failed to upload image", "alert-circle");
+      showPopup(
+        "Error",
+        `Failed to upload image: ${error.message}`,
+        "alert-circle"
+      );
     } finally {
       setIsUploading(false);
     }
   };
-  
-  // Save Wi-Fi settings
+
   const handleSaveWifi = async () => {
     const ssid = wifiSSID.trim();
     const pwd = wifiPassword.trim();
-    if (!ssid || !pwd)
-      return showPopup("Error", "Enter both SSID and password", "alert-circle");
-    if (pwd.length < 6)
-      return showPopup(
+    if (!ssid || !pwd) {
+      showPopup("Error", "Enter both SSID and password", "alert-circle");
+      return;
+    }
+    if (pwd.length < 6) {
+      showPopup(
         "Error",
-        "Password must be at least 6 chars",
+        "Password must be at least 6 characters",
         "alert-circle"
       );
+      return;
+    }
     setIsSavingWifi(true);
     try {
       await saveWifiSettings({
@@ -191,12 +237,14 @@ const SettingsScreen = () => {
       setIsSavingWifi(false);
     }
   };
-  // Add new PEBO device
+
   const handleAddPebo = async () => {
     const name = peboName.trim();
     const loc = peboLocation.trim();
-    if (!name || !loc)
-      return showPopup("Error", "Enter PEBO name and location", "alert-circle");
+    if (!name || !loc) {
+      showPopup("Error", "Enter PEBO name and location", "alert-circle");
+      return;
+    }
     try {
       await addPeboDevice({ name, location: loc });
       const updated = await getPeboDevices();
@@ -209,7 +257,7 @@ const SettingsScreen = () => {
       showPopup("Error", err.message, "alert-circle");
     }
   };
-  // Logout
+
   const handleLogout = async () => {
     try {
       await auth.signOut();
@@ -219,13 +267,10 @@ const SettingsScreen = () => {
     }
   };
 
-  // We'll remove the UsernameInputModal component declaration and directly render the modal in the return JSX
-
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Settings</Text>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* User Image Section */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="person-circle" size={20} color="#007AFF" />
@@ -271,14 +316,13 @@ const SettingsScreen = () => {
                 ) : (
                   <>
                     <Ionicons name="cloud-upload" size={20} color="#fff" />
-                    <Text style={styles.photoButtonText}>Upload to S3</Text>
+                    <Text style={styles.photoButtonText}>Save</Text>
                   </>
                 )}
               </TouchableOpacity>
             )}
           </View>
         </View>
-        {/* Wi-Fi Configuration */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <MaterialIcons name="wifi" size={20} color="#007AFF" />
@@ -333,7 +377,6 @@ const SettingsScreen = () => {
             )}
           </TouchableOpacity>
         </View>
-        {/* Add PEBO */}
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => setModalVisible(true)}
@@ -341,7 +384,6 @@ const SettingsScreen = () => {
           <Ionicons name="add-circle-outline" size={22} color="#fff" />
           <Text style={styles.addButtonText}>Add New PEBO</Text>
         </TouchableOpacity>
-        {/* PEBO Devices List */}
         <View style={{ marginTop: 30 }}>
           <Text style={styles.sectionTitle}>Your PEBO Devices</Text>
           {peboDevices.length === 0 ? (
@@ -366,7 +408,6 @@ const SettingsScreen = () => {
             ))
           )}
         </View>
-        {/* Logout Button */}
         <TouchableOpacity
           style={[
             styles.addButton,
@@ -378,7 +419,6 @@ const SettingsScreen = () => {
           <Text style={styles.addButtonText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
-      {/* Add PEBO Modal */}
       <Modal
         transparent
         visible={modalVisible}
@@ -421,7 +461,6 @@ const SettingsScreen = () => {
           </View>
         </View>
       </Modal>
-      {/* Logout Confirmation Modal */}
       <Modal
         transparent
         visible={logoutModalVisible}
@@ -452,7 +491,6 @@ const SettingsScreen = () => {
           </View>
         </View>
       </Modal>
-      {/* Username Input Modal */}
       <Modal
         transparent
         visible={usernameModalVisible}
@@ -500,7 +538,6 @@ const SettingsScreen = () => {
           </View>
         </View>
       </Modal>
-      {/* Popup for Success/Error */}
       <PopupModal
         visible={popupVisible}
         onClose={() => setPopupVisible(false)}
@@ -511,7 +548,9 @@ const SettingsScreen = () => {
     </View>
   );
 };
+
 export default SettingsScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -706,14 +745,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#FFF",
-  },
-  usernameInput: {
-    backgroundColor: "#F0F4F8",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 20,
-    fontSize: 16,
-    color: "#1C1C1E",
-    width: "100%",
   },
 });
