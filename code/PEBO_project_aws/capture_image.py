@@ -11,7 +11,7 @@ camera.start()
 sleep(2)
 
 # Capture an image
-camera.capture_file('/home/pi/Documents/PEBO_project_aws/captured.jpg') #/home/pi/Documents/PEBO_project_aws/capture_image.py
+camera.capture_file('/home/pi/Documents/e20-3yp-P-E-BO-Desk-Companion/code/PEBO_project_aws/captured.jpg') #/home/pi/Documents/PEBO_project_aws/capture_image.py
 
 # Stop the preview
 camera.stop_preview()
