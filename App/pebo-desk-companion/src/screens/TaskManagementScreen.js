@@ -235,7 +235,7 @@ export default function TaskManagementScreen() {
             loading={adding}
             style={styles.addBtn}
             contentStyle={{ paddingVertical: 6 }}
-            labelStyle={{ color: "white", fontWeight: "620" }}
+            labelStyle={{ color: "white", fontWeight: "600" }}
           >
             Add New Task
           </Button>
@@ -315,9 +315,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 12,
     marginBottom: 14,
-    fontSize: 20,
+    fontSize: 16,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
@@ -327,14 +327,14 @@ const styles = StyleSheet.create({
   addBtn: {
     backgroundColor: "#007AFF",
     borderRadius: 14,
-    paddingVertical: 8,
+    paddingVertical: 12,
     justifyContent: "center",
     marginTop: 12,
   },
   sortRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginVertical: 18,
+    marginVertical: 20,
     alignItems: "center",
   },
   sortText: { fontSize: 16, color: "#007AFF", fontWeight: "600" },
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 12,
   },
-  info: { fontSize: 16, color: "#6C6C6C" },
+  info: { fontSize: 14, color: "#6C6C6C" },
   empty: {
     textAlign: "center",
     color: "#999999",
