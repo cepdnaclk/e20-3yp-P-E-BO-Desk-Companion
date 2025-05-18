@@ -1,5 +1,3 @@
-// src/services/firebase.js
-
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/database";
@@ -35,14 +33,12 @@ export const db = firebase.database();
 // ------------------ 🔐 AUTH ------------------ //
 export const logout = () => auth.signOut();
 
-
-// Get User Name
 export const getUserName = () => {
   const user = auth.currentUser;
   if (user && user.displayName) {
     return user.displayName;
   } else {
-    return "Guest"; // Or handle the case where the user is not signed in
+    return "Guest";
   }
 };
 
@@ -143,12 +139,6 @@ export const saveS3Config = async (config) => {
   return true;
 };
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    console.log("User's name:", user.displayName);
-  }
-});
-
 export const getS3Config = async () => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
@@ -158,12 +148,17 @@ export const getS3Config = async () => {
 };
 
 // ------------------ 👤 USER PROFILE IMAGE ------------------ //
-export const uploadUserProfileImage = async (imageUri) => {
+export const uploadUserProfileImage = async (imageUri, username) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
+  if (!username) throw new Error("Username is required");
 
+  // Sanitize username for safe filename
+  const sanitizedUsername = username
+    .replace(/[^a-zA-Z0-9]/g, "_")
+    .toLowerCase();
+  const imageName = `user_${sanitizedUsername}.jpg`;
   const storage = getStorage();
-  const imageName = `user_${user.uid}_${Date.now()}.jpg`;
   const imageRef = storageRef(storage, `userImages/${imageName}`);
 
   const response = await fetch(imageUri);
@@ -247,3 +242,8 @@ export const setProfileImageFromHistory = async (imageId) => {
   return true;
 };
 
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("User's name:", user.displayName);
+  }
+});
