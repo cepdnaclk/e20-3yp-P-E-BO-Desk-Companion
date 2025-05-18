@@ -30,6 +30,14 @@ if (!firebase.apps.length) {
 export const auth = firebase.auth();
 export const db = firebase.database();
 
+// ✅ Ensure persistence is explicitly set
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .then(() => {
+    console.log("🔐 Firebase auth persistence set to LOCAL");
+  })
+  .catch((error) => {
+    console.error("❌ Error setting auth persistence:", error);
+  });
 // ------------------ 🔐 AUTH ------------------ //
 export const logout = () => auth.signOut();
 
