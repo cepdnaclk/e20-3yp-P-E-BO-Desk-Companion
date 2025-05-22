@@ -71,7 +71,7 @@ def reset_to_neutral():
 # New Start Function - Say Hi with right hand
 def say_hi():
     """Robot says hi by waving right hand"""
-    print("👋 Saying Hello!")
+    print(" Saying Hello!")
     
     # Initial position - raise right arm
     smooth_move(90, 90, 150, 90, steps=12, step_delay=0.04)
@@ -94,7 +94,7 @@ def say_hi():
 # New Search Function - Looking around movement
 def search_movement():
     """Robot performs a searching or looking around movement"""
-    print("🔍 Searching...")
+    print("Searching...")
     
     # Start with both arms slightly up
     smooth_move(90, 90, 110, 70, steps=10, step_delay=0.04)
@@ -128,7 +128,7 @@ def search_movement():
 # New End Function - Shutdown sequence
 def end_robot():
     """Robot performs a shutdown/goodbye sequence"""
-    print("💤 Shutting down...")
+    print(" Shutting down...")
     
     # Start with hands up like "wait"
     smooth_move(90, 90, 140, 40, steps=15, step_delay=0.04)
@@ -150,8 +150,8 @@ def end_robot():
     smooth_move(45, 45, 90, 90, steps=25, step_delay=0.08)
 
 # Enhanced Emotion Functions with more expressive movements
-def express_angry():
-    print("😡 ANGRY")
+def ANGRY():
+    print(" ANGRY")
     
     # Quick tense up movement
     smooth_move(90, 90, 120, 60, steps=7, step_delay=0.02)
@@ -189,7 +189,7 @@ def express_angry():
     # Return to neutral slowly (cooling down)
     smooth_move(60, 60, 90, 90, steps=15, step_delay=0.04)
 
-def express_happy():
+def HAPPY():
     print("😄 HAPPY")
     
     # Initial excited jump
@@ -232,8 +232,8 @@ def express_happy():
     # Return to neutral
     reset_to_neutral()
 
-def express_sad():
-    print("😢 SAD")
+def SAD():
+    print("SAD")
     
     # Initial slow droop
     smooth_move(90, 90, 70, 70, steps=20, step_delay=0.06)
@@ -264,8 +264,8 @@ def express_sad():
     # Final very slow recovery
     smooth_move(40, 40, 90, 90, steps=25, step_delay=0.08)
 
-def express_surprise():
-    print("😲 SURPRISED")
+def SURPRISED():
+    print("SURPRISED")
     
     # Quick startled movement
     smooth_move(90, 90, 170, 10, steps=5, step_delay=0.01)
@@ -290,8 +290,8 @@ def express_surprise():
     time.sleep(0.2)
     reset_to_neutral()
 
-def express_confused():
-    print("🤔 CONFUSED")
+def CONFUSED():
+    print("CONFUSED")
     
     # Initial uncertain movement
     smooth_move(90, 90, 110, 70, steps=10, step_delay=0.04)
@@ -325,8 +325,8 @@ def express_confused():
     # Return to neutral
     reset_to_neutral()
 
-def express_excited():
-    print("🤩 EXCITED")
+def EXCITED():
+    print("EXCITED")
     
     # Quick, bouncy start
     smooth_move(90, 90, 150, 30, steps=6, step_delay=0.02)
@@ -367,8 +367,8 @@ def express_excited():
     # Return to neutral
     reset_to_neutral()
 
-def express_tired():
-    print("😴 TIRED")
+def TIRED():
+    print("TIRED")
     
     # Slow initial movement
     smooth_move(90, 90, 80, 80, steps=20, step_delay=0.07)
@@ -402,13 +402,14 @@ def express_tired():
 def handle_emotion(emotion):
     """Map emotion code to function"""
     emotions = {
-        -3: express_tired,
-        -2: express_sad,
-        -1: express_confused,
-        0: express_happy,
-        1: express_angry,
-        2: express_surprise,
-        3: express_excited
+        -3: TIRED,
+        -2: SAD,
+        -1: CONFUSED,
+        0: HAPPY,
+        1: ANGRY
+    ,
+        2: SURPRISED,
+        3: EXCITED
     }
     
     if emotion in emotions:
