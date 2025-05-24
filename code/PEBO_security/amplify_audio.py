@@ -5,8 +5,7 @@ import simpleaudio as sa
 sound = AudioSegment.from_file("input.wav")  # Replace with your filename
 
 # Amplify by +10 dB
-amplified = sound + 10
-
+amplified = sound+40
 # Export amplified file
 amplified.export("amplified_output.wav", format="wav")
 
