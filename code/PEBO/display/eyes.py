@@ -485,7 +485,7 @@ class RoboEyesDual:
             self.eyelids_angry_height_next = 0
         
         if self.happy:
-            self.eyelids_happy_bottom_offset_next = self.eye_l_height_current // 2
+            self.eyelids_happy_bottom_offset_next = self.eye_l_height_current // 1.5
         else:
             self.eyelids_happy_bottom_offset_next = 0
         

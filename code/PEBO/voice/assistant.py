@@ -23,7 +23,9 @@ mic = sr.Microphone()
 
 async def speak_text(text):
     """Speak using Edge TTS."""
-    voice = "en-US-AriaNeural"
+    voice = "en-GB-SoniaNeural"
+    #voice = "en-AU-NatashaNeural"
+    #voice ="ja-JP-NanamiNeural"
     filename = "response.mp3"
 
     tts = edge_tts.Communicate(text, voice)
@@ -149,8 +151,8 @@ def start_assistant_from_text(prompt_text):
     conversation_history.append({"role": "model", "parts": [reply]})
 
     while True:
-        #user_input = listen(recognizer, mic)
-        user_input = listen_whisper()
+        user_input = listen(recognizer, mic)
+        #user_input = listen_whisper()
         if user_input is None:
             continue
         if user_input.lower() == "exit":
