@@ -6,6 +6,16 @@ import asyncio
 import edge_tts
 import speech_recognition as sr
 
+
+import whisper
+import sounddevice as sd
+import numpy as np
+import tempfile
+import scipy.io.wavfile
+
+
+import subprocess
+
 # Initialize pygame
 pygame.mixer.init()
 
@@ -21,24 +31,39 @@ conversation_history = []
 recognizer = sr.Recognizer()
 mic = sr.Microphone()
 
+
+
+def amplify_audio(input_file, output_file, gain_db=10):
+    subprocess.run([
+        "ffmpeg", "-y",
+        "-i", input_file,
+        "-filter:a", f"volume={gain_db}dB",
+        output_file
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 async def speak_text(text):
     """Speak using Edge TTS."""
     voice = "en-GB-SoniaNeural"
-    #voice = "en-AU-NatashaNeural"
-    #voice ="ja-JP-NanamiNeural"
     filename = "response.mp3"
+    boosted_file = "boosted_response.mp3"  # ✅ Define this before use
 
     tts = edge_tts.Communicate(text, voice)
     await tts.save(filename)
 
-    pygame.mixer.music.load(filename)
+    amplify_audio(filename, boosted_file, gain_db=20)  # Now this line works
+
+    pygame.mixer.music.load(boosted_file)
+    pygame.mixer.music.set_volume(1.0)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         time.sleep(0.25)
 
     pygame.mixer.music.stop()
     pygame.mixer.music.unload()
+
     os.remove(filename)
+    os.remove(boosted_file)
+
 
 def listen(
         recognizer: sr.Recognizer,
@@ -98,11 +123,7 @@ def listen(
     return None
 
 
-import whisper
-import sounddevice as sd
-import numpy as np
-import tempfile
-import scipy.io.wavfile
+
 
 # Load the Whisper model once
 whisper_model = whisper.load_model("base")  # Try "tiny" or "small" if Pi is slow
