@@ -37,7 +37,7 @@ W = 7   # west, middle left
 NW = 8  # north-west, top left
 
 class RoboEyesDual:
-    def __init__(self, left_address=0x3C, right_address=0x3D):
+    def __init__(self, left_address=0x3D, right_address=0x3C):
         i2c = busio.I2C(board.SCL, board.SDA)
 
         # Create the displays with their actual dimensions
@@ -507,63 +507,61 @@ class RoboEyesDual:
 
     def Default(self):
         """Set eyes to default mood"""
-        while True:
-            self.update()
-            self.set_mood(DEFAULT)
-            self.set_position(0)  # Center position
-            self.set_autoblinker(True, 5, 0.5)
-            self.set_idle_mode(True, 2, 2)
-            self.set_curiosity(False)
-            time.sleep(0.01)
+        self.set_mood(DEFAULT)
+        self.set_position(0)  # Center position
+        self.set_autoblinker(True, 5, 0.5)
+        self.set_idle_mode(True, 2, 2)
+        self.set_curiosity(False)
 
     def Happy(self):
         """Set eyes to happy mood"""
-        while True:
-            self.update()
-            self.set_mood(HAPPY)
-            self.set_position(N)  # Look up
-            self.set_autoblinker(True, 3, 0.5)
-            self.set_idle_mode(False)
-            self.set_curiosity(False)
-            self.anim_laugh()
-            time.sleep(0.01)
+        self.set_mood(HAPPY)
+        self.set_position(N)  # Look up
+        self.set_autoblinker(True, 3, 0.5)
+        self.set_idle_mode(False)
+        self.set_curiosity(False)
+        self.anim_laugh()
 
     def Tired(self):
         """Set eyes to tired mood"""
-        while True:
-            self.update()
-            self.set_mood(TIRED)
-            self.set_position(S)  # Look down
-            self.set_autoblinker(True, 7, 1)
-            self.set_idle_mode(False)
-            self.set_curiosity(False)
-            time.sleep(0.01)
+        self.set_mood(TIRED)
+        self.set_position(S)  # Look down
+        self.set_autoblinker(True, 7, 1)
+        self.set_idle_mode(False)
+        self.set_curiosity(False)
 
     def Angry(self):
         """Set eyes to angry mood"""
-        while True:
-            self.update()
-            self.set_mood(ANGRY)
-            self.set_autoblinker(True, 4, 0.5)
-            self.set_idle_mode(False)
-            self.set_curiosity(False)
-            self.anim_confused()
-            time.sleep(0.01)
+        self.set_mood(ANGRY)
+        self.set_autoblinker(True, 4, 0.5)
+        self.set_idle_mode(False)
+        self.set_curiosity(False)
+        self.anim_confused()
 
 if __name__ == "__main__":
     # Create RoboEyes instance
-    eyes = RoboEyesDual(left_address=0x3D, right_address=0x3C)
+    eyes = RoboEyesDual(left_address=0x3C, right_address=0x3D)
     
     # Initialize with screen size and frame rate
     eyes.begin(128, 64, 50)
     
     # Main loop
     try:
+        mood_timer = time.time()
+        current_mood = 0
         moods = [eyes.Default, eyes.Happy, eyes.Tired, eyes.Angry]
         
+        while True:
+            eyes.update()
             
-        eyes.Angry()
+            # Cycle through moods every 10 seconds
+            current_time = time.time()
+            if current_time - mood_timer > 10:
+                moods[current_mood]()
+                current_mood = (current_mood + 1) % 4
+                mood_timer = current_time
             
+            time.sleep(0.01)
             
     except KeyboardInterrupt:
         eyes.display_left.fill(0)
