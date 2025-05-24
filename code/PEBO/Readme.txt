@@ -44,4 +44,12 @@ pip3 install --break-system-packages sounddevice
 
 sudo apt install ffmpeg
 
+##new_assistant 
+pip3 install scipy --break-system-packages
+pip3 install aiohttp --break-system-packages
+pip3 install assemblyai --break-system-packages
+
+
+
+
 
