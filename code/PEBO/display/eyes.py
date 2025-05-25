@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-FluxGarage RoboEyes for Dual OLED Displays - Python Version
+FluxGarage RoboEyes for Dual OLED Displays - Python Version with Emotion Functions
 Displays left eye on one OLED and right eye on another OLED
 Modified for two separate I2C OLED displays with 90 degree rotation support
+and dedicated emotion functions
 
 Original Copyright (C) 2024 Dennis Hoelscher
-Modified for dual display setup and rotation fix
+Modified for dual display setup, rotation fix, and emotion functions
 """
 
 import time
@@ -35,25 +36,21 @@ SW = 6  # south-west, bottom left
 W = 7   # west, middle left
 NW = 8  # north-west, top left
 
-
 class RoboEyesDual:
-    def __init__(self, left_address=0x3D, right_address=0x3C):
+    def __init__(self, left_address=0x3C, right_address=0x3D):
         i2c = busio.I2C(board.SCL, board.SDA)
 
         # Create the displays with their actual dimensions
-        # For 90 degree clockwise rotation, we're working with 128x64 displays
         self.display_left = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c, addr=left_address)
         self.display_right = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c, addr=right_address)
 
-        # Set screen dimensions for our drawing canvas
-        # Since we're rotating 90 degrees clockwise, we'll swap width and height
-        # The actual physical display is 128x64, but our drawing area will be 64x128
+        # Set screen dimensions for drawing canvas (rotated 90 degrees)
         self.screen_width = 64
         self.screen_height = 128
         self.frame_interval = 20
         self.fps_timer = time.time() * 1000
         
-        # For controlling mood types and expressions
+        # Mood and expression controls
         self.tired = False
         self.angry = False
         self.happy = False
@@ -62,10 +59,10 @@ class RoboEyesDual:
         self.eye_r_open = False
         
         # Eye geometry - LEFT
-        self.eye_l_width_default = 60  # Adjusted to better fit rotated display
-        self.eye_l_height_default = 100  # Adjusted to better fit rotated display
+        self.eye_l_width_default = 60
+        self.eye_l_height_default = 100
         self.eye_l_width_current = self.eye_l_width_default
-        self.eye_l_height_current = 1  # start with closed eye
+        self.eye_l_height_current = 1  # Start with closed eye
         self.eye_l_width_next = self.eye_l_width_default
         self.eye_l_height_next = self.eye_l_height_default
         self.eye_l_height_offset = 0
@@ -77,7 +74,7 @@ class RoboEyesDual:
         self.eye_r_width_default = self.eye_l_width_default
         self.eye_r_height_default = self.eye_l_height_default
         self.eye_r_width_current = self.eye_r_width_default
-        self.eye_r_height_current = 1  # start with closed eye
+        self.eye_r_height_current = 1  # Start with closed eye
         self.eye_r_width_next = self.eye_r_width_default
         self.eye_r_height_next = self.eye_r_height_default
         self.eye_r_height_offset = 0
@@ -85,7 +82,7 @@ class RoboEyesDual:
         self.eye_r_border_radius_current = self.eye_r_border_radius_default
         self.eye_r_border_radius_next = self.eye_r_border_radius_default
         
-        # Eye coordinates - centered on each display
+        # Eye coordinates - centered
         self.eye_l_x_default = (self.screen_width - self.eye_l_width_default) // 2
         self.eye_l_y_default = (self.screen_height - self.eye_l_height_default) // 2
         self.eye_l_x = self.eye_l_x_default
@@ -140,22 +137,18 @@ class RoboEyesDual:
     
     def begin(self, width, height, frame_rate):
         """Initialize RoboEyes with screen parameters"""
-        # In the rotated setup, we're swapping width and height
-        self.screen_width = height  # This will be 64 for a 128x64 display rotated 90 degrees
-        self.screen_height = width  # This will be 128 for a 128x64 display rotated 90 degrees
-        
-        # Clear both displays
+        self.screen_width = height
+        self.screen_height = width
         self.display_left.fill(0)
         self.display_left.show()
         self.display_right.fill(0)
         self.display_right.show()
-        
         self.eye_l_height_current = 1
         self.eye_r_height_current = 1
         self.set_framerate(frame_rate)
     
     def update(self):
-        """Update the display with current frame rate limiting"""
+        """Update the display with frame rate limiting"""
         current_time = time.time() * 1000
         if current_time - self.fps_timer >= self.frame_interval:
             self.draw_eyes()
@@ -207,8 +200,7 @@ class RoboEyesDual:
     
     def set_position(self, position):
         """Set predefined position for both eyes"""
-        # For dual displays, we adjust position relative to center
-        offset_x = int(self.screen_width * 0.3)  # Proportional offsets for better scaling
+        offset_x = int(self.screen_width * 0.3)
         offset_y = int(self.screen_height * 0.2)
         
         if position == N:
@@ -284,11 +276,11 @@ class RoboEyesDual:
         self.v_flicker_amplitude = amplitude
     
     def get_screen_constraint_x(self):
-        """Returns the max x position for each eye on its display"""
+        """Returns the max x position for each eye"""
         return self.screen_width - max(self.eye_l_width_current, self.eye_r_width_current)
     
     def get_screen_constraint_y(self):
-        """Returns the max y position for each eye on its display"""
+        """Returns the max y position for each eye"""
         return self.screen_height - max(self.eye_l_height_default, self.eye_r_height_default)
     
     def close(self, left=True, right=True):
@@ -323,13 +315,9 @@ class RoboEyesDual:
     def _draw_rounded_rectangle(self, draw, xy, radius, fill=255):
         """Draw a rounded rectangle"""
         x0, y0, x1, y1 = xy
-        
-        # Draw main rectangle minus corners
         draw.rectangle([x0 + radius, y0, x1 - radius, y1], fill=fill)
         draw.rectangle([x0, y0 + radius, x1, y1 - radius], fill=fill)
-        
-        # Draw corner circles
-        diameter = radius*2
+        diameter = radius * 2
         draw.ellipse([x0, y0, x0 + diameter, y0 + diameter], fill=fill)
         draw.ellipse([x1 - diameter, y0, x1, y0 + diameter], fill=fill)
         draw.ellipse([x0, y1 - diameter, x0 + diameter, y1], fill=fill)
@@ -337,14 +325,11 @@ class RoboEyesDual:
     
     def draw_eyes(self):
         """Draw the eyes on separate displays"""
-        # Pre-calculations for animations
         if self.curious:
-            # Adjust heights based on position
             if self.eye_l_x < self.eye_l_x_default:
                 self.eye_l_height_offset = 8
             else:
                 self.eye_l_height_offset = 0
-            
             if self.eye_r_x > self.eye_r_x_default:
                 self.eye_r_height_offset = 8
             else:
@@ -353,7 +338,6 @@ class RoboEyesDual:
             self.eye_l_height_offset = 0
             self.eye_r_height_offset = 0
         
-        # Update eye heights with animation
         self.eye_l_height_current = (self.eye_l_height_current + self.eye_l_height_next + self.eye_l_height_offset) // 2
         self.eye_l_y = self.eye_l_y_default + (self.eye_l_height_default - self.eye_l_height_current) // 2
         self.eye_l_y -= self.eye_l_height_offset // 2
@@ -362,28 +346,22 @@ class RoboEyesDual:
         self.eye_r_y = self.eye_r_y_default + (self.eye_r_height_default - self.eye_r_height_current) // 2
         self.eye_r_y -= self.eye_r_height_offset // 2
         
-        # Open eyes after blinking
         if self.eye_l_open and self.eye_l_height_current <= 1 + self.eye_l_height_offset:
             self.eye_l_height_next = self.eye_l_height_default
-        
         if self.eye_r_open and self.eye_r_height_current <= 1 + self.eye_r_height_offset:
             self.eye_r_height_next = self.eye_r_height_default
         
-        # Update eye widths
         self.eye_l_width_current = (self.eye_l_width_current + self.eye_l_width_next) // 2
         self.eye_r_width_current = (self.eye_r_width_current + self.eye_r_width_next) // 2
         
-        # Update eye coordinates
         self.eye_l_x = (self.eye_l_x + self.eye_l_x_next) // 2
         self.eye_l_y = (self.eye_l_y + self.eye_l_y_next) // 2
         self.eye_r_x = (self.eye_r_x + self.eye_r_x_next) // 2
         self.eye_r_y = (self.eye_r_y + self.eye_r_y_next) // 2
         
-        # Update border radius
         self.eye_l_border_radius_current = (self.eye_l_border_radius_current + self.eye_l_border_radius_next) // 2
         self.eye_r_border_radius_current = (self.eye_r_border_radius_current + self.eye_r_border_radius_next) // 2
         
-        # Apply macro animations
         current_time = time.time()
         
         if self.autoblinker and current_time >= self.blink_timer:
@@ -411,14 +389,12 @@ class RoboEyesDual:
                 self.confused = False
         
         if self.idle and current_time >= self.idle_animation_timer:
-            # Random movement within constraints
-            max_offset = int(self.screen_width * 0.25)  # Proportional offset
+            max_offset = int(self.screen_width * 0.25)
             self.eye_l_x_next = self.eye_l_x_default + random.randint(-max_offset, max_offset)
             self.eye_l_y_next = self.eye_l_y_default + random.randint(-max_offset, max_offset)
             self.eye_r_x_next = self.eye_r_x_default + random.randint(-max_offset, max_offset)
             self.eye_r_y_next = self.eye_r_y_default + random.randint(-max_offset, max_offset)
             
-            # Keep within screen bounds
             self.eye_l_x_next = max(5, min(self.eye_l_x_next, self.screen_width - self.eye_l_width_current - 5))
             self.eye_l_y_next = max(5, min(self.eye_l_y_next, self.screen_height - self.eye_l_height_current - 5))
             self.eye_r_x_next = max(5, min(self.eye_r_x_next, self.screen_width - self.eye_r_width_current - 5))
@@ -426,7 +402,6 @@ class RoboEyesDual:
             
             self.idle_animation_timer = current_time + self.idle_interval + random.random() * self.idle_interval_variation
         
-        # Apply flicker animations
         if self.h_flicker:
             if self.h_flicker_alternate:
                 self.eye_l_x += self.h_flicker_amplitude
@@ -445,15 +420,11 @@ class RoboEyesDual:
                 self.eye_r_y -= self.v_flicker_amplitude
             self.v_flicker_alternate = not self.v_flicker_alternate
         
-        # Create images for both displays with swapped dimensions for rotation
-        # We draw on a 64x128 canvas that will be rotated to fit the 128x64 display
         image_left = Image.new('1', (self.screen_width, self.screen_height), 0)
         draw_left = ImageDraw.Draw(image_left)
-
         image_right = Image.new('1', (self.screen_width, self.screen_height), 0)
         draw_right = ImageDraw.Draw(image_right)
         
-        # Draw left eye on left display
         if self.eye_l_height_current > 0 and self.eye_l_width_current > 0:
             self._draw_rounded_rectangle(draw_left, 
                 [self.eye_l_x, self.eye_l_y, 
@@ -462,7 +433,6 @@ class RoboEyesDual:
                 self.eye_l_border_radius_current, 
                 fill=255)
         
-        # Draw right eye on right display
         if self.eye_r_height_current > 0 and self.eye_r_width_current > 0:
             self._draw_rounded_rectangle(draw_right, 
                 [self.eye_r_x, self.eye_r_y, 
@@ -471,7 +441,6 @@ class RoboEyesDual:
                 self.eye_r_border_radius_current, 
                 fill=255)
         
-        # Prepare mood transitions
         if self.tired:
             self.eyelids_tired_height_next = self.eye_l_height_current // 2
             self.eyelids_angry_height_next = 0
@@ -485,44 +454,35 @@ class RoboEyesDual:
             self.eyelids_angry_height_next = 0
         
         if self.happy:
-            self.eyelids_happy_bottom_offset_next = self.eye_l_height_current // 2
+            self.eyelids_happy_bottom_offset_next = self.eye_l_height_current // 1.5
         else:
             self.eyelids_happy_bottom_offset_next = 0
         
-        # Update eyelid heights
         self.eyelids_tired_height = (self.eyelids_tired_height + self.eyelids_tired_height_next) // 2
         self.eyelids_angry_height = (self.eyelids_angry_height + self.eyelids_angry_height_next) // 2
         self.eyelids_happy_bottom_offset = (self.eyelids_happy_bottom_offset + self.eyelids_happy_bottom_offset_next) // 2
         
-        # Draw tired eyelids
         if self.eyelids_tired_height > 0:
-            # Left eye
             draw_left.polygon([(self.eye_l_x, self.eye_l_y - 1),
                              (self.eye_l_x + self.eye_l_width_current, self.eye_l_y - 1),
                              (self.eye_l_x, self.eye_l_y + self.eyelids_tired_height - 1)],
                             fill=0)
-            # Right eye
             draw_right.polygon([(self.eye_r_x, self.eye_r_y - 1),
                               (self.eye_r_x + self.eye_r_width_current, self.eye_r_y - 1),
                               (self.eye_r_x + self.eye_r_width_current, self.eye_r_y + self.eyelids_tired_height - 1)],
                              fill=0)
         
-        # Draw angry eyelids
         if self.eyelids_angry_height > 0:
-            # Left eye
             draw_left.polygon([(self.eye_l_x, self.eye_l_y - 1),
                              (self.eye_l_x + self.eye_l_width_current, self.eye_l_y - 1),
                              (self.eye_l_x + self.eye_l_width_current, self.eye_l_y + self.eyelids_angry_height - 1)],
                             fill=0)
-            # Right eye
             draw_right.polygon([(self.eye_r_x, self.eye_r_y - 1),
                               (self.eye_r_x + self.eye_r_width_current, self.eye_r_y - 1),
                               (self.eye_r_x, self.eye_r_y + self.eyelids_angry_height - 1)],
                              fill=0)
         
-        # Draw happy eyelids
         if self.eyelids_happy_bottom_offset > 0:
-            # Left eye
             happy_y_l = self.eye_l_y + self.eye_l_height_current - self.eyelids_happy_bottom_offset + 1
             self._draw_rounded_rectangle(draw_left,
                 [self.eye_l_x - 1, happy_y_l,
@@ -530,8 +490,6 @@ class RoboEyesDual:
                  happy_y_l + self.eye_l_height_default],
                 self.eye_l_border_radius_current,
                 fill=0)
-            
-            # Right eye
             happy_y_r = self.eye_r_y + self.eye_r_height_current - self.eyelids_happy_bottom_offset + 1
             self._draw_rounded_rectangle(draw_right,
                 [self.eye_r_x - 1, happy_y_r,
@@ -540,65 +498,76 @@ class RoboEyesDual:
                 self.eye_r_border_radius_current,
                 fill=0)
         
-        # Rotate images 90 degrees clockwise
         rotated_left = image_left.rotate(-90, expand=True)
         rotated_right = image_right.rotate(-90, expand=True)
-
-        # Display the rotated images on both displays
         self.display_left.image(rotated_left)
         self.display_left.show()
-
         self.display_right.image(rotated_right)
         self.display_right.show()
 
+    def Default(self):
+        """Set eyes to default mood"""
+        while True:
+            self.update()
+            self.set_mood(DEFAULT)
+            self.set_position(0)  # Center position
+            self.set_autoblinker(True, 5, 0.5)
+            self.set_idle_mode(True, 2, 2)
+            self.set_curiosity(False)
+            time.sleep(0.01)
 
-# Example usage
+    def Happy(self):
+        """Set eyes to happy mood"""
+        while True:
+            self.update()
+            self.set_mood(HAPPY)
+            self.set_position(N)  # Look up
+            self.set_autoblinker(True, 3, 0.5)
+            self.set_idle_mode(False)
+            self.set_curiosity(False)
+            self.anim_laugh()
+            time.sleep(0.01)
+
+    def Tired(self):
+        """Set eyes to tired mood"""
+        while True:
+            self.update()
+            self.set_mood(TIRED)
+            self.set_position(S)  # Look down
+            self.set_autoblinker(True, 7, 1)
+            self.set_idle_mode(False)
+            self.set_curiosity(False)
+            time.sleep(0.01)
+
+    def Angry(self):
+        """Set eyes to angry mood"""
+        while True:
+            self.update()
+            self.set_mood(ANGRY)
+            self.set_autoblinker(True, 4, 0.5)
+            self.set_idle_mode(False)
+            self.set_curiosity(False)
+            self.anim_confused()
+            time.sleep(0.01)
+
 if __name__ == "__main__":
-    # Create RoboEyes instance with two displays
-    # Default addresses: 0x3C for left eye, 0x3D for right eye
-    # You may need to adjust these based on your display configuration
-    eyes = RoboEyesDual(left_address=0x3C, right_address=0x3D)
+    # Create RoboEyes instance
+    eyes = RoboEyesDual(left_address=0x3D, right_address=0x3C)
     
     # Initialize with screen size and frame rate
     eyes.begin(128, 64, 50)
     
-    # Enable auto-blinking
-    eyes.set_autoblinker(True, 5, 0.5)
-    
-    # Enable idle mode for random eye movement
-    # eyes.set_idle_mode(True, 2, 2)
-    
-    # Example: Change moods after some time
-    mood_timer = time.time()
-    current_mood = DEFAULT
-    
     # Main loop
     try:
-        while True:
-            eyes.update()
+        moods = [eyes.Default, eyes.Happy, eyes.Tired, eyes.Angry]
+        
             
-            # Example mood changes
-            current_time = time.time()
-            if current_time - mood_timer > 10:  # Change mood every 5 seconds
-                current_mood = (current_mood + 1) % 4
-                eyes.set_mood(current_mood)
-                
-                # Example position changes with mood
-                if current_mood == HAPPY:
-                    eyes.set_position(N)  # Look up when happy
-                elif current_mood == TIRED:
-                    eyes.set_position(S)  # Look down when tired
-                elif current_mood == ANGRY:
-                    eyes.anim_confused()  # Shake when angry
-                
-                mood_timer = current_time
+        eyes.Tired()
             
-            time.sleep(0.01)  # Small delay to prevent CPU overload
             
     except KeyboardInterrupt:
-        # Clean up on exit
         eyes.display_left.fill(0)
         eyes.display_left.show()
         eyes.display_right.fill(0)
-        eyes.display_right.show()
+        self.display_right.show()
         print("\nRoboEyes stopped")

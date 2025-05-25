@@ -10,7 +10,7 @@ def recognize_person():
     REGION = os.getenv("AWS_REGION")
     bucket_name = "pebo-user-images"
     captured_image = "captured.jpg"
-    LOCAL_IMAGE_PATH = f"/home/pi/Documents/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/interaction/{captured_image}"
+    LOCAL_IMAGE_PATH = f"/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/interaction/{captured_image}"
 
     rekognition = boto3.client('rekognition', region_name=REGION,
                               aws_access_key_id=ACCESS_KEY,
@@ -94,11 +94,11 @@ def recognize_person():
 
         for item in response.get('Contents', []):
             reference_image = item['Key']
-            if reference_image == captured_image:
-                continue
-            if not validate_image(bucket_name, reference_image):
-                print(f"Skipping invalid reference image: {reference_image}")
-                continue
+            #if reference_image == captured_image:
+            #    continue
+            #if not validate_image(bucket_name, reference_image):
+            #    print(f"Skipping invalid reference image: {reference_image}")
+            #    continue
             try:
                 compare_response = rekognition.compare_faces(
                     SourceImage={'S3Object': {'Bucket': bucket_name, 'Name': reference_image}},
