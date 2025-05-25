@@ -20,7 +20,7 @@ def main():
         (eyes.Angry, "Angry")
     ]
     try:
-        eyes.Angry()
+        eyes.Happy()
 
     except KeyboardInterrupt:
         # Clean up on exit

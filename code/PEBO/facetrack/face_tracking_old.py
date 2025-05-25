@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-"""
-Combined face tracking with photo capture every 2 seconds
-Captures and saves cropped face image as captured.jpg when a person is detected
-Resizes captured image by 1.5x and ensures proper servo cleanup
-"""
-
 import cv2
 import mediapipe as mp
 from picamera2 import Picamera2
@@ -60,7 +53,7 @@ class CombinedFaceTracking:
         
         # Dual servo parameters
         self.h_partition_angles = {1: 110, 2: 105, 3: 100, 4: 80, 5: 60, 6: 55, 7: 50}
-        self.v_partition_angles = {1: 130, 2: 115, 3: 100, 4: 90}
+        self.v_partition_angles = {1: 130, 2: 100, 3: 90}
         self.h_partition_boundaries = [(0, 70, 1), (90, 160, 2), (180, 250, 3), (270, 370, 4),
                                        (390, 460, 5), (480, 550, 6), (570, 640, 7)]
         self.v_partition_boundaries = [(0, 120, 1), (170, 290, 2), (340, 480, 3)]
@@ -78,10 +71,6 @@ class CombinedFaceTracking:
         self.center_zone_right = (self.width // 2) + (self.center_zone_width // 2)
         self.center_kp = 0.1
         self.direction_multiplier = 1
-        
-        # Photo capture parameters
-        self.last_capture_time = time.time()
-        self.capture_interval = 20.0  # Capture every 20 seconds
 
     def get_nearest_face(self, detections):
         if not detections:
@@ -197,7 +186,7 @@ class CombinedFaceTracking:
                 elif current_time - last_detection > face_timeout:
                     # Return to center position
                     if self.h_current_angle != 80 or self.v_current_angle != 110:
-                        self.h_current_angle = set_angle_shift(self.h_servo, self.h_current_angle, 80)
+                        self.h_current_angle = set_angle_smooth_fast(self.h_servo, self.h_current_angle, 80)
                         self.v_current_angle = set_angle_smooth_fast(self.v_servo, self.v_current_angle, 110)
                         self.h_current_partition = 4
                         self.v_current_partition = 2
@@ -205,7 +194,7 @@ class CombinedFaceTracking:
                 time.sleep(0.01)  # Fast update rate for dual servos
                 
             except Exception as e:
-                #print(f"Dual servo error: {e}")
+                print(f"Dual servo error: {e}")
                 time.sleep(0.1)
 
     def center_servo_thread(self):
@@ -263,61 +252,33 @@ class CombinedFaceTracking:
                 time.sleep(0.1)  # Slow update rate for center servo
                 
             except Exception as e:
-                #print(f"Center servo error: {e}")
+                print(f"Center servo error: {e}")
                 time.sleep(0.1)
 
     def display_thread(self):
-        """Thread for displaying the video feed and capturing photos"""
+        """Thread for displaying the video feed"""
         while self.running:
             try:
                 if not self.frame_queue.empty():
                     frame, detections, nearest_face = self.frame_queue.get()
                     
                     # Draw partition lines
-                    #for start_x, end_x, p in self.h_partition_boundaries:
-                        #cv2.rectangle(frame, (start_x, 20), (end_x, 40), (0, 255, 0), -1)
-                        #cv2.putText(frame, str(p), (start_x + (end_x - start_x)//2 - 5, 35),
-                                    #cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-                        #cv2.line(frame, (start_x, 0), (start_x, self.height), (200, 200, 200), 1)
+                    for start_x, end_x, p in self.h_partition_boundaries:
+                        cv2.rectangle(frame, (start_x, 20), (end_x, 40), (0, 255, 0), -1)
+                        cv2.putText(frame, str(p), (start_x + (end_x - start_x)//2 - 5, 35),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+                        cv2.line(frame, (start_x, 0), (start_x, self.height), (200, 200, 200), 1)
                     
-                    #for start_y, end_y, p in self.v_partition_boundaries:
-                        #cv2.rectangle(frame, (self.width-40, start_y), (self.width-20, end_y), (255, 165, 0), -1)
-                        #cv2.putText(frame, str(p), (self.width-35, start_y + (end_y - start_y)//2),
-                                    #cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-                        #cv2.line(frame, (0, start_y), (self.width, start_y), (200, 200, 200), 1)
+                    for start_y, end_y, p in self.v_partition_boundaries:
+                        cv2.rectangle(frame, (self.width-40, start_y), (self.width-20, end_y), (255, 165, 0), -1)
+                        cv2.putText(frame, str(p), (self.width-35, start_y + (end_y - start_y)//2),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+                        cv2.line(frame, (0, start_y), (self.width, start_y), (200, 200, 200), 1)
                     
                     # Draw center reference
                     center_x = self.width // 2
-                    #cv2.line(frame, (center_x, 0), (center_x, self.height), (0, 255, 0), 2)
-                    #cv2.rectangle(frame, (self.center_zone_left, 0), (self.center_zone_right, self.height), (0, 255, 0), 1)
-                    
-                    # Handle photo capture every
-                    current_time = time.time()
-                    if nearest_face and (current_time - self.last_capture_time) >= self.capture_interval:
-                        x, y, w, h = nearest_face['bbox']
-                        
-                        # Add margin (20% of face width/height) to capture more of the face
-                        margin_x = int(w * 0.2)
-                        margin_y = int(h * 0.2)
-                        x1 = max(0, x - margin_x)
-                        y1 = max(0, y - margin_y)
-                        x2 = min(self.width, x + w + margin_x)
-                        y2 = min(self.height, y + h + margin_y)
-                        
-                        # Crop the face from the frame
-                        cropped_face = frame[y1:y2, x1:x2]
-                        
-                        # Resize the cropped image by 1.5x
-                        new_width = int(cropped_face.shape[1] * 1.5)
-                        new_height = int(cropped_face.shape[0] * 1.5)
-                        resized_face = cv2.resize(cropped_face, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
-                        
-                        # Save the resized cropped image
-                        cv2.imwrite('captured.jpg', resized_face)
-                        print(f"Captured and saved cropped face (resized 1.5x) as captured.jpg at {time.ctime()}")
-                        
-                        # Update the last capture time
-                        self.last_capture_time = current_time
+                    cv2.line(frame, (center_x, 0), (center_x, self.height), (0, 255, 0), 2)
+                    cv2.rectangle(frame, (self.center_zone_left, 0), (self.center_zone_right, self.height), (0, 255, 0), 1)
                     
                     # Draw face detection
                     if nearest_face:
@@ -386,7 +347,7 @@ class CombinedFaceTracking:
                         print(f"Min face area: {self.min_face_area_percent:.1f}%")
                     elif key == ord('r'):
                         self.direction_multiplier *= -1
-                        #print(f"Center servo direction: {'Normal' if self.direction_multiplier == 1 else 'Reversed'}")
+                        print(f"Center servo direction: {'Normal' if self.direction_multiplier == 1 else 'Reversed'}")
                 
                 time.sleep(0.03)  # ~30 FPS display
                 
@@ -396,68 +357,36 @@ class CombinedFaceTracking:
 
     def stop_servo(self, servo_channel):
         """Stop a servo by setting duty cycle to 0"""
-        try:
-            self.pwm.channels[servo_channel].duty_cycle = 0
-            print(f"Servo channel {servo_channel} de-energized")
-        except Exception as e:
-            print(f"Error stopping servo channel {servo_channel}: {e}")
+        self.pwm.channels[servo_channel].duty_cycle = 0
 
     def cleanup(self):
         """Clean up resources"""
         print("Returning servos to safe positions...")
         
-        # Set servos to safe positions with smooth movement
-        try:
-            # Smoothly move to safe positions
-            def set_angle_smooth(servo_obj, current_angle, target_angle, step=2):
-                if current_angle == target_angle:
-                    return
-                direction = 1 if target_angle > current_angle else -1
-                for angle in range(current_angle, target_angle + direction, direction):
-                    servo_obj.angle = angle
-                    time.sleep(0.02)  # Slower movement for cleanup
-                servo_obj.angle = target_angle
-            
-            set_angle_smooth(self.h_servo, int(self.h_current_angle), 80)
-            set_angle_smooth(self.v_servo, int(self.v_current_angle), 110)
-            set_angle_smooth(self.center_servo, int(self.center_current_angle), 90)
-            
-            # Wait to ensure servos reach their positions
-            time.sleep(1.0)
-            
-            # De-energize all servos
-            self.stop_servo(self.h_servo_channel)
-            self.stop_servo(self.v_servo_channel)
-            self.stop_servo(self.center_servo_channel)
-            
-        except Exception as e:
-            print(f"Error during servo cleanup: {e}")
+        # Set servos to safe positions
+        self.h_servo.angle = 80
+        self.v_servo.angle = 100
+        self.center_servo.angle = 90
+        time.sleep(0.5)
         
-        # De-initialize PWM and I2C
-        try:
-            self.pwm.deinit()
-            self.i2c.deinit()
-            print("PWM and I2C de-initialized")
-        except Exception as e:
-            print(f"Error de-initializing PWM/I2C: {e}")
+        # De-energize all servos
+        self.stop_servo(self.h_servo_channel)
+        self.stop_servo(self.v_servo_channel)
+        self.stop_servo(self.center_servo_channel)
         
-        # Cleanup camera and display
-        try:
-            cv2.destroyAllWindows()
-            self.picam2.stop()
-            print("Camera and display cleaned up")
-        except Exception as e:
-            print(f"Error cleaning up camera/display: {e}")
-        
+        # Cleanup
+        self.pwm.deinit()
+        cv2.destroyAllWindows()
+        self.picam2.stop()
         print("Cleanup complete")
 
     def run(self):
         """Main function to run all threads"""
-        #print("Combined face tracking started.")
-        #print("Press ESC to exit")
-        #print("Press '+' to increase min face area")
-        #print("Press '-' to decrease min face area")
-        #print("Press 'r' to reverse center servo direction")
+        print("Combined face tracking started.")
+        print("Press ESC to exit")
+        print("Press '+' to increase min face area")
+        print("Press '-' to decrease min face area")
+        print("Press 'r' to reverse center servo direction")
         
         # Create and start threads
         threads = [

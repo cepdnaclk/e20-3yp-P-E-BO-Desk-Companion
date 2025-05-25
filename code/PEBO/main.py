@@ -3,7 +3,7 @@ import time
 import asyncio
 from interaction.touch_sensor import detect_continuous_touch
 from display.eyes import RoboEyesDual
-from facetrack.dual_servo_face_tracking import dual_servo_face_tracking
+from facetrack.face_tracking import CombinedFaceTracking
 from interaction.user_check import recognize_person
 from voice.assistant import speak_text, listen, start_assistant_from_text
 

@@ -1,37 +1,34 @@
-import google.generativeai as genai
+import assemblyai as aai
+import sounddevice as sd
+import scipy.io.wavfile
+import tempfile
+import os
 import pygame
 import time
-import os
 import asyncio
 import edge_tts
-import speech_recognition as sr
-
-
-import whisper
-import sounddevice as sd
-import numpy as np
-import tempfile
-import scipy.io.wavfile
-
+import platform
+import json
+import urllib.request
 
 import subprocess
+
+# OpenRouter API setup
+OPENROUTER_API_KEY = "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"
+OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+# AssemblyAI API key
+aai.settings.api_key = "90407b46f50245528731a47a26dd01e6"
+
+# Audio settings
+SAMPLE_RATE = 44100
+DURATION = 5
 
 # Initialize pygame
 pygame.mixer.init()
 
-# Gemini API setup
-GOOGLE_API_KEY = "AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"
-genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
-
-# Gemini memory
-conversation_history = []
-
-# Speech recognizer
-recognizer = sr.Recognizer()
-mic = sr.Microphone()
-
-
+# Conversation history
+conversation_history = [{"role": "system", "content": "You are an empathetic voice assistant."}]
 
 def amplify_audio(input_file, output_file, gain_db=10):
     subprocess.run([
@@ -64,129 +61,98 @@ async def speak_text(text):
     os.remove(filename)
     os.remove(boosted_file)
 
-
-def listen(
-        recognizer: sr.Recognizer,
-        mic: sr.Microphone,
-        *,
-        timeout: float = 8,
-        phrase_time_limit: float = 6,
-        retries: int = 2,
-        language: str = "en-US",
-        calibrate_duration: float = 0.5,
-) -> str | None:
-    """
-    Capture a single utterance and return the recognized text.
-
-    Returns
-    -------
-    str | None
-        The recognized text, or None if nothing was captured/recognized.
-    """
-    for attempt in range(retries + 1):
-        try:
-            with mic as source:
-                recognizer.adjust_for_ambient_noise(source, duration=calibrate_duration)
-                print("\U0001F3A4 Listening… (attempt", attempt + 1, ")")
-                audio = recognizer.listen(source,
-                                          timeout=timeout,
-                                          phrase_time_limit=phrase_time_limit)
-
-            try:
-                text = recognizer.recognize_google(audio, language=language)
-                text = text.strip()
-                if text:
-                    print(f"\U0001F5E3️  You said: {text}")
-                    return text
-            except sr.UnknownValueError:
-                print("\U0001F914  Sorry—couldn’t understand that.")
-            except sr.RequestError as e:
-                print(f"\u26A0\uFE0F  Google speech service error ({e}). Falling back to offline engine…")
-                try:
-                    text = recognizer.recognize_sphinx(audio, language=language)
-                    text = text.strip()
-                    if text:
-                        print(f"\U0001F5E3️  (Offline) You said: {text}")
-                        return text
-                except Exception as sphinx_err:
-                    print(f"\u274C  Offline engine failed: {sphinx_err}")
-
-        except sr.WaitTimeoutError:
-            print("\u231B Timed out waiting for speech.")
-        except Exception as mic_err:
-            print(f"\U0001F3A4 Mic/Audio error: {mic_err}")
-
-        if attempt < retries:
-            time.sleep(0.5)
-
-    print("\U0001F615  No intelligible speech captured.")
-    return None
-
-
-
-
-# Load the Whisper model once
-whisper_model = whisper.load_model("base")  # Try "tiny" or "small" if Pi is slow
-
-def listen_whisper(duration=1, sample_rate=16000) -> str | None:
-    """Capture audio and transcribe using Whisper."""
-    print("🎤 Listening with Whisper…")
-
+def listen_assemblyai():
+    print("🎤 Listening...")
     try:
-        # Record from mic
-        recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
+        audio_data = sd.rec(int(SAMPLE_RATE * DURATION), samplerate=SAMPLE_RATE, channels=1, dtype='int16')
         sd.wait()
-
-        # Save to a temporary WAV file
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
-            scipy.io.wavfile.write(tmpfile.name, sample_rate, recording)
-            audio_path = tmpfile.name
-
-        # Transcribe using Whisper
-        result = whisper_model.transcribe(audio_path)
-        text = result.get("text", "").strip()
-
-        if text:
-            print(f"🗣️  You said (Whisper): {text}")
-            return text
-        else:
-            print("🤔 No intelligible speech detected.")
+            scipy.io.wavfile.write(tmpfile.name, SAMPLE_RATE, audio_data)
+            audio_file_path = tmpfile.name
+        config = aai.TranscriptionConfig(speech_model=aai.SpeechModel.best)
+        transcript = aai.Transcriber(config=config).transcribe(audio_file_path)
+        try:
+            os.remove(audio_file_path)
+        except:
+            pass
+        if transcript.status == "error":
+            print(f"❌ Transcription failed: {transcript.error}")
             return None
-
+        text = transcript.text.strip()
+        if text:
+            print(f"🗣️ You said: {text}")
+            return text
+        print("🤔 No speech detected.")
+        return None
     except Exception as e:
-        print(f"❌ Whisper error: {e}")
+        print(f"❌ AssemblyAI error: {e}")
         return None
 
+def call_openrouter_api(prompt, retries=2, delay=1):
+    conversation_history.append({"role": "user", "content": prompt})
+    payload = {
+        "messages": conversation_history,
+        "model": "anthropic/claude-3.5-sonnet",
+        "stream": False,
+        "temperature": 0.7,
+        "max_tokens": 50
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "HTTP-Referer": "http://localhost",
+        "X-Title": "Voice Assistant"
+    }
+    for attempt in range(retries + 1):
+        try:
+            req = urllib.request.Request(
+                OPENROUTER_API_URL,
+                data=json.dumps(payload).encode('utf-8'),
+                headers=headers,
+                method='POST'
+            )
+            with urllib.request.urlopen(req) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                reply = result['choices'][0]['message']['content'].strip()
+            conversation_history.append({"role": "assistant", "content": reply})
+            return reply
+        except urllib.error.HTTPError as e:
+            print(f"❌ API error: {e}")
+            if attempt < retries:
+                print(f"Retrying in {delay}s...")
+                time.sleep(delay)
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            if attempt < retries:
+                print(f"Retrying in {delay}s...")
+                time.sleep(delay)
+    return "Sorry, API connection failed."
 
-def start_assistant_from_text(prompt_text):
-    """Starts Gemini assistant with initial text prompt."""
-    print(f"\U0001F4AC Initial Prompt: {prompt_text}")
+async def start_assistant_from_text(prompt_text):
+    print(f"💬 Prompt: {prompt_text}")
     conversation_history.clear()
-    conversation_history.append({"role": "user", "parts": [prompt_text]})
-
-    response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 60})
-    reply = response.text
-    print(f"Gemini: {reply}")
-    asyncio.run(speak_text(reply))
-
-    conversation_history.append({"role": "model", "parts": [reply]})
-
+    conversation_history.append({"role": "system", "content": "You are an empathetic voice assistant."})
+    conversation_history.append({"role": "user", "content": prompt_text})
+    reply = call_openrouter_api(prompt_text)
+    print(f"Assistant: {reply}")
+    await speak_text(reply)
     while True:
-        user_input = listen(recognizer, mic)
-        #user_input = listen_whisper()
+        user_input = listen_assemblyai()
         if user_input is None:
             continue
-        if user_input.lower() == "exit":
-            print("\U0001F44B Exiting assistant.")
-            asyncio.run(speak_text("Goodbye!"))
+        if user_input.lower() in ["exit", "quit"]:
+            print("👋 Exiting.")
+            await speak_text("Goodbye!")
             break
+        reply = call_openrouter_api(user_input)
+        print(f"Assistant: {reply}")
+        await speak_text(reply)
 
-        conversation_history.append({"role": "user", "parts": [user_input]})
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 60})
-        reply = response.text
-        print(f"Gemini: {reply}")
-        asyncio.run(speak_text(reply))
-        conversation_history.append({"role": "model", "parts": [reply]})
+async def main():
+    await start_assistant_from_text("I am Nimal. I look tired. Ask why.")
 
-if __name__ == "__main__":
-    start_assistant_from_text("I am Nimal. I look tired. Ask why.")
+if platform.system() == "Emscripten":
+    asyncio.ensure_future(main())
+else:
+    if __name__ == "__main__":
+        asyncio.run(main())

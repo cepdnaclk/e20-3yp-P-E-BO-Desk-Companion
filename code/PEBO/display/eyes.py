@@ -562,7 +562,7 @@ if __name__ == "__main__":
         moods = [eyes.Default, eyes.Happy, eyes.Tired, eyes.Angry]
         
             
-        eyes.Angry()
+        eyes.Tired()
             
             
     except KeyboardInterrupt:
