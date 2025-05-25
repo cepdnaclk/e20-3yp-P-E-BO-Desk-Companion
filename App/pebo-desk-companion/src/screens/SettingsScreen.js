@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ScrollView,
   View,
@@ -15,6 +15,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import QRCode from "react-native-qrcode-svg";
 import {
   auth,
   db,
@@ -24,6 +25,30 @@ import {
   getPeboDevices,
 } from "../services/firebase";
 import PopupModal from "../components/PopupModal";
+
+// QRErrorBoundary to catch QR code rendering errors
+class QRErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("QR Code Rendering Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Text style={{ color: "#FF3B30", textAlign: "center" }}>
+          Error rendering QR code
+        </Text>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -35,102 +60,146 @@ const SettingsScreen = () => {
   const [peboLocation, setPeboLocation] = useState("");
   const [peboDevices, setPeboDevices] = useState([]);
   const [userImage, setUserImage] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [qrModalVisible, setQrModalVisible] = useState(false);
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupContent, setPopupContent] = useState({
     title: "",
     message: "",
-    icon: "checkmark-circle",
+    type: "info",
   });
   const [username, setUsername] = useState("");
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
 
-  const BUCKET_NAME = "pebo-user-images"; // Update to pebo-user-images-free if new bucket
+  const BUCKET_NAME = "pebo-user-images";
   const API_GATEWAY_URL =
-    "https://aw8yn9cbj1.execute-api.us-east-1.amazonaws.com/prod/presigned"; // Replace with your API Gateway URL
+    "https://aw8yn9cbj1.execute-api.us-east-1.amazonaws.com/prod/presigned";
+
+  // Map icon names to PopupModal types
+  const getPopupType = (icon) => {
+    switch (icon) {
+      case "checkmark-circle":
+        return "success";
+      case "alert-circle":
+        return "error";
+      case "wifi":
+        return "success";
+      case "add-circle":
+        return "success";
+      default:
+        return "info";
+    }
+  };
 
   const showPopup = (title, message, icon = "checkmark-circle") => {
-    setPopupContent({ title, message, icon });
+    setPopupContent({ title, message, type: getPopupType(icon) });
     setPopupVisible(true);
   };
 
   useEffect(() => {
-    (async () => {
+    const fetchPeboDevices = async () => {
       try {
         const devices = await getPeboDevices();
         setPeboDevices(devices);
       } catch (err) {
         console.warn("Error fetching PEBOs:", err);
       }
-    })();
-  }, []);
+    };
 
-  useEffect(() => {
-    (async () => {
+    const fetchWifiSettings = async () => {
       try {
         const { wifiSSID, wifiPassword } = await getWifiName();
-        setWifiSSID(wifiSSID);
-        setWifiPassword(wifiPassword);
+        setWifiSSID(wifiSSID || "");
+        setWifiPassword(wifiPassword || "");
       } catch (err) {
         console.warn("Error fetching Wi-Fi:", err);
       }
-    })();
+    };
+
+    const userId = auth.currentUser?.uid;
+    let unsubscribe;
+    if (userId) {
+      const profileImageRef = db.ref(`users/${userId}/profileImage`);
+      unsubscribe = profileImageRef.on(
+        "value",
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const imageUrl = snapshot.val();
+            console.log("Firebase profileImage:", imageUrl);
+            setUserImage(imageUrl);
+          } else {
+            console.log("No profile image found in Firebase");
+            setUserImage(null);
+          }
+        },
+        (error) => {
+          console.error("Firebase listener error:", error);
+          setUserImage(null);
+        }
+      );
+    } else {
+      console.warn("No userId available, skipping profile image listener");
+      setUserImage(null);
+    }
+
+    fetchPeboDevices();
+    fetchWifiSettings();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
-  const captureUserImage = async () => {
-    setUsernameModalVisible(true);
-  };
+  // Memoized QR code value
+  const qrCodeValue = useMemo(() => {
+    const ssid = wifiSSID.trim();
+    const password = wifiPassword.trim();
+    if (!ssid || !password) {
+      return "{}"; // Fallback if credentials are empty
+    }
+    return `WIFI:S:${ssid};T:WPA;P:${password};;`;
+  }, [wifiSSID, wifiPassword]);
 
-  const launchCamera = async () => {
+  const captureAndUploadImage = async () => {
+    if (!username.trim()) {
+      showPopup("Error", "Please enter your name", "alert-circle");
+      return;
+    }
+
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       showPopup("Error", "Camera permission denied", "alert-circle");
       return;
     }
+
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      quality: 0.6, // Optimize for Free Tier
+      quality: 0.6,
       aspect: [1, 1],
     });
-    if (!result.canceled && result.assets?.[0]?.uri) {
-      setUserImage(result.assets[0].uri);
-      showPopup(
-        "Success",
-        "Image captured successfully. Please Save it.",
-        "camera"
-      );
-    }
-  };
 
-  const uploadUserImage = async () => {
-    if (!userImage || !username.trim()) {
-      showPopup("Error", "Image or username missing", "alert-circle");
+    if (result.canceled || !result.assets?.[0]?.uri) {
+      setUsernameModalVisible(false);
       return;
     }
 
-    setIsUploading(true);
+    setIsProcessing(true);
+    setUsernameModalVisible(false);
+    const imageUri = result.assets[0].uri;
 
     try {
-      // Sanitize username
       const sanitizedUsername = username
         .toLowerCase()
         .replace(/[^a-z0-9]/g, "_");
       const objectName = `user_${sanitizedUsername}.jpg`;
-      console.log("Username:", username);
-      console.log("Sanitized Username:", sanitizedUsername);
-      console.log(
-        "API URL:",
-        `${API_GATEWAY_URL}?username=${encodeURIComponent(sanitizedUsername)}`
-      );
-      console.log("S3 Bucket:", BUCKET_NAME);
 
-      // Fetch pre-signed URL
       const response = await fetch(
         `${API_GATEWAY_URL}?username=${encodeURIComponent(sanitizedUsername)}`
       );
-      console.log("Response Status:", response.status);
 
       if (!response.ok) {
         throw new Error(
@@ -139,16 +208,6 @@ const SettingsScreen = () => {
       }
 
       const data = await response.json();
-      console.log("API Response:", JSON.stringify(data, null, 2));
-
-      // Check for Lambda error
-      if (data.statusCode && data.statusCode !== 200) {
-        throw new Error(
-          `Lambda error: ${data.body.message || "Unknown error"}`
-        );
-      }
-
-      // Handle response formats
       let presignedUrl;
       if (data.body) {
         const body =
@@ -166,10 +225,7 @@ const SettingsScreen = () => {
         throw new Error("Pre-signed URL is missing or invalid");
       }
 
-      console.log("Pre-signed URL:", presignedUrl);
-
-      // Upload to S3
-      const imageResponse = await fetch(userImage);
+      const imageResponse = await fetch(imageUri);
       const blob = await imageResponse.blob();
       const uploadResponse = await fetch(presignedUrl, {
         method: "PUT",
@@ -181,8 +237,8 @@ const SettingsScreen = () => {
         throw new Error(`S3 upload failed: ${uploadResponse.statusText}`);
       }
 
-      // Save S3 URL to Firebase
       const s3Url = `https://${BUCKET_NAME}.s3.amazonaws.com/${objectName}`;
+      console.log("S3 URL:", s3Url);
       const userId = auth.currentUser?.uid;
       if (userId) {
         await db.ref(`users/${userId}/profileImage`).set(s3Url);
@@ -193,18 +249,22 @@ const SettingsScreen = () => {
         });
       }
 
-      showPopup("Success", "Image Saved", "checkmark-circle");
-      setUserImage(null);
+      setUserImage(s3Url);
+      showPopup(
+        "Success",
+        "Image captured and uploaded successfully",
+        "checkmark-circle"
+      );
       setUsername("");
     } catch (error) {
       console.error("Upload error:", error);
       showPopup(
         "Error",
-        `Failed to upload image: ${error.message}`,
+        `Failed to process image: ${error.message}`,
         "alert-circle"
       );
     } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
   };
 
@@ -236,6 +296,20 @@ const SettingsScreen = () => {
     } finally {
       setIsSavingWifi(false);
     }
+  };
+
+  const handleShowQrCode = () => {
+    const ssid = wifiSSID.trim();
+    const pwd = wifiPassword.trim();
+    if (!ssid || !pwd) {
+      showPopup(
+        "Error",
+        "Please save valid Wi-Fi settings first",
+        "alert-circle"
+      );
+      return;
+    }
+    setQrModalVisible(true);
   };
 
   const handleAddPebo = async () => {
@@ -277,50 +351,48 @@ const SettingsScreen = () => {
             <Text style={styles.cardLabel}>User Photo</Text>
           </View>
           <View style={{ alignItems: "center", marginVertical: 15 }}>
-            {userImage ? (
+            {userImage && userImage !== "" ? (
               <Image
-                source={{ uri: userImage }}
+                source={{
+                  uri: `${userImage}?t=${Date.now()}`,
+                  cache: "reload",
+                }}
                 style={{
                   width: 150,
                   height: 150,
                   borderRadius: 75,
                   marginBottom: 10,
                 }}
+                onError={(e) =>
+                  console.log("Image load error:", e.nativeEvent.error)
+                }
               />
             ) : (
               <View style={styles.placeholderImage}>
                 <Ionicons name="person" size={80} color="#ccc" />
+                <Text style={styles.placeholderText}>No Image</Text>
               </View>
             )}
             <TouchableOpacity
-              onPress={captureUserImage}
-              style={styles.photoButton}
+              onPress={() => setUsernameModalVisible(true)}
+              style={[
+                styles.photoButton,
+                isProcessing && styles.processingButton,
+              ]}
+              disabled={isProcessing}
             >
-              <Ionicons name="camera" size={20} color="#fff" />
-              <Text style={styles.photoButtonText}>Capture Your Image</Text>
+              {isProcessing ? (
+                <>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.photoButtonText}>Processing...</Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="camera" size={20} color="#fff" />
+                  <Text style={styles.photoButtonText}>Capture New Image</Text>
+                </>
+              )}
             </TouchableOpacity>
-            {userImage && (
-              <TouchableOpacity
-                onPress={uploadUserImage}
-                style={[
-                  styles.uploadButton,
-                  isUploading && styles.processingButton,
-                ]}
-                disabled={isUploading}
-              >
-                {isUploading ? (
-                  <>
-                    <ActivityIndicator size="small" color="#fff" />
-                    <Text style={styles.photoButtonText}>Uploading...</Text>
-                  </>
-                ) : (
-                  <>
-                    <Ionicons name="cloud-upload" size={20} color="#fff" />
-                    <Text style={styles.photoButtonText}>Save</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
           </View>
         </View>
         <View style={styles.card}>
@@ -375,6 +447,14 @@ const SettingsScreen = () => {
                 <Text style={styles.saveButtonText}>Save Wi-Fi</Text>
               </>
             )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.saveButton, { backgroundColor: "#34C759" }]}
+            onPress={handleShowQrCode}
+            disabled={!wifiSSID.trim() || !wifiPassword.trim()}
+          >
+            <Ionicons name="qr-code" size={20} color="#fff" />
+            <Text style={styles.saveButtonText}>Show QR Code</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
@@ -511,20 +591,9 @@ const SettingsScreen = () => {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: "#007AFF" }]}
-                onPress={() => {
-                  if (username.trim()) {
-                    setUsernameModalVisible(false);
-                    launchCamera();
-                  } else {
-                    showPopup(
-                      "Error",
-                      "Please enter your name",
-                      "alert-circle"
-                    );
-                  }
-                }}
+                onPress={captureAndUploadImage}
               >
-                <Text style={styles.modalButtonText}>Continue</Text>
+                <Text style={styles.modalButtonText}>Capture & Save</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: "#ccc" }]}
@@ -538,12 +607,45 @@ const SettingsScreen = () => {
           </View>
         </View>
       </Modal>
+      <Modal
+        transparent
+        visible={qrModalVisible}
+        animationType="fade"
+        onRequestClose={() => setQrModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Wi-Fi QR Code</Text>
+            <Text style={styles.modalSubtitle}>
+              Show this QR code to PEBO's camera to configure Wi-Fi
+            </Text>
+            <View style={styles.qrCodeContainer}>
+              <QRErrorBoundary>
+                <QRCode
+                  value={qrCodeValue}
+                  size={200}
+                  backgroundColor="#FFF"
+                  color="#000"
+                />
+              </QRErrorBoundary>
+            </View>
+            <TouchableOpacity
+              style={[styles.modalButton, { backgroundColor: "#ccc" }]}
+              onPress={() => setQrModalVisible(false)}
+            >
+              <Text style={[styles.modalButtonText, { color: "#333" }]}>
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <PopupModal
         visible={popupVisible}
         onClose={() => setPopupVisible(false)}
         title={popupContent.title}
         message={popupContent.message}
-        icon={popupContent.icon}
+        type={popupContent.type}
       />
     </View>
   );
@@ -551,6 +653,7 @@ const SettingsScreen = () => {
 
 export default SettingsScreen;
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -641,6 +744,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  placeholderText: {
+    color: "#999",
+    fontSize: 14,
+    marginTop: 5,
   },
   emptyText: {
     color: "#666",
@@ -655,7 +765,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderRadius: 14,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 15,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -692,16 +802,6 @@ const styles = StyleSheet.create({
   processingButton: {
     backgroundColor: "#999",
   },
-  uploadButton: {
-    flexDirection: "row",
-    backgroundColor: "#00b894",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    width: "80%",
-    marginTop: 10,
-  },
   photoButtonText: {
     color: "#FFF",
     marginLeft: 6,
@@ -728,6 +828,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#007AFF",
   },
+  modalSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 20,
+    textAlign: "center",
+  },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -745,5 +851,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#FFF",
+  },
+  qrCodeContainer: {
+    backgroundColor: "#FFF",
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 20,
   },
 });

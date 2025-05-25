@@ -1,5 +1,15 @@
-// App.js
+// Polyfill TextEncoder and TextDecoder
+import { TextEncoder, TextDecoder } from "text-encoding";
 
+if (typeof global.TextEncoder === "undefined") {
+  global.TextEncoder = TextEncoder;
+}
+
+if (typeof global.TextDecoder === "undefined") {
+  global.TextDecoder = TextDecoder;
+}
+
+// Original imports
 import "react-native-gesture-handler";
 import React from "react";
 import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
