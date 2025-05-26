@@ -4,9 +4,14 @@ FluxGarage RoboEyes for Dual OLED Displays - Python Version with Emotion Functio
 Displays left eye on one OLED and right eye on another OLED
 Modified for two separate I2C OLED displays with 90 degree rotation support
 and dedicated emotion functions
+Fixed blinking to only change height, maintaining rounded rectangle shape
+Increased blinking speed by reducing interval and speeding up height transition
+Fixed bottom ellipses crossing above top ellipses during blink
+Added Love mood with parametric heart shapes, faster y-axis rotation, and bouncing effect
 
 Original Copyright (C) 2024 Dennis Hoelscher
-Modified for dual display setup, rotation fix, and emotion functions
+Modified for dual display setup, rotation fix, emotion functions, blink fix, faster blinking,
+corrected ellipse positioning, and Love mood with animated hearts
 """
 
 import time
@@ -15,12 +20,14 @@ import busio
 from PIL import Image, ImageDraw
 import adafruit_ssd1306
 import random
+from math import sin, cos, pow
 
 # Constants for mood types
 DEFAULT = 0
 TIRED = 1
 ANGRY = 2
 HAPPY = 3
+LOVE = 4
 
 # For turning things on or off
 ON = 1
@@ -54,6 +61,7 @@ class RoboEyesDual:
         self.tired = False
         self.angry = False
         self.happy = False
+        self.love = False
         self.curious = False
         self.eye_l_open = False
         self.eye_r_open = False
@@ -116,7 +124,7 @@ class RoboEyesDual:
         self.v_flicker_amplitude = 10
         
         self.autoblinker = False
-        self.blink_interval = 1
+        self.blink_interval = 0.5
         self.blink_interval_variation = 4
         self.blink_timer = time.time()
         
@@ -134,7 +142,11 @@ class RoboEyesDual:
         self.laugh_animation_timer = time.time()
         self.laugh_animation_duration = 0.5
         self.laugh_toggle = True
-    
+        
+        # Heart animation parameters
+        self.heart_animation_angle = 0
+        self.heart_animation_speed = 0.5  # Radians per frame for ~1.5s cycle
+        
     def begin(self, width, height, frame_rate):
         """Initialize RoboEyes with screen parameters"""
         self.screen_width = height
@@ -185,18 +197,27 @@ class RoboEyesDual:
             self.tired = True
             self.angry = False
             self.happy = False
+            self.love = False
         elif mood == ANGRY:
             self.tired = False
             self.angry = True
             self.happy = False
+            self.love = False
         elif mood == HAPPY:
             self.tired = False
             self.angry = False
             self.happy = True
+            self.love = False
+        elif mood == LOVE:
+            self.tired = False
+            self.angry = False
+            self.happy = False
+            self.love = True
         else:
             self.tired = False
             self.angry = False
             self.happy = False
+            self.love = False
     
     def set_position(self, position):
         """Set predefined position for both eyes"""
@@ -277,7 +298,7 @@ class RoboEyesDual:
     
     def get_screen_constraint_x(self):
         """Returns the max x position for each eye"""
-        return self.screen_width - max(self.eye_l_width_current, self.eye_r_width_current)
+        return self.screen_width - max(self.eye_l_width_default, self.eye_r_width_default)
     
     def get_screen_constraint_y(self):
         """Returns the max y position for each eye"""
@@ -315,6 +336,8 @@ class RoboEyesDual:
     def _draw_rounded_rectangle(self, draw, xy, radius, fill=255):
         """Draw a rounded rectangle"""
         x0, y0, x1, y1 = xy
+        # Ensure y1 >= y0 to prevent bottom ellipses crossing top
+        y1 = max(y0, y1)
         draw.rectangle([x0 + radius, y0, x1 - radius, y1], fill=fill)
         draw.rectangle([x0, y0 + radius, x1, y1 - radius], fill=fill)
         diameter = radius * 2
@@ -323,181 +346,226 @@ class RoboEyesDual:
         draw.ellipse([x0, y1 - diameter, x0 + diameter, y1], fill=fill)
         draw.ellipse([x1 - diameter, y1 - diameter, x1, y1], fill=fill)
     
+    def _draw_heart(self, draw, x, y, size, fill=255, width_scale=1.0):
+        """Draw a filled heart at position x, y with given size and width scaling"""
+        points = []
+        for t in range(0, 628):  # 0 to 2π in steps of 0.01
+            t_rad = t / 100  # Convert to radians
+            x_val = 16 * pow(sin(t_rad), 3)
+            y_val = 16 * cos(t_rad) - 5 * cos(2 * t_rad) - 2 * cos(3 * t_rad) - cos(4 * t_rad)
+            # Apply width scaling for rotation effect
+            scaled_x = x_val * width_scale
+            points.append((x + int(scaled_x * size / 16), y - int(y_val * size / 16)))
+        draw.polygon(points, fill=fill)
+    
     def draw_eyes(self):
-        """Draw the eyes on separate displays"""
-        if self.curious:
-            if self.eye_l_x < self.eye_l_x_default:
-                self.eye_l_height_offset = 8
+        """Draw the eyes or hearts on separate displays"""
+        if not self.love:
+            if self.curious:
+                if self.eye_l_x < self.eye_l_x_default:
+                    self.eye_l_height_offset = 8
+                else:
+                    self.eye_l_height_offset = 0
+                if self.eye_r_x > self.eye_r_x_default:
+                    self.eye_r_height_offset = 8
+                else:
+                    self.eye_r_height_offset = 0
             else:
                 self.eye_l_height_offset = 0
-            if self.eye_r_x > self.eye_r_x_default:
-                self.eye_r_height_offset = 8
-            else:
                 self.eye_r_height_offset = 0
-        else:
-            self.eye_l_height_offset = 0
-            self.eye_r_height_offset = 0
-        
-        self.eye_l_height_current = (self.eye_l_height_current + self.eye_l_height_next + self.eye_l_height_offset) // 2
-        self.eye_l_y = self.eye_l_y_default + (self.eye_l_height_default - self.eye_l_height_current) // 2
-        self.eye_l_y -= self.eye_l_height_offset // 2
-        
-        self.eye_r_height_current = (self.eye_r_height_current + self.eye_r_height_next + self.eye_r_height_offset) // 2
-        self.eye_r_y = self.eye_r_y_default + (self.eye_r_height_default - self.eye_r_height_current) // 2
-        self.eye_r_y -= self.eye_r_height_offset // 2
-        
-        if self.eye_l_open and self.eye_l_height_current <= 1 + self.eye_l_height_offset:
-            self.eye_l_height_next = self.eye_l_height_default
-        if self.eye_r_open and self.eye_r_height_current <= 1 + self.eye_r_height_offset:
-            self.eye_r_height_next = self.eye_r_height_default
-        
-        self.eye_l_width_current = (self.eye_l_width_current + self.eye_l_width_next) // 2
-        self.eye_r_width_current = (self.eye_r_width_current + self.eye_r_width_next) // 2
-        
-        self.eye_l_x = (self.eye_l_x + self.eye_l_x_next) // 2
-        self.eye_l_y = (self.eye_l_y + self.eye_l_y_next) // 2
-        self.eye_r_x = (self.eye_r_x + self.eye_r_x_next) // 2
-        self.eye_r_y = (self.eye_r_y + self.eye_r_y_next) // 2
-        
-        self.eye_l_border_radius_current = (self.eye_l_border_radius_current + self.eye_l_border_radius_next) // 2
-        self.eye_r_border_radius_current = (self.eye_r_border_radius_current + self.eye_r_border_radius_next) // 2
-        
-        current_time = time.time()
-        
-        if self.autoblinker and current_time >= self.blink_timer:
-            self.blink()
-            self.blink_timer = current_time + self.blink_interval + random.random() * self.blink_interval_variation
-        
-        if self.laugh:
-            if self.laugh_toggle:
-                self.set_v_flicker(True, 5)
-                self.laugh_animation_timer = current_time
-                self.laugh_toggle = False
-            elif current_time >= self.laugh_animation_timer + self.laugh_animation_duration:
-                self.set_v_flicker(False, 0)
-                self.laugh_toggle = True
-                self.laugh = False
-        
-        if self.confused:
-            if self.confused_toggle:
-                self.set_h_flicker(True, 10)
-                self.confused_animation_timer = current_time
-                self.confused_toggle = False
-            elif current_time >= self.confused_animation_timer + self.confused_animation_duration:
-                self.set_h_flicker(False, 0)
-                self.confused_toggle = True
-                self.confused = False
-        
-        if self.idle and current_time >= self.idle_animation_timer:
-            max_offset = int(self.screen_width * 0.25)
-            self.eye_l_x_next = self.eye_l_x_default + random.randint(-max_offset, max_offset)
-            self.eye_l_y_next = self.eye_l_y_default + random.randint(-max_offset, max_offset)
-            self.eye_r_x_next = self.eye_r_x_default + random.randint(-max_offset, max_offset)
-            self.eye_r_y_next = self.eye_r_y_default + random.randint(-max_offset, max_offset)
             
-            self.eye_l_x_next = max(5, min(self.eye_l_x_next, self.screen_width - self.eye_l_width_current - 5))
-            self.eye_l_y_next = max(5, min(self.eye_l_y_next, self.screen_height - self.eye_l_height_current - 5))
-            self.eye_r_x_next = max(5, min(self.eye_r_x_next, self.screen_width - self.eye_r_width_current - 5))
-            self.eye_r_y_next = max(5, min(self.eye_r_y_next, self.screen_height - self.eye_r_height_current - 5))
+            # Update height with fast transition
+            self.eye_l_height_current = (3 * (self.eye_l_height_next + self.eye_l_height_offset) + self.eye_l_height_current) // 4
+            self.eye_r_height_current = (3 * (self.eye_r_height_next + self.eye_r_height_offset) + self.eye_r_height_current) // 4
             
-            self.idle_animation_timer = current_time + self.idle_interval + random.random() * self.idle_interval_variation
+            # Adjust y-position with clamped height to prevent excessive shift
+            effective_l_height = max(self.eye_l_height_current, 10)
+            effective_r_height = max(self.eye_r_height_current, 10)
+            self.eye_l_y = self.eye_l_y_default + (self.eye_l_height_default - effective_l_height) // 2
+            self.eye_r_y = self.eye_r_y_default + (self.eye_r_height_default - effective_r_height) // 2
+            self.eye_l_y -= self.eye_l_height_offset // 2
+            self.eye_r_y -= self.eye_r_height_offset // 2
+            
+            # Ensure eyes open when height is near closed
+            if self.eye_l_open and self.eye_l_height_current <= 1 + self.eye_l_height_offset:
+                self.eye_l_height_next = self.eye_l_height_default
+            if self.eye_r_open and self.eye_r_height_current <= 1 + self.eye_r_height_offset:
+                self.eye_r_height_next = self.eye_r_height_default
+            
+            # Keep width and border radius constant
+            self.eye_l_width_current = self.eye_l_width_default
+            self.eye_r_width_current = self.eye_r_width_default
+            self.eye_l_border_radius_current = self.eye_l_border_radius_default
+            self.eye_r_border_radius_current = self.eye_r_border_radius_default
+            
+            # Update position with smoothing
+            self.eye_l_x = (self.eye_l_x + self.eye_l_x_next) // 2
+            self.eye_l_y = (self.eye_l_y + self.eye_l_y_next) // 2
+            self.eye_r_x = (self.eye_r_x + self.eye_r_x_next) // 2
+            self.eye_r_y = (self.eye_r_y + self.eye_r_y_next) // 2
+            
+            current_time = time.time()
+            
+            # Handle autoblinking
+            if self.autoblinker and current_time >= self.blink_timer:
+                self.blink()
+                self.blink_timer = current_time + self.blink_interval + random.random() * self.blink_interval_variation
+            
+            # Handle laugh animation
+            if self.laugh:
+                if self.laugh_toggle:
+                    self.set_v_flicker(True, 5)
+                    self.laugh_animation_timer = current_time
+                    self.laugh_toggle = False
+                elif current_time >= self.laugh_animation_timer + self.laugh_animation_duration:
+                    self.set_v_flicker(False, 0)
+                    self.laugh_toggle = True
+                    self.laugh = False
+            
+            # Handle confused animation
+            if self.confused:
+                if self.confused_toggle:
+                    self.set_h_flicker(True, 10)
+                    self.confused_animation_timer = current_time
+                    self.confused_toggle = False
+                elif current_time >= self.confused_animation_timer + self.confused_animation_duration:
+                    self.set_h_flicker(False, 0)
+                    self.confused_toggle = True
+                    self.confused = False
+            
+            # Handle idle mode
+            if self.idle and current_time >= self.idle_animation_timer:
+                max_offset = int(self.screen_width * 0.25)
+                self.eye_l_x_next = self.eye_l_x_default + random.randint(-max_offset, max_offset)
+                self.eye_l_y_next = self.eye_l_y_default + random.randint(-max_offset, max_offset)
+                self.eye_r_x_next = self.eye_r_x_default + random.randint(-max_offset, max_offset)
+                self.eye_r_y_next = self.eye_r_y_default + random.randint(-max_offset, max_offset)
+                
+                self.eye_l_x_next = max(5, min(self.eye_l_x_next, self.screen_width - self.eye_l_width_default - 5))
+                self.eye_l_y_next = max(5, min(self.eye_l_y_next, self.screen_height - self.eye_l_height_current - 5))
+                self.eye_r_x_next = max(5, min(self.eye_r_x_next, self.screen_width - self.eye_r_width_default - 5))
+                self.eye_r_y_next = max(5, min(self.eye_r_y_next, self.screen_height - self.eye_r_height_current - 5))
+                
+                self.idle_animation_timer = current_time + self.idle_interval + random.random() * self.idle_interval_variation
+            
+            # Apply horizontal flicker
+            if self.h_flicker:
+                if self.h_flicker_alternate:
+                    self.eye_l_x += self.h_flicker_amplitude
+                    self.eye_r_x += self.h_flicker_amplitude
+                else:
+                    self.eye_l_x -= self.h_flicker_amplitude
+                    self.eye_r_x -= self.h_flicker_amplitude
+                self.h_flicker_alternate = not self.h_flicker_alternate
+            
+            # Apply vertical flicker
+            if self.v_flicker:
+                if self.v_flicker_alternate:
+                    self.eye_l_y += self.v_flicker_amplitude
+                    self.eye_r_y += self.v_flicker_amplitude
+                else:
+                    self.eye_l_y -= self.v_flicker_amplitude
+                    self.eye_r_y -= self.v_flicker_amplitude
+                self.v_flicker_alternate = not self.v_flicker_alternate
         
-        if self.h_flicker:
-            if self.h_flicker_alternate:
-                self.eye_l_x += self.h_flicker_amplitude
-                self.eye_r_x += self.h_flicker_amplitude
-            else:
-                self.eye_l_x -= self.h_flicker_amplitude
-                self.eye_r_x -= self.h_flicker_amplitude
-            self.h_flicker_alternate = not self.h_flicker_alternate
-        
-        if self.v_flicker:
-            if self.v_flicker_alternate:
-                self.eye_l_y += self.v_flicker_amplitude
-                self.eye_r_y += self.v_flicker_amplitude
-            else:
-                self.eye_l_y -= self.v_flicker_amplitude
-                self.eye_r_y -= self.v_flicker_amplitude
-            self.v_flicker_alternate = not self.v_flicker_alternate
-        
+        # Create images for drawing
         image_left = Image.new('1', (self.screen_width, self.screen_height), 0)
         draw_left = ImageDraw.Draw(image_left)
         image_right = Image.new('1', (self.screen_width, self.screen_height), 0)
         draw_right = ImageDraw.Draw(image_right)
         
-        if self.eye_l_height_current > 0 and self.eye_l_width_current > 0:
-            self._draw_rounded_rectangle(draw_left, 
-                [self.eye_l_x, self.eye_l_y, 
-                 self.eye_l_x + self.eye_l_width_current, 
-                 self.eye_l_y + self.eye_l_height_current], 
-                self.eye_l_border_radius_current, 
-                fill=255)
-        
-        if self.eye_r_height_current > 0 and self.eye_r_width_current > 0:
-            self._draw_rounded_rectangle(draw_right, 
-                [self.eye_r_x, self.eye_r_y, 
-                 self.eye_r_x + self.eye_r_width_current, 
-                 self.eye_r_y + self.eye_r_height_current], 
-                self.eye_r_border_radius_current, 
-                fill=255)
-        
-        if self.tired:
-            self.eyelids_tired_height_next = self.eye_l_height_current // 2
-            self.eyelids_angry_height_next = 0
+        if self.love:
+            # Update heart animation angle
+            self.heart_animation_angle = (self.heart_animation_angle + self.heart_animation_speed) % (2 * 3.14159)
+            width_scale = abs(cos(self.heart_animation_angle))
+            bounce_offset = 10 * sin(self.heart_animation_angle)  # ±5 pixel bounce
+            
+            # Draw animated hearts with bounce
+            heart_size = 30  # Adjusted for ~60x60 pixel heart
+            self._draw_heart(draw_left, self.eye_l_x + self.eye_l_width_default // 2, 
+                           self.eye_l_y + heart_size + int(bounce_offset), 
+                           heart_size, fill=255, width_scale=width_scale)
+            self._draw_heart(draw_right, self.eye_r_x + self.eye_r_width_default // 2, 
+                           self.eye_r_y + heart_size + int(bounce_offset), 
+                           heart_size, fill=255, width_scale=width_scale)
         else:
-            self.eyelids_tired_height_next = 0
+            # Draw eyes only if height is sufficient
+            if self.eye_l_height_current > 1:
+                self._draw_rounded_rectangle(draw_left, 
+                    [self.eye_l_x, self.eye_l_y, 
+                     self.eye_l_x + self.eye_l_width_default, 
+                     self.eye_l_y + self.eye_l_height_current], 
+                    self.eye_l_border_radius_default, 
+                    fill=255)
+            
+            if self.eye_r_height_current > 1:
+                self._draw_rounded_rectangle(draw_right, 
+                    [self.eye_r_x, self.eye_r_y, 
+                     self.eye_r_x + self.eye_r_width_default, 
+                     self.eye_r_y + self.eye_r_height_current], 
+                    self.eye_r_border_radius_default, 
+                    fill=255)
+            
+            # Update eyelid parameters
+            if self.tired:
+                self.eyelids_tired_height_next = self.eye_l_height_current // 2 if self.eye_l_height_current > 2 else 0
+                self.eyelids_angry_height_next = 0
+            else:
+                self.eyelids_tired_height_next = 0
+            
+            if self.angry:
+                self.eyelids_angry_height_next = self.eye_l_height_current // 2 if self.eye_l_height_current > 2 else 0
+                self.eyelids_tired_height_next = 0
+            else:
+                self.eyelids_angry_height_next = 0
+            
+            if self.happy:
+                self.eyelids_happy_bottom_offset_next = self.eye_l_height_current // 1.5 if self.eye_l_height_current > 2 else 0
+            else:
+                self.eyelids_happy_bottom_offset_next = 0
+            
+            self.eyelids_tired_height = (self.eyelids_tired_height + self.eyelids_tired_height_next) // 2
+            self.eyelids_angry_height = (self.eyelids_angry_height + self.eyelids_angry_height_next) // 2
+            self.eyelids_happy_bottom_offset = (self.eyelids_happy_bottom_offset + self.eyelids_happy_bottom_offset_next) // 2
+            
+            # Draw eyelids
+            if self.eyelids_tired_height > 0:
+                draw_left.polygon([(self.eye_l_x, self.eye_l_y - 1),
+                                 (self.eye_l_x + self.eye_l_width_default, self.eye_l_y - 1),
+                                 (self.eye_l_x, self.eye_l_y + self.eyelids_tired_height - 1)],
+                                fill=0)
+                draw_right.polygon([(self.eye_r_x, self.eye_r_y - 1),
+                                  (self.eye_r_x + self.eye_r_width_default, self.eye_r_y - 1),
+                                  (self.eye_r_x + self.eye_r_width_default, self.eye_r_y + self.eyelids_tired_height - 1)],
+                                 fill=0)
+            
+            if self.eyelids_angry_height > 0:
+                draw_left.polygon([(self.eye_l_x, self.eye_l_y - 1),
+                                 (self.eye_l_x + self.eye_l_width_default, self.eye_l_y - 1),
+                                 (self.eye_l_x + self.eye_l_width_default, self.eye_l_y + self.eyelids_angry_height - 1)],
+                                fill=0)
+                draw_right.polygon([(self.eye_r_x, self.eye_r_y - 1),
+                                  (self.eye_r_x + self.eye_r_width_default, self.eye_r_y - 1),
+                                  (self.eye_r_x, self.eye_r_y + self.eyelids_angry_height - 1)],
+                                 fill=0)
+            
+            if self.eyelids_happy_bottom_offset > 0:
+                happy_y_l = self.eye_l_y + self.eye_l_height_current - self.eyelids_happy_bottom_offset + 1
+                self._draw_rounded_rectangle(draw_left,
+                    [self.eye_l_x - 1, happy_y_l,
+                     self.eye_l_x + self.eye_l_width_default + 2,
+                     happy_y_l + self.eye_l_height_default],
+                    self.eye_l_border_radius_default,
+                    fill=0)
+                happy_y_r = self.eye_r_y + self.eye_r_height_current - self.eyelids_happy_bottom_offset + 1
+                self._draw_rounded_rectangle(draw_right,
+                    [self.eye_r_x - 1, happy_y_r,
+                     self.eye_r_x + self.eye_r_width_default + 2,
+                     happy_y_r + self.eye_r_height_default],
+                    self.eye_r_border_radius_default,
+                    fill=0)
         
-        if self.angry:
-            self.eyelids_angry_height_next = self.eye_l_height_current // 2
-            self.eyelids_tired_height_next = 0
-        else:
-            self.eyelids_angry_height_next = 0
-        
-        if self.happy:
-            self.eyelids_happy_bottom_offset_next = self.eye_l_height_current // 1.5
-        else:
-            self.eyelids_happy_bottom_offset_next = 0
-        
-        self.eyelids_tired_height = (self.eyelids_tired_height + self.eyelids_tired_height_next) // 2
-        self.eyelids_angry_height = (self.eyelids_angry_height + self.eyelids_angry_height_next) // 2
-        self.eyelids_happy_bottom_offset = (self.eyelids_happy_bottom_offset + self.eyelids_happy_bottom_offset_next) // 2
-        
-        if self.eyelids_tired_height > 0:
-            draw_left.polygon([(self.eye_l_x, self.eye_l_y - 1),
-                             (self.eye_l_x + self.eye_l_width_current, self.eye_l_y - 1),
-                             (self.eye_l_x, self.eye_l_y + self.eyelids_tired_height - 1)],
-                            fill=0)
-            draw_right.polygon([(self.eye_r_x, self.eye_r_y - 1),
-                              (self.eye_r_x + self.eye_r_width_current, self.eye_r_y - 1),
-                              (self.eye_r_x + self.eye_r_width_current, self.eye_r_y + self.eyelids_tired_height - 1)],
-                             fill=0)
-        
-        if self.eyelids_angry_height > 0:
-            draw_left.polygon([(self.eye_l_x, self.eye_l_y - 1),
-                             (self.eye_l_x + self.eye_l_width_current, self.eye_l_y - 1),
-                             (self.eye_l_x + self.eye_l_width_current, self.eye_l_y + self.eyelids_angry_height - 1)],
-                            fill=0)
-            draw_right.polygon([(self.eye_r_x, self.eye_r_y - 1),
-                              (self.eye_r_x + self.eye_r_width_current, self.eye_r_y - 1),
-                              (self.eye_r_x, self.eye_r_y + self.eyelids_angry_height - 1)],
-                             fill=0)
-        
-        if self.eyelids_happy_bottom_offset > 0:
-            happy_y_l = self.eye_l_y + self.eye_l_height_current - self.eyelids_happy_bottom_offset + 1
-            self._draw_rounded_rectangle(draw_left,
-                [self.eye_l_x - 1, happy_y_l,
-                 self.eye_l_x + self.eye_l_width_current + 2,
-                 happy_y_l + self.eye_l_height_default],
-                self.eye_l_border_radius_current,
-                fill=0)
-            happy_y_r = self.eye_r_y + self.eye_r_height_current - self.eyelids_happy_bottom_offset + 1
-            self._draw_rounded_rectangle(draw_right,
-                [self.eye_r_x - 1, happy_y_r,
-                 self.eye_r_x + self.eye_r_width_current + 2,
-                 happy_y_r + self.eye_r_height_default],
-                self.eye_r_border_radius_current,
-                fill=0)
-        
+        # Rotate and display images
         rotated_left = image_left.rotate(-90, expand=True)
         rotated_right = image_right.rotate(-90, expand=True)
         self.display_left.image(rotated_left)
@@ -534,7 +602,7 @@ class RoboEyesDual:
             self.update()
             self.set_mood(TIRED)
             self.set_position(S)  # Look down
-            self.set_autoblinker(True, 7, 1)
+            self.set_autoblinker(True, 3, 0.5)  # Faster blinking: every 3 ± 0.5 seconds
             self.set_idle_mode(False)
             self.set_curiosity(False)
             time.sleep(0.01)
@@ -550,6 +618,17 @@ class RoboEyesDual:
             self.anim_confused()
             time.sleep(0.01)
 
+    def Love(self):
+        """Set eyes to love mood with animated heart shapes"""
+        while True:
+            self.update()
+            self.set_mood(LOVE)
+            self.set_position(0)  # Center position
+            self.set_autoblinker(False)  # Disable blinking
+            self.set_idle_mode(False)
+            self.set_curiosity(False)
+            time.sleep(0.01)
+
 if __name__ == "__main__":
     # Create RoboEyes instance
     eyes = RoboEyesDual(left_address=0x3D, right_address=0x3C)
@@ -559,15 +638,11 @@ if __name__ == "__main__":
     
     # Main loop
     try:
-        moods = [eyes.Default, eyes.Happy, eyes.Tired, eyes.Angry]
-        
-            
-        eyes.Tired()
-            
-            
+        moods = [eyes.Default, eyes.Happy, eyes.Tired, eyes.Angry, eyes.Love]
+        eyes.Love()  # Default to Love mode for testing
     except KeyboardInterrupt:
         eyes.display_left.fill(0)
         eyes.display_left.show()
         eyes.display_right.fill(0)
-        self.display_right.show()
+        eyes.display_right.show()
         print("\nRoboEyes stopped")
