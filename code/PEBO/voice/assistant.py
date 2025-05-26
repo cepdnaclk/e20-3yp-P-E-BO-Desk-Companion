@@ -14,7 +14,7 @@ import urllib.request
 import subprocess
 
 # OpenRouter API setup
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # AssemblyAI API key

@@ -49,6 +49,8 @@ pip3 install scipy --break-system-packages
 pip3 install aiohttp --break-system-packages
 pip3 install assemblyai --break-system-packages
 
+###record audio
+pip install noisereduce --break-system-packages
 
 
 
