@@ -1,0 +1,63 @@
+import cv2
+from pyzbar.pyzbar import decode
+import time
+from filelock import FileLock
+
+def scan_qr_code():
+    # Output file path
+    output_file_path = "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/qr_result.txt"
+    
+    # Initialize camera with libcamera (GStreamer pipeline for Raspberry Pi)
+    try:
+        cap = cv2.VideoCapture("libcamerasrc ! video/x-raw, width=640, height=480, framerate=30/1 ! videoconvert ! appsink", cv2.CAP_GSTREAMER)
+        if not cap.isOpened():
+            print("❌ Error: Could not open camera.")
+            return
+        print("📷 Camera opened successfully. Scanning for QR code...")
+    except Exception as e:
+        print(f"❌ Camera initialization error: {e}")
+        return
+
+    try:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                print("⚠️ Failed to capture frame. Retrying...")
+                time.sleep(0.1)
+                continue
+
+            # Decode QR codes in the frame
+            qr_codes = decode(frame)
+            if qr_codes:
+                # Get the first QR code's data
+                qr_data = qr_codes[0].data.decode('utf-8')
+                print(f"✅ QR code detected: {qr_data}")
+                
+                # Save to text file with file locking (overwrite mode)
+                lock = FileLock(output_file_path + ".lock")
+                try:
+                    with lock:
+                        with open(output_file_path, 'w') as f:
+                            f.write(qr_data)
+                        print(f"💾 QR code data saved to {output_file_path}")
+                except Exception as e:
+                    print(f"❌ Error saving to file: {e}")
+                
+                # Stop the camera and exit
+                break
+
+            # Small delay to avoid excessive CPU usage
+            time.sleep(0.1)
+
+    except KeyboardInterrupt:
+        print("🛑 Scanning interrupted by user.")
+    except Exception as e:
+        print(f"❌ QR scanning error: {e}")
+    finally:
+        # Release camera resources
+        cap.release()
+        cv2.destroyAllWindows()
+        print("📷 Camera stopped.")
+
+if __name__ == "__main__":
+    scan_qr_code()

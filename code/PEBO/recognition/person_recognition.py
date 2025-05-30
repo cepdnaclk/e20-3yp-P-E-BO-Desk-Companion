@@ -9,14 +9,15 @@ def recognize_from_existing_image():
     bucket_name = "pebo-user-images"
     image_name = "captured.jpg"
     local_image_path = f"/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/{image_name}"
+    output_file_path = "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/recognition_result.txt"
 
     # Initialize clients
     rekognition = boto3.client('rekognition', region_name=REGION,
-                               aws_access_key_id=ACCESS_KEY,
-                               aws_secret_access_key=SECRET_KEY)
+                              aws_access_key_id=ACCESS_KEY,
+                              aws_secret_access_key=SECRET_KEY)
     s3 = boto3.client('s3', region_name=REGION,
-                      aws_access_key_id=ACCESS_KEY,
-                      aws_secret_access_key=SECRET_KEY)
+                     aws_access_key_id=ACCESS_KEY,
+                     aws_secret_access_key=SECRET_KEY)
 
     # Check if image exists and is valid
     try:
@@ -81,9 +82,19 @@ def recognize_from_existing_image():
             emotions = emotion_data['FaceDetails'][0].get('Emotions', [])
             top_emotion = sorted(emotions, key=lambda x: x['Confidence'], reverse=True)[0]['Type'] if emotions else "NONE"
             name = best_match.replace("user_", "").replace(".jpg", "")
-            return {"name": name, "emotion": top_emotion}
+            result = {"name": name, "emotion": top_emotion}
         else:
-            return {"name": "NONE", "emotion": "NONE"}
+            result = {"name": "NONE", "emotion": "NONE"}
+
+        # Save result to text file (overwrite mode)
+        try:
+            with open(output_file_path, 'w') as f:
+                f.write(f"Name: {result['name']}\nEmotion: {result['emotion']}\n")
+            print(f"Recognition result saved to {output_file_path}")
+        except Exception as e:
+            print(f"Error saving to file: {e}")
+
+        return result
 
     except Exception as e:
         print(f"Recognition error: {e}")

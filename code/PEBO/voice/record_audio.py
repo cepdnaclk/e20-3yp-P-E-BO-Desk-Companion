@@ -33,7 +33,7 @@ def reduce_noise(input_file, output_file, sample_rate=44100):
         print(f"❌ Noise reduction error: {e}")
         return None
 
-def amplify_audio(input_file, output_file, gain_db=10):
+def amplify_audio(input_file, output_file, gain_db=30):
     print(f"🔊 Amplifying {input_file} by {gain_db}dB...")
     try:
         subprocess.run([
@@ -55,7 +55,7 @@ def record_reduce_amplify():
     if recorded:
         denoised = reduce_noise(raw_file, clean_file)
         if denoised:
-            amplify_audio(denoised, amplified_file, gain_db=20)
+            amplify_audio(denoised, amplified_file, gain_db=30)
 
 if __name__ == "__main__":
     record_reduce_amplify()

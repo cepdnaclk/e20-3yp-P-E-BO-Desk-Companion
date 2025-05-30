@@ -10,11 +10,11 @@ import edge_tts
 import platform
 import json
 import urllib.request
-
 import subprocess
+import re
 
 # OpenRouter API setup
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # AssemblyAI API key
@@ -30,6 +30,15 @@ pygame.mixer.init()
 # Conversation history
 conversation_history = [{"role": "system", "content": "You are an empathetic voice assistant."}]
 
+# List of similar sounds to "PEBO"
+similar_sounds = [
+    "pebo", "vivo", "tivo", "bibo", "pepo", "pipo", "bebo", "tibo", "fibo", "mibo",
+    "sibo", "nibo", "vevo", "rivo", "zivo", "pavo", "kibo", "dibo", "lipo", "gibo",
+    "zepo", "ripo", "jibo", "wipo", "hipo", "qivo", "xivo", "yibo", "civo", "kivo",
+    "nivo", "livo", "sivo", "cepo", "veto", "felo", "melo", "nero", "selo", "telo",
+    "dedo", "vepo", "bepo", "tepo", "ribo", "fivo", "gepo"
+]
+
 def amplify_audio(input_file, output_file, gain_db=10):
     subprocess.run([
         "ffmpeg", "-y",
@@ -42,12 +51,12 @@ async def speak_text(text):
     """Speak using Edge TTS."""
     voice = "en-GB-SoniaNeural"
     filename = "response.mp3"
-    boosted_file = "boosted_response.mp3"  # ✅ Define this before use
+    boosted_file = "boosted_response.mp3"
 
     tts = edge_tts.Communicate(text, voice)
     await tts.save(filename)
 
-    amplify_audio(filename, boosted_file, gain_db=20)  # Now this line works
+    amplify_audio(filename, boosted_file, gain_db=20)
 
     pygame.mixer.music.load(boosted_file)
     pygame.mixer.music.set_volume(1.0)
@@ -62,7 +71,7 @@ async def speak_text(text):
     os.remove(boosted_file)
 
 def listen_assemblyai():
-    print("🎤 Listening...")
+    print("🎤 Listening for trigger phrase...")
     try:
         audio_data = sd.rec(int(SAMPLE_RATE * DURATION), samplerate=SAMPLE_RATE, channels=1, dtype='int16')
         sd.wait()
@@ -78,9 +87,9 @@ def listen_assemblyai():
         if transcript.status == "error":
             print(f"❌ Transcription failed: {transcript.error}")
             return None
-        text = transcript.text.strip()
+        text = transcript.text.strip().lower()
         if text:
-            print(f"🗣️ You said: {text}")
+            print(f"🗣️ Heard: {text}")
             return text
         print("🤔 No speech detected.")
         return None
@@ -148,8 +157,21 @@ async def start_assistant_from_text(prompt_text):
         print(f"Assistant: {reply}")
         await speak_text(reply)
 
+async def monitor_for_trigger():
+    print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'hi tivo')...")
+    trigger_pattern = r'\b(hi|hey|hello)\s+(' + '|'.join(similar_sounds) + r')\b'
+    while True:
+        text = listen_assemblyai()
+        if text:
+            if re.search(trigger_pattern, text, re.IGNORECASE):
+                print("✅ Trigger phrase detected! Starting assistant...")
+                await speak_text("Hello! I'm here to assist you.")
+                await start_assistant_from_text("I am Nimal. I look tired. Ask why.")
+                break
+        await asyncio.sleep(0.1)  # Small delay to prevent excessive CPU usage
+
 async def main():
-    await start_assistant_from_text("I am Nimal. I look tired. Ask why.")
+    await monitor_for_trigger()
 
 if platform.system() == "Emscripten":
     asyncio.ensure_future(main())
