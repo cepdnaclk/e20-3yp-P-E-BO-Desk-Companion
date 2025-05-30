@@ -5,7 +5,7 @@ import threading
 import time
 
 class AudioNode:
-    def __init__(self, listen_port=8889, target_host='192.168.1.XXX', target_port=8888):
+    def __init__(self, listen_port=8889, target_host='192.168.38.182', target_port=8888):
         # Audio settings
         self.CHUNK = 1024
         self.FORMAT = pyaudio.paInt16
@@ -128,7 +128,7 @@ class AudioNode:
 
 if __name__ == "__main__":
     # Replace with your Pi's IP address
-    PI_IP = "192.168.1.XXX"  # Change this!
+    PI_IP = "192.168.38.94"  # Change this!
     
     node = AudioNode(
         listen_port=8889,    # Laptop listens on this port
