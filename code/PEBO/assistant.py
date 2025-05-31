@@ -43,7 +43,7 @@ similar_sounds = [
     "zepo", "ripo", "jibo", "wipo", "hipo", "qivo", "xivo", "yibo", "civo", "kivo",
     "nivo", "livo", "sivo", "cepo", "veto", "felo", "melo", "nero", "selo", "telo",
     "dedo", "vepo", "bepo", "tepo", "ribo", "fivo", "gepo", "pobo", "pibo", "google",
-    "tune", "tv", "pillow", "people"
+    "tune", "tv", "pillow", "people", "keyboard", "pihu"
 ]
 
 # Exit phrases
