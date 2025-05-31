@@ -1,25 +1,21 @@
-# pi_audio_node.py - FIXED VERSION for Raspberry Pi
+# pi_audio_node.py - Run on Raspberry Pi
 import socket
 import pyaudio
 import threading
 import time
-import queue
 
 class AudioNode:
     def __init__(self, listen_port=8888, target_host='192.168.38.182', target_port=8889):
-        # OPTIMIZED: Lower settings for close-range Bluetooth
-        self.CHUNK = 512    # Even smaller chunks for close range
+        # Audio settings
+        self.CHUNK = 1024
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 8000    # Very low rate for stable close-range operation
+        self.RATE = 44100
         
         # Network settings
         self.listen_port = listen_port
         self.target_host = target_host
         self.target_port = target_port
-        
-        # Audio buffer queue for smoother playback  
-        self.audio_queue = queue.Queue(maxsize=5)  # Smaller queue for less delay
         
         # Initialize audio
         self.audio = pyaudio.PyAudio()
@@ -35,27 +31,22 @@ class AudioNode:
             channels=self.CHANNELS,
             rate=self.RATE,
             input=True,
-            frames_per_buffer=self.CHUNK,
-            input_device_index=None  # Use default input
+            frames_per_buffer=self.CHUNK
         )
         
-        # Speaker stream (output) - FIXED: Added buffer settings
+        # Speaker stream (output)
         self.speaker_stream = self.audio.open(
             format=self.FORMAT,
             channels=self.CHANNELS,
             rate=self.RATE,
             output=True,
-            frames_per_buffer=self.CHUNK,
-            output_device_index=None,  # Use default output (your Bluetooth speaker)
-            stream_callback=None
+            frames_per_buffer=self.CHUNK
         )
     
     def send_audio(self):
         """Send microphone audio to laptop"""
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # FIXED: Increase socket buffer
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
             time.sleep(2)  # Wait for receiver to start
             sock.connect((self.target_host, self.target_port))
             print(f"Connected to laptop at {self.target_host}:{self.target_port}")
@@ -81,8 +72,6 @@ class AudioNode:
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # FIXED: Increase receive buffer
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
             sock.bind(('0.0.0.0', self.listen_port))
             sock.listen(1)
             print(f"Listening for laptop connection on port {self.listen_port}")
@@ -92,15 +81,10 @@ class AudioNode:
             
             while self.running:
                 try:
-                    # FIXED: Receive exact chunk size
-                    data = conn.recv(self.CHUNK * 2)  # *2 for int16 format
+                    data = conn.recv(self.CHUNK)
                     if not data:
                         break
-                    
-                    # FIXED: Add to queue for buffered playback
-                    if not self.audio_queue.full():
-                        self.audio_queue.put(data)
-                    
+                    self.speaker_stream.write(data)
                 except Exception as e:
                     print(f"Receive error: {e}")
                     break
@@ -114,35 +98,20 @@ class AudioNode:
             except:
                 pass
     
-    def play_audio(self):
-        """FIXED: Separate thread for smooth audio playback"""
-        while self.running:
-            try:
-                # Get audio data from queue with timeout
-                data = self.audio_queue.get(timeout=0.1)
-                self.speaker_stream.write(data)
-            except queue.Empty:
-                continue
-            except Exception as e:
-                print(f"Playback error: {e}")
-                continue
-    
     def start(self):
         """Start both sending and receiving threads"""
         print("Starting Pi audio node...")
-        print("Using 48kHz to match Pi Bluetooth speakers")
+        print("Set your Bluetooth mic as default input:")
+        print("pactl set-default-source bluez_input.E1_0D_7B_25_E6_04.0")
         
         # Start threads
         send_thread = threading.Thread(target=self.send_audio)
         receive_thread = threading.Thread(target=self.receive_audio)
-        play_thread = threading.Thread(target=self.play_audio)  # FIXED: Separate playback thread
         
         send_thread.daemon = True
         receive_thread.daemon = True
-        play_thread.daemon = True
         
         receive_thread.start()
-        play_thread.start()  # FIXED: Start playback thread
         send_thread.start()
         
         try:
