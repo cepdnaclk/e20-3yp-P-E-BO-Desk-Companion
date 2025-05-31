@@ -60,13 +60,13 @@ class CombinedFaceTracking:
         
         # Dual servo parameters
         self.h_partition_angles = {1: 110, 2: 105, 3: 100, 4: 80, 5: 60, 6: 55, 7: 50}
-        self.v_partition_angles = {1: 130, 2: 115, 3: 100, 4: 90}
+        self.v_partition_angles = {1: 130, 2: 110, 3: 95}
         self.h_partition_boundaries = [(0, 70, 1), (90, 160, 2), (180, 250, 3), (270, 370, 4),
                                        (390, 460, 5), (480, 550, 6), (570, 640, 7)]
         self.v_partition_boundaries = [(0, 120, 1), (170, 290, 2), (340, 480, 3)]
         
         self.h_current_angle = 80
-        self.v_current_angle = 70
+        self.v_current_angle = 100
         self.h_current_partition = 4
         self.v_current_partition = 2
         
@@ -81,7 +81,7 @@ class CombinedFaceTracking:
         
         # Photo capture parameters
         self.last_capture_time = time.time()
-        self.capture_interval = 20.0  # Capture every 20 seconds
+        self.capture_interval = 10.0  # Capture every 10 seconds
 
     def get_nearest_face(self, detections):
         if not detections:

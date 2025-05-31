@@ -71,7 +71,7 @@ def recognize_from_existing_image():
                         highest_similarity = similarity
                         best_match = reference_image
             except Exception as e:
-                print(f"Comparison error with {reference_image}: {e}")
+                #print(f"Comparison error with {reference_image}: {e}")
                 continue
 
         if best_match:
@@ -90,7 +90,7 @@ def recognize_from_existing_image():
         try:
             with open(output_file_path, 'w') as f:
                 f.write(f"Name: {result['name']}\nEmotion: {result['emotion']}\n")
-            print(f"Recognition result saved to {output_file_path}")
+            #print(f"Recognition result saved to {output_file_path}")
         except Exception as e:
             print(f"Error saving to file: {e}")
 

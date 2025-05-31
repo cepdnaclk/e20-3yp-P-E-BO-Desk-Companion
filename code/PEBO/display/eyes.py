@@ -21,6 +21,7 @@ from PIL import Image, ImageDraw
 import adafruit_ssd1306
 import random
 from math import sin, cos, pow
+import threading
 
 # Constants for mood types
 DEFAULT = 0
@@ -573,60 +574,56 @@ class RoboEyesDual:
         self.display_right.image(rotated_right)
         self.display_right.show()
 
-    def Default(self):
-        """Set eyes to default mood"""
-        while True:
+    
+    def Happy(self, stop_event=None):
+        self.set_mood(HAPPY)
+        self.set_position(N)
+        self.set_autoblinker(True, 3, 0.5)
+        self.set_idle_mode(False)
+        self.set_curiosity(False)
+        self.anim_laugh()
+        while not (stop_event and stop_event.is_set()):
             self.update()
-            self.set_mood(DEFAULT)
-            self.set_position(0)  # Center position
-            self.set_autoblinker(True, 5, 0.5)
-            self.set_idle_mode(True, 2, 2)
-            self.set_curiosity(False)
             time.sleep(0.01)
-
-    def Happy(self):
-        """Set eyes to happy mood"""
-        while True:
+    
+    def Default(self, stop_event=None):
+        self.set_mood(DEFAULT)
+        self.set_position(0)
+        self.set_autoblinker(True, 5, 0.5)
+        self.set_idle_mode(True, 2, 2)
+        self.set_curiosity(False)
+        while not (stop_event and stop_event.is_set()):
             self.update()
-            self.set_mood(HAPPY)
-            self.set_position(N)  # Look up
-            self.set_autoblinker(True, 3, 0.5)
-            self.set_idle_mode(False)
-            self.set_curiosity(False)
-            self.anim_laugh()
             time.sleep(0.01)
-
-    def Tired(self):
-        """Set eyes to tired mood"""
-        while True:
+    
+    def Tired(self, stop_event=None):
+        self.set_mood(TIRED)
+        self.set_position(S)
+        self.set_autoblinker(True, 3, 0.5)
+        self.set_idle_mode(False)
+        self.set_curiosity(False)
+        while not (stop_event and stop_event.is_set()):
             self.update()
-            self.set_mood(TIRED)
-            self.set_position(S)  # Look down
-            self.set_autoblinker(True, 3, 0.5)  # Faster blinking: every 3 ± 0.5 seconds
-            self.set_idle_mode(False)
-            self.set_curiosity(False)
             time.sleep(0.01)
-
-    def Angry(self):
-        """Set eyes to angry mood"""
-        while True:
+    
+    def Angry(self, stop_event=None):
+        self.set_mood(ANGRY)
+        self.set_autoblinker(True, 4, 0.5)
+        self.set_idle_mode(False)
+        self.set_curiosity(False)
+        self.anim_confused()
+        while not (stop_event and stop_event.is_set()):
             self.update()
-            self.set_mood(ANGRY)
-            self.set_autoblinker(True, 4, 0.5)
-            self.set_idle_mode(False)
-            self.set_curiosity(False)
-            self.anim_confused()
             time.sleep(0.01)
-
-    def Love(self):
-        """Set eyes to love mood with animated heart shapes"""
-        while True:
+    
+    def Love(self, stop_event=None):
+        self.set_mood(LOVE)
+        self.set_position(0)
+        self.set_autoblinker(False)
+        self.set_idle_mode(False)
+        self.set_curiosity(False)
+        while not (stop_event and stop_event.is_set()):
             self.update()
-            self.set_mood(LOVE)
-            self.set_position(0)  # Center position
-            self.set_autoblinker(False)  # Disable blinking
-            self.set_idle_mode(False)
-            self.set_curiosity(False)
             time.sleep(0.01)
 
 if __name__ == "__main__":
@@ -639,7 +636,7 @@ if __name__ == "__main__":
     # Main loop
     try:
         moods = [eyes.Default, eyes.Happy, eyes.Tired, eyes.Angry, eyes.Love]
-        eyes.Default()  # Default to Love mode for testing
+        eyes.Love()  # Default to Love mode for testing
     except KeyboardInterrupt:
         eyes.display_left.fill(0)
         eyes.display_left.show()

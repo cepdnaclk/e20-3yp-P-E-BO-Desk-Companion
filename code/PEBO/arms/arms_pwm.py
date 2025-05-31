@@ -76,18 +76,18 @@ def say_hi():
     print("👋 Saying Hello!")
     
     # Initial position - raise right arm
-    smooth_move(90, 90, 150, 90, steps=12, step_delay=0.04)
-    time.sleep(0.2)
+    smooth_move(90, 90, 150, 90, steps=5, step_delay=0.02)
+    time.sleep(0.1)
     
     # Wave movement
-    for _ in range(3):
-        smooth_move(150, 90, 130, 90, steps=8, step_delay=0.03)
+    for _ in range(2):
+        smooth_move(150, 90, 130, 90, steps=8, step_delay=0.04)
         time.sleep(0.1)
-        smooth_move(130, 90, 150, 90, steps=8, step_delay=0.03)
+        smooth_move(130, 90, 150, 90, steps=8, step_delay=0.04)
         time.sleep(0.1)
     
     # Special flourish at the end - excited hello
-    smooth_move(150, 90, 170, 70, steps=10, step_delay=0.03)
+    # ~ smooth_move(150, 90, 170, 70, steps=10, step_delay=0.03)
     time.sleep(0.2)
     
     # Return to neutral
@@ -201,25 +201,25 @@ def express_happy():
     # Happy dance movements
     for _ in range(2):
         # Arms wide open (joy)
-        smooth_move(150, 30, 180, 0, steps=8, step_delay=0.03)
-        time.sleep(0.15)
+        #smooth_move(150, 30, 180, 0, steps=8, step_delay=0.03)
+        # ~ time.sleep(0.15)
         
         # Arms in celebratory position
-        smooth_move(180, 0, 130, 130, steps=12, step_delay=0.02)
+        smooth_move(150, 50, 130, 130, steps=12, step_delay=0.02)
         time.sleep(0.15)
         
         # Victory arms up
-        smooth_move(130, 130, 170, 170, steps=8, step_delay=0.02)
-        time.sleep(0.2)
+        #smooth_move(130, 130, 170, 170, steps=8, step_delay=0.02)
+        # ~ time.sleep(0.2)
         
         # Back to wide open
-        smooth_move(170, 170, 180, 0, steps=10, step_delay=0.03)
-        time.sleep(0.1)
+        #smooth_move(170, 170, 180, 0, steps=10, step_delay=0.03)
+        # ~ time.sleep(0.1)
     
     # Happy clapping motion
-    for _ in range(3):
+    for _ in range(1):
         # Arms apart
-        smooth_move(180, 0, 100, 80, steps=6, step_delay=0.02)
+        smooth_move(160, 20, 100, 80, steps=6, step_delay=0.02)
         time.sleep(0.1)
         
         # Arms together (clap)
@@ -242,11 +242,11 @@ def express_sad():
     time.sleep(0.4)
     
     # Continue drooping down with slight asymmetry (one side droops more)
-    smooth_move(70, 70, 50, 55, steps=15, step_delay=0.07)
-    time.sleep(0.5)
+    # ~ smooth_move(70, 70, 50, 55, steps=15, step_delay=0.07)
+    # ~ time.sleep(0.5)
     
     # Subtle sobbing motion - small trembles
-    for _ in range(4):
+    for _ in range(2):
         # Small trembling movement up
         smooth_move(50, 55, 53, 58, steps=5, step_delay=0.05)
         time.sleep(0.1)
@@ -255,13 +255,13 @@ def express_sad():
         smooth_move(53, 58, 48, 52, steps=5, step_delay=0.05)
         time.sleep(0.2)
     
-    # Brief attempt to rise (hope) but failing
-    smooth_move(48, 52, 65, 65, steps=12, step_delay=0.05)
-    time.sleep(0.3)
+    # ~ # Brief attempt to rise (hope) but failing
+    # ~ smooth_move(48, 52, 65, 65, steps=12, step_delay=0.05)
+    # ~ time.sleep(0.3)
     
-    # Giving up and drooping again
-    smooth_move(65, 65, 40, 40, steps=15, step_delay=0.07)
-    time.sleep(0.6)
+    # ~ # Giving up and drooping again
+    # ~ smooth_move(65, 65, 40, 40, steps=15, step_delay=0.07)
+    # ~ time.sleep(0.6)
     
     # Final very slow recovery
     smooth_move(40, 40, 90, 90, steps=25, step_delay=0.08)
@@ -506,53 +506,53 @@ def main():
         print(f"Setting PWM frequency to 50Hz")
         pwm.frequency = 50
         
-        # Run startup sequence
-        startup_sequence()
+        # ~ # Run startup sequence
+        # ~ startup_sequence()
         
-        # Main control loop
-        while True:
-            print("\nAvailable Commands:")
-            print("  1-7: Emotions")
-            print("    1: Tired (-3)")
-            print("    2: Sad (-2)")
-            print("    3: Confused (-1)")
-            print("    4: Happy (0)")
-            print("    5: Angry (1)")
-            print("    6: Surprise (2)")
-            print("    7: Excited (3)")
-            print("  Special Functions:")
-            print("    h: Say Hi")
-            print("    s: Search Movement")
-            print("    r: Random Movement")
-            print("    e: End Robot")
-            print("    q: Quit Program")
+        # ~ # Main control loop
+        # ~ while True:
+            # ~ print("\nAvailable Commands:")
+            # ~ print("  1-7: Emotions")
+            # ~ print("    1: Tired (-3)")
+            # ~ print("    2: Sad (-2)")
+            # ~ print("    3: Confused (-1)")
+            # ~ print("    4: Happy (0)")
+            # ~ print("    5: Angry (1)")
+            # ~ print("    6: Surprise (2)")
+            # ~ print("    7: Excited (3)")
+            # ~ print("  Special Functions:")
+            # ~ print("    h: Say Hi")
+            # ~ print("    s: Search Movement")
+            # ~ print("    r: Random Movement")
+            # ~ print("    e: End Robot")
+            # ~ print("    q: Quit Program")
             
-            input_val = input("\nEnter command: ")
+            # ~ input_val = input("\nEnter command: ")
             
-            if input_val.lower() == 'q':
-                print("Quitting program...")
-                break
-            elif input_val.lower() == 'h':
-                say_hi()
-            elif input_val.lower() == 's':
-                search_movement()
-            elif input_val.lower() == 'r':
-                random_movement()
-            elif input_val.lower() == 'e':
-                end_robot()
-                time.sleep(1)  # Wait a moment after end sequence
-            elif input_val in ['1', '2', '3', '4', '5', '6', '7']:
-                # Convert menu option to emotion code
-                emotion_map = {'1': -3, '2': -2, '3': -1, '4': 0, '5': 1, '6': 2, '7': 3}
-                handle_emotion(emotion_map[input_val])
-            else:
-                try:
-                    # Try to parse as direct emotion code
-                    emotion_code = int(input_val)
-                    handle_emotion(emotion_code)
-                except ValueError:
-                    print("Invalid command! Please use the menu options shown.")
-    
+            # ~ if input_val.lower() == 'q':
+                # ~ print("Quitting program...")
+                # ~ break
+            # ~ elif input_val.lower() == 'h':
+                # ~ say_hi()
+            # ~ elif input_val.lower() == 's':
+                # ~ search_movement()
+            # ~ elif input_val.lower() == 'r':
+                # ~ random_movement()
+            # ~ elif input_val.lower() == 'e':
+                # ~ end_robot()
+                # ~ time.sleep(1)  # Wait a moment after end sequence
+            # ~ elif input_val in ['1', '2', '3', '4', '5', '6', '7']:
+                # ~ # Convert menu option to emotion code
+                # ~ emotion_map = {'1': -3, '2': -2, '3': -1, '4': 0, '5': 1, '6': 2, '7': 3}
+                # ~ handle_emotion(emotion_map[input_val])
+            # ~ else:
+                # ~ try:
+                    # ~ # Try to parse as direct emotion code
+                    # ~ emotion_code = int(input_val)
+                    # ~ handle_emotion(emotion_code)
+                # ~ except ValueError:
+                    # ~ print("Invalid command! Please use the menu options shown.")
+        express_sad()
     except KeyboardInterrupt:
         print("\n\nProgram interrupted by user")
     finally:
