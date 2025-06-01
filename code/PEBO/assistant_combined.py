@@ -2,6 +2,7 @@
 """
 Voice Assistant with Robot Control
 Listens for trigger phrases and controls robot emotions with simultaneous arm/eye expressions and voice output
+Integrated with standalone functions for arm and eye movements
 """
 
 import google.generativeai as genai
@@ -20,7 +21,118 @@ import subprocess
 import re
 import random
 import errno
-from arm_eyes import RobotController  # Import RobotController from arm_eyes.py
+import threading
+import board
+import busio
+import smbus
+from arms.arms_pwm import (say_hi, express_tired, express_happy, express_sad, express_angry,
+                           reset_to_neutral, scan_i2c_devices, angle_to_pulse_value, set_servos, smooth_move)
+from display.eyes import RoboEyesDual
+
+# Constants for I2C addresses
+PCA9685_ADDR = 0x40
+LEFT_EYE_ADDRESS = 0x3D
+RIGHT_EYE_ADDRESS = 0x3C
+
+# Global variables to replace RobotController instance attributes
+i2c = None
+eyes = None
+current_eye_thread = None
+stop_event = None
+
+def initialize_hardware():
+    """Initialize I2C and eyes globally."""
+    global i2c, eyes
+    i2c = busio.I2C(board.SCL, board.SDA)
+    eyes = RoboEyesDual(LEFT_EYE_ADDRESS, RIGHT_EYE_ADDRESS)
+    eyes.begin(128, 64, 40)
+
+def run_emotion(arm_func, eye_func):
+    """Run arm movement and eye expression simultaneously, then return to normal mode"""
+    global current_eye_thread, stop_event
+    # Create a new stop event for this expression
+    stop_event = threading.Event()
+    
+    # Start eye expression in a separate thread
+    current_eye_thread = threading.Thread(target=eye_func, args=(stop_event,))
+    current_eye_thread.daemon = True  # Ensure thread exits when main program does
+    current_eye_thread.start()
+    
+    # Run arm movement in the main thread
+    arm_func()
+    
+    # Wait for 10 seconds total (including arm movement time)
+    time.sleep(1)
+    
+    # Stop the current eye expression
+    stop_event.set()
+    if current_eye_thread:
+        current_eye_thread.join(timeout=1.0)  # Wait for thread to terminate
+        current_eye_thread = None
+    stop_event = None
+    
+    # Return to normal mode
+    normal()
+
+def hi():
+    print("Expressing Hi")
+    run_emotion(say_hi, eyes.Happy)
+
+def normal():
+    print("Expressing Normal")
+    global current_eye_thread, stop_event
+    # Run both arms and eyes for normal mode
+    stop_event = threading.Event()
+    current_eye_thread = threading.Thread(target=eyes.Default, args=(stop_event,))
+    current_eye_thread.daemon = True
+    current_eye_thread.start()
+    # Normal mode persists until next command, so don't stop the eye thread
+    # Clear stop event but keep thread running
+    stop_event = None
+
+def happy():
+    print("Expressing Happy")
+    run_emotion(express_happy, eyes.Happy)
+
+def sad():
+    print("Expressing Sad")
+    run_emotion(express_sad, eyes.Tired)
+
+def angry():
+    print("Expressing Angry")
+    run_emotion(express_angry, eyes.Angry)
+
+def love():
+    print("Expressing Love")
+    run_emotion(express_happy, eyes.Love)
+
+def cleanup():
+    """Clean up resources, clear displays, and deinitialize I2C bus to clear SCL and SDA."""
+    global i2c, eyes, current_eye_thread, stop_event
+    print("🖥️ Cleaning up resources...")
+    # Stop any running eye thread
+    if stop_event:
+        stop_event.set()
+    if current_eye_thread:
+        current_eye_thread.join(timeout=1.0)
+        current_eye_thread = None
+    # Reset arms and clear displays
+    try:
+        reset_to_neutral()
+        eyes.display_left.fill(0)
+        eyes.display_left.show()
+        eyes.display_right.fill(0)
+        eyes.display_right.show()
+        print("🖥️ Displays cleared")
+    except Exception as e:
+        print(f"🖥️ Error clearing displays: {e}")
+    # Deinitialize I2C bus to clear SCL and SDA
+    try:
+        i2c.deinit()
+        print("🖥️ I2C bus deinitialized, SCL and SDA cleared")
+    except Exception as e:
+        print(f"🖥️ Error deinitializing I2C bus: {e}")
+    print("🖥️ Cleanup complete")
 
 # Initialize pygame
 pygame.mixer.init()
@@ -108,7 +220,7 @@ def amplify_audio(input_file, output_file, gain_db=10):
         output_file
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-async def speak_text(text, controller):
+async def speak_text(text):
     """Speak using Edge TTS."""
     voice = "en-GB-SoniaNeural"
     filename = "response.mp3"
@@ -157,20 +269,20 @@ def listen(
                 text = recognizer.recognize_google(audio, language=language)
                 text = text.strip().lower()
                 if text:
-                    print(f"\U0001F5E3️  You said: {text}")
+                    print(f"\U0001F5E3️ You said: {text}")
                     return text
             except sr.UnknownValueError:
-                print("\U0001F914  Sorry—couldn’t understand that.")
+                print("\U0001F914 Sorry—couldn’t understand that.")
             except sr.RequestError as e:
-                print(f"\u26A0\uFE0F  Google speech service error ({e}). Falling back to offline engine…")
+                print(f"\u26A0\uFE0F Google speech service error ({e}). Falling back to offline engine…")
                 try:
                     text = recognizer.recognize_sphinx(audio, language=language)
                     text = text.strip().lower()
                     if text:
-                        print(f"\U0001F5E3️  (Offline) You said: {text}")
+                        print(f"\U0001F5E3️ (Offline) You said: {text}")
                         return text
                 except Exception as sphinx_err:
-                    print(f"\u274C  Offline engine failed: {sphinx_err}")
+                    print(f"\u274C Offline engine failed: {sphinx_err}")
 
         except sr.WaitTimeoutError:
             print("\u231B Timed out waiting for speech.")
@@ -180,7 +292,7 @@ def listen(
         if attempt < retries:
             time.sleep(0.5)
 
-    print("\U0001F615  No intelligible speech captured.")
+    print("\U0001F615 No intelligible speech captured.")
     return None
 
 # Load the Whisper model once
@@ -202,7 +314,7 @@ def listen_whisper(duration=1, sample_rate=16000) -> str | None:
         text = result.get("text", "").strip().lower()
 
         if text:
-            print(f"🗣️  You said (Whisper): {text}")
+            print(f"🗣️ You said (Whisper): {text}")
             return text
         else:
             print("🤔 No intelligible speech detected.")
@@ -217,7 +329,7 @@ def listen_whisper(duration=1, sample_rate=16000) -> str | None:
         except:
             pass
 
-async def start_assistant_from_text(prompt_text, controller):
+async def start_assistant_from_text(prompt_text):
     """Starts Gemini assistant with initial text prompt and controls robot emotions."""
     print(f"\U0001F4AC Initial Prompt: {prompt_text}")
     conversation_history.clear()
@@ -245,18 +357,18 @@ async def start_assistant_from_text(prompt_text, controller):
     # Trigger robot emotion and voice output simultaneously
     valid_emotions = {"Happy", "Sad", "Angry", "Normal", "Love"}
     emotion_methods = {
-        "Happy": controller.happy,
-        "Sad": controller.sad,
-        "Angry": controller.angry,
-        "Normal": controller.normal,
-        "Love": controller.love
+        "Happy": happy,
+        "Sad": sad,
+        "Angry": angry,
+        "Normal": normal,
+        "Love": love
     }
     # Use Normal for arm/eye if emotion is not in valid_emotions
     emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
     
     # Start emotion expression and voice output concurrently
     emotion_task = asyncio.to_thread(emotion_method)  # Run emotion in a thread
-    voice_task = speak_text(answer, controller)  # Run voice output
+    voice_task = speak_text(answer)  # Run voice output
     await asyncio.gather(emotion_task, voice_task)  # Run both tasks simultaneously
     
     conversation_history.append({"role": "model", "parts": [answer]})
@@ -275,8 +387,8 @@ async def start_assistant_from_text(prompt_text, controller):
             if failed_attempts >= max_attempts:
                 print(f"\U0001F615 No speech detected after {max_attempts} attempts. Exiting assistant.")
                 message = random.choice(goodbye_messages)
-                await speak_text(message, controller)
-                controller.normal()
+                await speak_text(message)
+                normal()
                 break
             continue
 
@@ -284,8 +396,8 @@ async def start_assistant_from_text(prompt_text, controller):
 
         if user_input in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
             print("\U0001F44B Exiting assistant.")
-            await speak_text("Goodbye!", controller)
-            controller.normal()
+            await speak_text("Goodbye!")
+            normal()
             break
 
         # Append emotion prompt
@@ -310,18 +422,17 @@ async def start_assistant_from_text(prompt_text, controller):
         # Trigger robot emotion and voice output simultaneously
         emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
         emotion_task = asyncio.to_thread(emotion_method)  # Run emotion in a thread
-        voice_task = speak_text(answer, controller)  # Run voice output
+        voice_task = speak_text(answer)  # Run voice output
         await asyncio.gather(emotion_task, voice_task)  # Run both tasks simultaneously
         
         conversation_history.append({"role": "model", "parts": [answer]})
-    controller.cleanup()
+    cleanup()
     print("this in assistant")
     await asyncio.sleep(1)
 
 async def monitor_for_trigger(name, emotion):
-    controller = RobotController()
-    controller.normal()
-    
+    initialize_hardware()
+    normal()
     
     print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
     text = listen(recognizer, mic)
@@ -331,48 +442,46 @@ async def monitor_for_trigger(name, emotion):
             print("✅ Trigger phrase detected! Starting assistant...")
             print(f"Using: Name={name}, Emotion={emotion}")
             if name and name.lower() != "none":
-                hi_task = asyncio.to_thread(controller.hi)
-                voice_task = speak_text("Hello! I'm your pebo.", controller)
+                hi_task = asyncio.to_thread(hi)
+                voice_task = speak_text("Hello! I'm your pebo.")
                 await asyncio.gather(hi_task, voice_task)
                 if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
-                    await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.", controller)
+                    await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
                 else:
-                    await start_assistant_from_text(f"I am {name}. I need your assist.", controller)
+                    await start_assistant_from_text(f"I am {name}. I need your assist.")
             else:
-                await speak_text("I can't identify you as my user", controller)
+                await speak_text("I can't identify you as my user")
         await asyncio.sleep(0.5)
     
     print("🖥️ Cleaning up in monitor_for_trigger: Clearing displays and I2C bus...")
-        # ~ controller.cleanup()  # Clear displays, reset arms, and deinitialize I2C bus
-        # ~ await asyncio.sleep(0.5)
-    controller.cleanup()
+    cleanup()
     await asyncio.sleep(0.5)
         
 async def monitor_start(name, emotion):
     """Run once to initialize the assistant with a single speech input."""
-    controller = RobotController()
-    controller.normal()
+    initialize_hardware()
+    normal()
     
     try:
         print("🎧 Waiting for initial speech input...")
         print(f"Using: Name={name}, Emotion={emotion}")
         if name and name.lower() != "none":
-            hi_task = asyncio.to_thread(controller.hi)
-            voice_task = speak_text("Hello! I'm your pebo.", controller)
+            hi_task = asyncio.to_thread(hi)
+            voice_task = speak_text("Hello! I'm your pebo.")
             await asyncio.gather(hi_task, voice_task)
-            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.", controller)
+            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
         else:
-            await speak_text("I can't identify you as my user", controller)
+            await speak_text("I can't identify you as my user")
     finally:
         print("🖥️ Cleaning up in monitor_start: Clearing displays and I2C bus...")
-        controller.cleanup()  # Clear displays, reset arms, and deinitialize I2C bus
+        cleanup()  # Clear displays, reset arms, and deinitialize I2C bus
         await asyncio.sleep(0.5)
 
 if __name__ == "__main__":
     try:
         name = "Bhagya"
         emotion = "Sad"
-        asyncio.run(monitor_start(name, emotion))
+        asyncio.run(monitor_for_trigger(name, emotion))
     except KeyboardInterrupt:
         print("\nProgram interrupted by user")
     finally:

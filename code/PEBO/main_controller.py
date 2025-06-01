@@ -10,7 +10,7 @@ from facetracking.face_tracking import CombinedFaceTracking
 from interaction.touch_sensor import detect_continuous_touch
 from arms.arms_pwm import say_hi
 from recognition.person_recognition import recognize_image 
-from assistant import monitor_for_trigger, monitor_start
+from assistant_combined import monitor_for_trigger, monitor_start
 
 # Initialize I2C and PCA9685 PWM controller
 i2c = busio.I2C(board.SCL, board.SDA)
