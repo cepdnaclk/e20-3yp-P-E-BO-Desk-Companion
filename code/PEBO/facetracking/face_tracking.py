@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Combined face tracking with photo capture every 2 seconds
-Captures and saves cropped face image as captured.jpg when a person is detected
+Combined face tracking with photo capture every 5 seconds
+Captures and saves cropped face image as captured.jpg.enc (encrypted) when a person is detected
 Resizes captured image by 1.5x and ensures proper servo cleanup
 """
 
@@ -15,6 +15,9 @@ from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo
 import threading
 import queue
+import os
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import base64
 
 class CombinedFaceTracking:
     def __init__(self):
@@ -24,9 +27,9 @@ class CombinedFaceTracking:
         self.pwm.frequency = 50  # Standard servo frequency (50Hz)
         
         # Setup servos
-        self.h_servo_channel = 7  # Dual servo - Horizontal on channel 7
-        self.v_servo_channel = 6  # Dual servo - Vertical on channel 6
-        self.center_servo_channel = 4  # Center servo on channel 4
+        self.h_servo_channel = 7
+        self.v_servo_channel = 6
+        self.center_servo_channel = 4
         
         self.h_servo = servo.Servo(self.pwm.channels[self.h_servo_channel])
         self.v_servo = servo.Servo(self.pwm.channels[self.v_servo_channel])
@@ -81,25 +84,61 @@ class CombinedFaceTracking:
         
         # Photo capture parameters
         self.last_capture_time = time.time()
-        self.capture_interval = 10.0  # Capture every 10 seconds
+        self.capture_interval = 5.0
+
+        # Encryption setup
+        aes_key = os.getenv("AES_KEY")
+        print(f"DEBUG: AES_KEY from env: {aes_key}")
+        if not aes_key:
+            key_file = "/home/pi/.pebo_key"
+            if os.path.exists(key_file):
+                print(f"Reading AES_KEY from {key_file}")
+                with open(key_file, 'r') as f:
+                    aes_key = f.read().strip()
+            else:
+                print("⚠️ AES_KEY not set. Generating temporary key (not persisted).")
+                self.key = os.urandom(32)
+                print("Set AES_KEY environment variable or create /home/pi/.pebo_key for persistent encryption.")
+                return
+        try:
+            if isinstance(aes_key, bytes):
+                aes_key_bytes = aes_key
+            else:
+                aes_key_bytes = aes_key.encode()
+            self.key = base64.b64decode(aes_key_bytes)
+            if len(self.key) != 32:
+                raise ValueError("AES key must be 32 bytes")
+        except Exception as e:
+            raise ValueError(f"Invalid AES key: {e}")
+
+    def encrypt_image(self, input_path, output_path):
+        try:
+            aesgcm = AESGCM(self.key)
+            with open(input_path, 'rb') as f:
+                data = f.read()
+            nonce = os.urandom(12)
+            ciphertext = aesgcm.encrypt(nonce, data, None)
+            with open(output_path, 'wb') as f:
+                f.write(nonce + ciphertext)
+            # ~ print(f"Encrypted {input_path} to {output_path}")
+            print ("********Encrypted********")
+            os.remove(input_path)
+        except Exception as e:
+            print(f"Encryption error: {e}")
 
     def get_nearest_face(self, detections):
         if not detections:
             return None
-            
         min_area = (self.width * self.height) * (self.min_face_area_percent / 100.0)
         largest_area = 0
         nearest_face = None
-        
         for detection in detections:
             bbox = detection.location_data.relative_bounding_box
             x = int(bbox.xmin * self.width)
             y = int(bbox.ymin * self.height)
             w = int(bbox.width * self.width)
             h = int(bbox.height * self.height)
-            
             area = w * h
-            
             if area >= min_area and area > largest_area:
                 largest_area = area
                 nearest_face = {
@@ -108,11 +147,9 @@ class CombinedFaceTracking:
                     'center': (x + w // 2, y + h // 2),
                     'area': area
                 }
-        
         return nearest_face
 
     def face_detection_thread(self):
-        """Thread for capturing frames and detecting faces"""
         while self.running:
             try:
                 frame = self.picam2.capture_array()
@@ -120,227 +157,140 @@ class CombinedFaceTracking:
                 frame = cv2.rotate(frame, cv2.ROTATE_180)
                 image_input = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 results = self.mp_face.process(image_input)
-                
-                # Get nearest face
                 nearest_face = None
                 if results.detections:
                     nearest_face = self.get_nearest_face(results.detections)
-                
-                # Update shared data
                 with self.face_data_lock:
                     self.shared_face_data = nearest_face
                     if nearest_face:
                         self.last_detection_time = time.time()
-                
-                # Put frame in queue for display
                 if not self.frame_queue.full():
                     self.frame_queue.put((frame, results.detections, nearest_face))
-                
-                time.sleep(0.01)  # Small delay for face detection
-                
+                time.sleep(0.01)
             except Exception as e:
                 print(f"Face detection error: {e}")
                 time.sleep(0.1)
 
     def dual_servo_thread(self):
-        """Thread for controlling dual servos (fast motion)"""
         face_timeout = 2.0
-        
         def set_angle_smooth_fast(servo_obj, current_angle, target_angle, step=2):
             if current_angle == target_angle:
                 return current_angle
             direction = 1 if target_angle > current_angle else -1
             for angle in range(current_angle, target_angle + direction, direction):
                 servo_obj.angle = angle
-                time.sleep(0.01)  # Fast motion
+                time.sleep(0.01)
             servo_obj.angle = target_angle
             time.sleep(0.01)
             return target_angle
-
         def get_partition(position, boundaries):
             for start, end, partition in boundaries:
                 if start <= position <= end:
                     return partition, False
             return None, True
-        
-        # Set initial positions
         self.h_current_angle = set_angle_smooth_fast(self.h_servo, 80, self.h_current_angle)
         self.v_current_angle = set_angle_smooth_fast(self.v_servo, 110, self.v_current_angle)
-        
         while self.running:
             try:
                 current_time = time.time()
-                
-                # Get face data
                 with self.face_data_lock:
                     face_data = self.shared_face_data
                     last_detection = self.last_detection_time
-                
                 if face_data:
                     cx, cy = face_data['center']
-                    
                     h_partition, h_in_gap = get_partition(cx, self.h_partition_boundaries)
                     v_partition, v_in_gap = get_partition(cy, self.v_partition_boundaries)
-                    
-                    # Update horizontal servo
                     if not h_in_gap and h_partition != self.h_current_partition:
                         h_target_angle = self.h_partition_angles[h_partition]
                         self.h_current_angle = set_angle_smooth_fast(self.h_servo, self.h_current_angle, h_target_angle)
                         self.h_current_partition = h_partition
-                    
-                    # Update vertical servo
                     if not v_in_gap and v_partition != self.v_current_partition:
                         v_target_angle = self.v_partition_angles[v_partition]
                         self.v_current_angle = set_angle_smooth_fast(self.v_servo, self.v_current_angle, v_target_angle)
                         self.v_current_partition = v_partition
-                
                 elif current_time - last_detection > face_timeout:
-                    # Return to center position
                     if self.h_current_angle != 80 or self.v_current_angle != 110:
-                        self.h_current_angle = set_angle_shift(self.h_servo, self.h_current_angle, 80)
+                        self.h_current_angle = set_angle_smooth_fast(self.h_servo, self.h_current_angle, 80)
                         self.v_current_angle = set_angle_smooth_fast(self.v_servo, self.v_current_angle, 110)
                         self.h_current_partition = 4
                         self.v_current_partition = 2
-                
-                time.sleep(0.01)  # Fast update rate for dual servos
-                
+                time.sleep(0.01)
             except Exception as e:
-                #print(f"Dual servo error: {e}")
                 time.sleep(0.1)
 
     def center_servo_thread(self):
-        """Thread for controlling center servo (slow motion)"""
         face_timeout = 5.0
-        
         def set_angle_smooth_slow(servo_obj, current_angle, target_angle, step=2):
             if abs(current_angle - target_angle) < step:
                 servo_obj.angle = target_angle
                 return target_angle
-                
             direction = 1 if target_angle > current_angle else -1
             new_angle = current_angle + (direction * step)
             servo_obj.angle = new_angle
             return new_angle
-        
-        # Set initial position
         self.center_servo.angle = self.center_current_angle
-        
         while self.running:
             try:
                 current_time = time.time()
-                
-                # Get face data
                 with self.face_data_lock:
                     face_data = self.shared_face_data
                     last_detection = self.last_detection_time
-                
                 if face_data:
                     face_center_x, _ = face_data['center']
                     center_x = self.width // 2
-                    
-                    # Check if face is centered
                     face_centered = self.center_zone_left <= face_center_x <= self.center_zone_right
-                    
                     if not face_centered:
-                        # Calculate error and adjustment
                         error = center_x - face_center_x
                         adjustment = self.center_kp * error * self.direction_multiplier
                         self.center_target_angle = self.center_current_angle + adjustment
-                        
-                        # Ensure angle is within limits
                         self.center_target_angle = max(0, min(180, self.center_target_angle))
-                
                 elif current_time - last_detection > face_timeout:
-                    # Return to center position
                     self.center_target_angle = 90
-                
-                # Move servo toward target angle smoothly
                 if self.center_current_angle != self.center_target_angle:
                     self.center_current_angle = set_angle_smooth_slow(
                         self.center_servo, self.center_current_angle, self.center_target_angle
                     )
-                
-                time.sleep(0.1)  # Slow update rate for center servo
-                
+                time.sleep(0.1)
             except Exception as e:
-                #print(f"Center servo error: {e}")
                 time.sleep(0.1)
 
     def display_thread(self):
-        """Thread for displaying the video feed and capturing photos"""
         while self.running:
             try:
                 if not self.frame_queue.empty():
                     frame, detections, nearest_face = self.frame_queue.get()
-                    
-                    # Draw partition lines
-                    #for start_x, end_x, p in self.h_partition_boundaries:
-                        #cv2.rectangle(frame, (start_x, 20), (end_x, 40), (0, 255, 0), -1)
-                        #cv2.putText(frame, str(p), (start_x + (end_x - start_x)//2 - 5, 35),
-                                    #cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-                        #cv2.line(frame, (start_x, 0), (start_x, self.height), (200, 200, 200), 1)
-                    
-                    #for start_y, end_y, p in self.v_partition_boundaries:
-                        #cv2.rectangle(frame, (self.width-40, start_y), (self.width-20, end_y), (255, 165, 0), -1)
-                        #cv2.putText(frame, str(p), (self.width-35, start_y + (end_y - start_y)//2),
-                                    #cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-                        #cv2.line(frame, (0, start_y), (self.width, start_y), (200, 200, 200), 1)
-                    
-                    # Draw center reference
-                    center_x = self.width // 2
-                    #cv2.line(frame, (center_x, 0), (center_x, self.height), (0, 255, 0), 2)
-                    #cv2.rectangle(frame, (self.center_zone_left, 0), (self.center_zone_right, self.height), (0, 255, 0), 1)
-                    
-                    # Handle photo capture every
                     current_time = time.time()
                     if nearest_face and (current_time - self.last_capture_time) >= self.capture_interval:
                         x, y, w, h = nearest_face['bbox']
-                        
-                        # Add margin (20% of face width/height) to capture more of the face
                         margin_x = int(w * 0.2)
                         margin_y = int(h * 0.2)
                         x1 = max(0, x - margin_x)
                         y1 = max(0, y - margin_y)
                         x2 = min(self.width, x + w + margin_x)
                         y2 = min(self.height, y + h + margin_y)
-                        
-                        # Crop the face from the frame
                         cropped_face = frame[y1:y2, x1:x2]
-                        
-                        # Resize the cropped image by 1.5x
                         new_width = int(cropped_face.shape[1] * 1.5)
                         new_height = int(cropped_face.shape[0] * 1.5)
                         resized_face = cv2.resize(cropped_face, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
-                        
-                        # Save the resized cropped image
-                        cv2.imwrite('captured.jpg', resized_face)
-                        print(f"Captured and saved cropped face (resized 1.5x) as captured.jpg at {time.ctime()}")
-                        
-                        # Update the last capture time
+                        temp_path = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/temp_captured.jpg'
+                        output_path = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/captured.jpg.enc'
+                        cv2.imwrite(temp_path, resized_face)
+                        self.encrypt_image(temp_path, output_path)
+                        print(f"Captured and encrypted face at {time.ctime()}")
                         self.last_capture_time = current_time
-                    
-                    # Draw face detection
                     if nearest_face:
                         x, y, w, h = nearest_face['bbox']
                         cx, cy = nearest_face['center']
-                        
-                        # Draw bounding box
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         cv2.circle(frame, (cx, cy), 5, (0, 0, 255), -1)
-                        
-                        # Display face area
                         area_text = f"Area: {nearest_face['area']:.0f}px²"
                         cv2.putText(frame, area_text, (x, y - 10), 
                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-                        
-                        # Check centering status
                         face_centered = self.center_zone_left <= cx <= self.center_zone_right
                         status_text = "CENTERED" if face_centered else "NOT CENTERED"
                         status_color = (0, 255, 0) if face_centered else (0, 0, 255)
                         cv2.putText(frame, status_text, (10, 30),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, status_color, 2)
-                        
-                        # Draw other faces in red
                         if detections:
                             for detection in detections:
                                 if detection != nearest_face['detection']:
@@ -355,30 +305,23 @@ class CombinedFaceTracking:
                     else:
                         cv2.putText(frame, "No qualifying faces", (10, 70),
                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
-                    
-                    # Display servo information
                     cv2.putText(frame, f"Dual H: {self.h_current_angle}°, P: {self.h_current_partition}",
                                 (self.width - 300, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
                     cv2.putText(frame, f"Dual V: {self.v_current_angle}°, P: {self.v_current_partition}",
                                 (self.width - 300, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
                     cv2.putText(frame, f"Center: {self.center_current_angle:.1f}°",
                                 (self.width - 200, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
-                    
                     direction_text = "Normal" if self.direction_multiplier == 1 else "Reversed"
                     cv2.putText(frame, f"Direction: {direction_text}",
                                 (self.width - 200, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
-                    
                     cv2.putText(frame, "Combined Face Tracking", (self.width//2 - 150, self.height - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-                    
-                    cv2.imshow("Combined Face Tracking", frame)
-                    
-                    # Handle keyboard input
+                    # cv2.imshow("Combined Face Tracking", frame)
                     key = cv2.waitKey(1) & 0xFF
-                    if key == 27:  # ESC key
+                    if key == 27:
                         self.running = False
                         break
-                    elif key == ord('+'): 
+                    elif key == ord('+'):
                         self.min_face_area_percent += 0.5
                         print(f"Min face area: {self.min_face_area_percent:.1f}%")
                     elif key == ord('-'):
@@ -386,16 +329,12 @@ class CombinedFaceTracking:
                         print(f"Min face area: {self.min_face_area_percent:.1f}%")
                     elif key == ord('r'):
                         self.direction_multiplier *= -1
-                        #print(f"Center servo direction: {'Normal' if self.direction_multiplier == 1 else 'Reversed'}")
-                
-                time.sleep(0.03)  # ~30 FPS display
-                
+                time.sleep(0.03)
             except Exception as e:
                 print(f"Display error: {e}")
                 time.sleep(0.1)
 
     def stop_servo(self, servo_channel):
-        """Stop a servo by setting duty cycle to 0"""
         try:
             self.pwm.channels[servo_channel].duty_cycle = 0
             print(f"Servo channel {servo_channel} de-energized")
@@ -403,75 +342,49 @@ class CombinedFaceTracking:
             print(f"Error stopping servo channel {servo_channel}: {e}")
 
     def cleanup(self):
-        """Clean up resources"""
         print("Returning servos to safe positions...")
-        
-        # Set servos to safe positions with smooth movement
         try:
-            # Smoothly move to safe positions
             def set_angle_smooth(servo_obj, current_angle, target_angle, step=2):
                 if current_angle == target_angle:
                     return
                 direction = 1 if target_angle > current_angle else -1
                 for angle in range(current_angle, target_angle + direction, direction):
                     servo_obj.angle = angle
-                    time.sleep(0.02)  # Slower movement for cleanup
+                    time.sleep(0.02)
                 servo_obj.angle = target_angle
-            
             set_angle_smooth(self.h_servo, int(self.h_current_angle), 80)
             set_angle_smooth(self.v_servo, int(self.v_current_angle), 110)
             set_angle_smooth(self.center_servo, int(self.center_current_angle), 90)
-            
-            # Wait to ensure servos reach their positions
             time.sleep(1.0)
-            
-            # De-energize all servos
             self.stop_servo(self.h_servo_channel)
             self.stop_servo(self.v_servo_channel)
             self.stop_servo(self.center_servo_channel)
-            
         except Exception as e:
             print(f"Error during servo cleanup: {e}")
-        
-        # De-initialize PWM and I2C
         try:
             self.pwm.deinit()
             self.i2c.deinit()
             print("PWM and I2C de-initialized")
         except Exception as e:
             print(f"Error de-initializing PWM/I2C: {e}")
-        
-        # Cleanup camera and display
         try:
             cv2.destroyAllWindows()
             self.picam2.stop()
             print("Camera and display cleaned up")
         except Exception as e:
             print(f"Error cleaning up camera/display: {e}")
-        
         print("Cleanup complete")
 
     def run(self):
-        """Main function to run all threads"""
-        #print("Combined face tracking started.")
-        #print("Press ESC to exit")
-        #print("Press '+' to increase min face area")
-        #print("Press '-' to decrease min face area")
-        #print("Press 'r' to reverse center servo direction")
-        
-        # Create and start threads
         threads = [
             threading.Thread(target=self.face_detection_thread, daemon=True),
             threading.Thread(target=self.dual_servo_thread, daemon=True),
             threading.Thread(target=self.center_servo_thread, daemon=True),
             threading.Thread(target=self.display_thread, daemon=True)
         ]
-        
         for thread in threads:
             thread.start()
-        
         try:
-            # Wait for display thread to finish (user presses ESC)
             threads[3].join()
         except KeyboardInterrupt:
             print("Program interrupted by user")
@@ -479,7 +392,6 @@ class CombinedFaceTracking:
             self.running = False
             self.cleanup()
 
-# Main execution
 if __name__ == "__main__":
     tracker = CombinedFaceTracking()
     tracker.run()

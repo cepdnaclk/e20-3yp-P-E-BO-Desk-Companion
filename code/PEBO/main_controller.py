@@ -9,13 +9,17 @@ from display.eyes import RoboEyesDual
 from facetracking.face_tracking import CombinedFaceTracking
 from interaction.touch_sensor import detect_continuous_touch
 from arms.arms_pwm import say_hi
-from recognition.person_recognition import recognize_from_existing_image 
-from voice.hi_pebo import monitor_for_trigger  # Import monitor_for_trigger from hi_pebo.py
+from recognition.person_recognition import recognize_image 
+from assistant import monitor_for_trigger, monitor_start
 
 # Initialize I2C and PCA9685 PWM controller
 i2c = busio.I2C(board.SCL, board.SDA)
 pwm = PCA9685(i2c)
 pwm.frequency = 50  # Standard servo frequency (50Hz)
+
+# Shared variable for recognition result with thread-safe access
+recognition_result = {"name": "NONE", "emotion": "NONE"}
+result_lock = threading.Lock()
 
 def run_eye_display():
     eyes = RoboEyesDual(left_address=0x3D, right_address=0x3C)
@@ -30,18 +34,40 @@ def run_say_hi_once():
     say_hi()
 
 def run_periodic_recognition():
+    global recognition_result
     while True:
         print("🔍 Running periodic recognition...")
-        result = recognize_from_existing_image()
+        result = recognize_image()
         print(f"Recognition Result: {result}")
-        time.sleep(20)
+        with result_lock:
+            recognition_result = result  # Update shared result
+        time.sleep(5)
 
-def run_voice_monitoring(user, emotion):
-    """Run the voice monitoring loop in a separate thread."""
-    try:
-        asyncio.run(monitor_for_trigger(user, emotion))  # Run the async monitor_for_trigger
-    except Exception as e:
-        print(f"[Voice] Error: {e}")
+def run_voice_monitoring():
+    """Run the voice monitoring loop in a separate thread, using emotion from periodic recognition."""
+    valid_emotions = {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}
+    
+    while True:
+        try:
+            # Get the latest recognition result
+            with result_lock:
+                user = recognition_result.get("name", "NONE")
+                emotion = recognition_result.get("emotion", "NONE").upper()
+            print(f"[Voice] Using Recognition Result: name={user}, emotion={emotion}")
+
+            # Decide which monitor function to run based on emotion
+            if emotion in valid_emotions:
+                print(f"[Voice] Detected emotion {emotion}, running monitor_start...")
+                asyncio.run(monitor_start(user, emotion))
+            else:
+                print(f"[Voice] Emotion {emotion} not in valid emotions, running monitor_for_trigger...")
+                asyncio.run(monitor_for_trigger(user, emotion))
+
+            # Brief pause before next iteration to avoid overwhelming the system
+            time.sleep(1)
+        except Exception as e:
+            print(f"[Voice] Error: {e}")
+            time.sleep(5)  # Wait before retrying on error
 
 def stop_servo(servo_channel):
     """Stop a servo by setting duty cycle to 0."""
@@ -98,21 +124,12 @@ def main():
     if detect_continuous_touch(duration=3):
         print("✅ Touch confirmed. Starting recognition...")
         
-        # Perform initial recognition to get user and emotion
-        result = recognize_from_existing_image()
-        print(f"Recognition Result: {result}")
-        
-        user = result.get("name", "None")  # Default to "Unknown" if no name is found
-        emotion = result.get("emotion", "None")  # Default to "neutral" if no emotion is found
-        
-        print(f"Starting services for user: {user}, emotion: {emotion}...")
-        
         # Start eyes, face tracking, arm wave, periodic recognition, and voice monitoring simultaneously
-        threading.Thread(target=run_eye_display, daemon=True).start()
+        #threading.Thread(target=run_eye_display, daemon=True).start()
         threading.Thread(target=run_face_tracking, daemon=True).start()
-        threading.Thread(target=run_say_hi_once, daemon=True).start()
+        #threading.Thread(target=run_say_hi_once, daemon=True).start()
         threading.Thread(target=run_periodic_recognition, daemon=True).start()
-        threading.Thread(target=run_voice_monitoring, args=(user, emotion), daemon=True).start()
+        threading.Thread(target=run_voice_monitoring, daemon=True).start()
 
         # Keep the main thread alive
         try:

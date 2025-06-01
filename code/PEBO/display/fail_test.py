@@ -363,3 +363,201 @@ if __name__ == "__main__":
         print("\nProgram interrupted by user")
     finally:
         print("Program terminated")
+
+
+
+
+### Main
+
+#!/usr/bin/env python3
+import threading
+import time
+import asyncio
+import board
+import busio
+from adafruit_pca9685 import PCA9685
+from adafruit_motor import servo
+from display.eyes import RoboEyesDual
+from facetracking.face_tracking import CombinedFaceTracking
+from interaction.touch_sensor import detect_continuous_touch
+from arms.arms_pwm import say_hi
+from recognition.person_recognition import recognize_image
+from voice.assistant import monitor_for_trigger, monitor_start, read_recognition_result
+
+# Initialize I2C and PCA9685 PWM controller
+i2c = busio.I2C(board.SCL, board.SDA)
+pwm = PCA9685(i2c)
+pwm.frequency = 50  # Standard servo frequency (50Hz)
+
+# Display thread control
+display_stop_flag = threading.Event()
+display_thread = None
+display_lock = threading.Lock()
+
+def run_eye_display():
+    """Run display loop, checking stop flag."""
+    max_retries = 5
+    while not display_stop_flag.is_set():
+        for attempt in range(max_retries):
+            try:
+                with display_lock:
+                    print(f"🔍 Attempting display initialization (attempt {attempt + 1}/{max_retries})...")
+                    eyes = RoboEyesDual(left_address=0x3D, right_address=0x3C)
+                    eyes.begin(128, 64, 50)
+                    eyes.Default()
+                print(f"👀 Displays initialized (attempt {attempt + 1}).")
+                while not display_stop_flag.is_set():
+                    time.sleep(0.1)
+                break
+            except OSError as e:
+                print(f"⚠️ I2C error in display init (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+            except Exception as e:
+                print(f"⚠️ Display error (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+            if attempt == max_retries - 1:
+                print("❌ Failed to initialize displays after max retries.")
+        if display_stop_flag.is_set():
+            with display_lock:
+                try:
+                    eyes.clear()
+                    eyes.deinit()
+                    print("🛑 Displays cleared and deinitialized.")
+                except (AttributeError, Exception) as e:
+                    print(f"⚠️ Error clearing displays: {e}")
+            break
+
+def start_display_thread():
+    """Start display thread."""
+    global display_thread
+    display_stop_flag.clear()
+    display_thread = threading.Thread(target=run_eye_display, daemon=True)
+    display_thread.start()
+
+def stop_display_thread():
+    """Stop display thread."""
+    display_stop_flag.set()
+    if display_thread:
+        print("🛑 Attempting to stop display thread...")
+        display_thread.join(timeout=5)
+        if display_thread.is_alive():
+            print("⚠️ Display thread did not stop cleanly after 5 seconds.")
+        else:
+            print("✅ Display thread stopped successfully.")
+
+def run_face_tracking():
+    """Run face tracking in a separate thread."""
+    try:
+        tracker = CombinedFaceTracking()
+        tracker.run()
+    except Exception as e:
+        print(f"⚠️ Face tracking error: {e}")
+
+def run_say_hi_once():
+    """Run the say_hi arm wave once."""
+    say_hi()
+
+def run_periodic_recognition(lock):
+    """Run periodic recognition and write to recognition_result.txt."""
+    while True:
+        print("🔍 Running periodic recognition...")
+        try:
+            result = recognize_image()
+            print(f"Recognition Result: {result}")
+            with lock:
+                write_recognition_result(result.get("name", "NONE"), result.get("emotion", "NONE"))
+        except Exception as e:
+            print(f"⚠️ Recognition error: {e}")
+            with lock:
+                write_recognition_result("NONE", "NONE")
+        time.sleep(5)
+
+async def run_voice_monitoring(lock):
+    """Run voice monitoring, selecting monitor_start or monitor_for_trigger based on emotion."""
+    target_emotions = {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}
+    while True:
+        try:
+            # Read current name and emotion
+            name, emotion = read_recognition_result()
+            emotion = emotion.upper() if emotion else "NONE"
+            name = name if name else "NONE"
+            print(f"🔍 Current emotion: {emotion}, Name: {name}")
+
+            # Restart displays
+            print("🔄 Restarting displays...")
+            stop_display_thread()
+            start_display_thread()
+
+            # Run appropriate function
+            if emotion in target_emotions:
+                print("🎤 Running monitor_start due to target emotion...")
+                await monitor_start(name, emotion)
+                print("✅ monitor_start completed.")
+            else:
+                print("🎧 Running monitor_for_trigger...")
+                await monitor_for_trigger(name, emotion)
+                print("✅ monitor_for_trigger completed.")
+        except Exception as e:
+            print(f"[Voice] Error: {e}")
+            await asyncio.sleep(1)  # Prevent tight loop on errors
+
+def stop_servo(servo_channel):
+    """Stop a servo by setting duty cycle to 0."""
+    try:
+        pwm.channels[servo_channel].duty_cycle = 0
+        print(f"Servo channel {servo_channel} de-energized")
+    except Exception as e:
+        print(f"Error stopping servo channel {servo_channel}: {e}")
+
+def cleanup():
+    """Clean up servo and display resources."""
+    print("🧹 Starting cleanup...")
+    stop_display_thread()
+    print("Returning servos to safe positions...")
+    servo_channels = [0, 1, 4, 6, 7]
+    safe_angle = 90
+    try:
+        servos = {ch: servo.Servo(pwm.channels[ch]) for ch in servo_channels}
+        for ch, servo_obj in servos.items():
+            try:
+                current_angle = servo_obj.angle if servo_obj.angle is not None else safe_angle
+                if current_angle != safe_angle:
+                    direction = 1 if safe_angle > current_angle else -1
+                    for angle in range(int(current_angle), safe_angle + direction, direction):
+                        servo_obj.angle = angle
+                        time.sleep(0.02)
+                    servo_obj.angle = safe_angle
+                print(f"Servo channel {ch} moved to safe position {safe_angle}°")
+            except Exception as e:
+                print(f"Error moving servo channel {ch} to safe position: {e}")
+        time.sleep(1.0)
+        for ch in servo_channels:
+            stop_servo(ch)
+    except Exception as e:
+        print(f"Error during servo cleanup: {e}")
+    try:
+        pwm.deinit()
+        i2c.deinit()
+        print("PWM and I2C de-initialized")
+    except Exception as e:
+        print(f"Error de-initializing PWM/I2C: {e}")
+
+def main():
+    lock = threading.Lock()
+    print("🕹️ Waiting for 3-second touch to begin...")
+    if detect_continuous_touch(duration=3):
+        print("✅ Touch confirmed. Starting services...")
+        threading.Thread(target=run_face_tracking, daemon=True).start()
+        threading.Thread(target=run_say_hi_once, daemon=True).start()
+        threading.Thread(target=run_periodic_recognition, args=(lock,), daemon=True).start()
+        start_display_thread()
+        try:
+            asyncio.run(run_voice_monitoring(lock))
+        except KeyboardInterrupt:
+            print("🛑 Exiting...")
+            cleanup()
+
+if __name__ == "__main__":
+    main()
