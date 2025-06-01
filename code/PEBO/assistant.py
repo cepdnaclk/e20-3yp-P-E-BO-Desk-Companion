@@ -315,44 +315,53 @@ async def start_assistant_from_text(prompt_text, controller):
         
         conversation_history.append({"role": "model", "parts": [answer]})
 
-
 async def monitor_for_trigger(name, emotion):
-    trigger_pattern = r'\b((hi|hey|hello)\s+)?(' + '|'.join(similar_sounds) + r')\b'
     controller = RobotController()
     controller.normal()
     
-    print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
-    text = listen(recognizer, mic)
-    if text:
-        if re.search(trigger_pattern, text, re.IGNORECASE):
-            print("✅ Trigger phrase detected! Starting assistant...")
-            print(f"Using: Name={name}, Emotion={emotion}")
-            if name and name.lower() != "none":
-                hi_task = asyncio.to_thread(controller.hi)
-                voice_task = speak_text("Hello! I'm your pebo.", controller)
-                await asyncio.gather(hi_task, voice_task)
-                if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
-                    await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.", controller)
+    try:
+        print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
+        text = listen(recognizer, mic)
+        if text:
+            trigger_pattern = r'\b((hi|hey|hello)\s+)?(' + '|'.join(similar_sounds) + r')\b'
+            if re.search(trigger_pattern, text, re.IGNORECASE):
+                print("✅ Trigger phrase detected! Starting assistant...")
+                print(f"Using: Name={name}, Emotion={emotion}")
+                if name and name.lower() != "none":
+                    hi_task = asyncio.to_thread(controller.hi)
+                    voice_task = speak_text("Hello! I'm your pebo.", controller)
+                    await asyncio.gather(hi_task, voice_task)
+                    if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
+                        await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.", controller)
+                    else:
+                        await start_assistant_from_text(f"I am {name}. I need your assist.", controller)
                 else:
-                    await start_assistant_from_text(f"I am {name}. I need your assist.", controller)
-            else:
-                await speak_text("I can't identify you as my user", controller)
-    await asyncio.sleep(0.1)
-
+                    await speak_text("I can't identify you as my user", controller)
+        await asyncio.sleep(0.1)
+    finally:
+        print("🖥️ Cleaning up in monitor_for_trigger: Clearing displays and I2C bus...")
+        controller.cleanup()  # Clear displays, reset arms, and deinitialize I2C bus
+        await asyncio.sleep(0.5)
+        
 async def monitor_start(name, emotion):
     """Run once to initialize the assistant with a single speech input."""
     controller = RobotController()
     controller.normal()
-    print("🎧 Waiting for initial speech input...")
-    print(f"Using: Name={name}, Emotion={emotion}")
-    if name and name.lower() != "none":
-        hi_task = asyncio.to_thread(controller.hi)
-        voice_task = speak_text("Hello! I'm your pebo.", controller)
-        await asyncio.gather(hi_task, voice_task)
-        await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.", controller)
-        #await start_assistant_from_text(f"I am {name}. I need your assist.", controller)
-    else:
-        await speak_text("I can't identify you as my user", controller)
+    
+    try:
+        print("🎧 Waiting for initial speech input...")
+        print(f"Using: Name={name}, Emotion={emotion}")
+        if name and name.lower() != "none":
+            hi_task = asyncio.to_thread(controller.hi)
+            voice_task = speak_text("Hello! I'm your pebo.", controller)
+            await asyncio.gather(hi_task, voice_task)
+            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.", controller)
+        else:
+            await speak_text("I can't identify you as my user", controller)
+    finally:
+        print("🖥️ Cleaning up in monitor_start: Clearing displays and I2C bus...")
+        controller.cleanup()  # Clear displays, reset arms, and deinitialize I2C bus
+        await asyncio.sleep(0.5)
 
 if __name__ == "__main__":
     try:

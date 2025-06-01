@@ -636,7 +636,7 @@ if __name__ == "__main__":
     # Main loop
     try:
         moods = [eyes.Default, eyes.Happy, eyes.Tired, eyes.Angry, eyes.Love]
-        eyes.Love()  # Default to Love mode for testing
+        eyes.Angry()  # Default to Love mode for testing
     except KeyboardInterrupt:
         eyes.display_left.fill(0)
         eyes.display_left.show()

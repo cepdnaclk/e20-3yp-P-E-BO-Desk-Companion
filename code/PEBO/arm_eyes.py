@@ -85,18 +85,31 @@ class RobotController:
         self.run_emotion(express_happy, self.eyes.Love)
 
     def cleanup(self):
+        """Clean up resources, clear displays, and deinitialize I2C bus to clear SCL and SDA."""
+        print("🖥️ Cleaning up RobotController resources...")
         # Stop any running eye thread
         if self.stop_event:
             self.stop_event.set()
         if self.current_eye_thread:
             self.current_eye_thread.join(timeout=1.0)
+            self.current_eye_thread = None
         # Reset arms and clear displays
-        reset_to_neutral()
-        self.eyes.display_left.fill(0)
-        self.eyes.display_left.show()
-        self.eyes.display_right.fill(0)
-        self.eyes.display_right.show()
-        print("Resources cleaned up")
+        try:
+            reset_to_neutral()
+            self.eyes.display_left.fill(0)
+            self.eyes.display_left.show()
+            self.eyes.display_right.fill(0)
+            self.eyes.display_right.show()
+            print("🖥️ Displays cleared")
+        except Exception as e:
+            print(f"🖥️ Error clearing displays: {e}")
+        # Deinitialize I2C bus to clear SCL and SDA
+        try:
+            self.i2c.deinit()
+            print("🖥️ I2C bus deinitialized, SCL and SDA cleared")
+        except Exception as e:
+            print(f"🖥️ Error deinitializing I2C bus: {e}")
+        print("🖥️ RobotController cleanup complete")
 
 def main():
     try:

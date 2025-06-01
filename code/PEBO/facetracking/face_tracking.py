@@ -316,7 +316,7 @@ class CombinedFaceTracking:
                                 (self.width - 200, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
                     cv2.putText(frame, "Combined Face Tracking", (self.width//2 - 150, self.height - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-                    # cv2.imshow("Combined Face Tracking", frame)
+                    cv2.imshow("Combined Face Tracking", frame)
                     key = cv2.waitKey(1) & 0xFF
                     if key == 27:
                         self.running = False
