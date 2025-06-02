@@ -41,15 +41,6 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 // ------------------ 🔐 AUTH ------------------ //
 export const logout = () => auth.signOut();
 
-export const getUserName = () => {
-  const user = auth.currentUser;
-  if (user && user.displayName) {
-    return user.displayName;
-  } else {
-    return "Guest";
-  }
-};
-
 // ------------------ ✅ TASKS ------------------ //
 export const addTask = async (task) => {
   const user = auth.currentUser;
@@ -156,33 +147,34 @@ export const getS3Config = async () => {
 };
 
 // ------------------ 👤 USER PROFILE IMAGE ------------------ //
-export const uploadUserProfileImage = async (imageUri, username) => {
+export const uploadUserProfileImage = async (imageUri) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
-  if (!username) throw new Error("Username is required");
 
-  // Sanitize username for safe filename
-  const sanitizedUsername = username
-    .replace(/[^a-zA-Z0-9]/g, "_")
-    .toLowerCase();
-  const imageName = `user_${sanitizedUsername}.jpg`;
+  const imageName = `user_${user.uid}.jpg`;
   const storage = getStorage();
   const imageRef = storageRef(storage, `userImages/${imageName}`);
 
   const response = await fetch(imageUri);
   const blob = await response.blob();
 
-  await uploadBytes(imageRef, blob);
-  const downloadURL = await getDownloadURL(imageRef);
+  try {
+    await uploadBytes(imageRef, blob);
+    const downloadURL = await getDownloadURL(imageRef);
 
-  await db.ref(`users/${user.uid}/profileImage`).set(downloadURL);
-  await db.ref(`users/${user.uid}/imageHistory`).push({
-    url: downloadURL,
-    timestamp: new Date().toISOString(),
-    path: `userImages/${imageName}`,
-  });
+    // Save the download URL in the Realtime Database
+    await db.ref(`users/${user.uid}/profileImage`).set(downloadURL);
+    await db.ref(`users/${user.uid}/imageHistory`).push({
+      url: downloadURL,
+      timestamp: new Date().toISOString(),
+      path: `userImages/${imageName}`,
+    });
 
-  return downloadURL;
+    return downloadURL;
+  } catch (error) {
+    console.error("Upload error:", error);
+    throw error;
+  }
 };
 
 export const getUserProfileImage = async () => {
@@ -252,6 +244,6 @@ export const setProfileImageFromHistory = async (imageId) => {
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    console.log("User's name:", user.displayName);
+    console.log("User is logged in:", user.uid);
   }
 });
