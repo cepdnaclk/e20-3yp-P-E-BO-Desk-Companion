@@ -26,6 +26,7 @@ import threading
 import board
 import busio
 import smbus
+import RPi.GPIO as GPIO
 from arms.arms_pwm import (say_hi, express_tired, express_happy, express_sad, express_angry,
                            reset_to_neutral, scan_i2c_devices, angle_to_pulse_value, set_servos, smooth_move)
 from display.eyes import RoboEyesDual
@@ -41,6 +42,10 @@ i2c = None
 eyes = None
 current_eye_thread = None
 stop_event = None
+
+
+# LED pin configuration
+LED_PIN = 18  # GPIO pin number (Pin 12)
 
 def initialize_hardware():
     """Initialize I2C and eyes globally."""
@@ -243,21 +248,29 @@ def listen(
         language: str = "en-US",
         calibrate_duration: float = 0.5,
 ) -> str | None:
-    """Capture a single utterance and return the recognized text."""
+    """Capture a single utterance and return the recognized text, with LED indicating listening state."""
+    # Setup GPIO
+    GPIO.setmode(GPIO.BCM)  # Use BCM numbering
+    GPIO.setup(LED_PIN, GPIO.OUT)  # Set LED pin as output
+    GPIO.output(LED_PIN, GPIO.LOW)  # Ensure LED is off initially
+
     for attempt in range(retries + 1):
         try:
             with mic as source:
                 recognizer.adjust_for_ambient_noise(source, duration=calibrate_duration)
                 print("\U0001F3A4 Listening… (attempt", attempt + 1, ")")
+                GPIO.output(LED_PIN, GPIO.HIGH)  # Turn on LED
                 audio = recognizer.listen(source,
                                           timeout=timeout,
                                           phrase_time_limit=phrase_time_limit)
+                GPIO.output(LED_PIN, GPIO.LOW)  # Turn off LED after listening
 
             try:
                 text = recognizer.recognize_google(audio, language=language)
                 text = text.strip().lower()
                 if text:
                     print(f"\U0001F5E3️ You said: {text}")
+                    GPIO.cleanup()  # Clean up GPIO
                     return text
             except sr.UnknownValueError:
                 print("\U0001F914 Sorry—couldn’t understand that.")
@@ -268,19 +281,24 @@ def listen(
                     text = text.strip().lower()
                     if text:
                         print(f"\U0001F5E3️ (Offline) You said: {text}")
+                        GPIO.cleanup()  # Clean up GPIO
                         return text
                 except Exception as sphinx_err:
                     print(f"\u274C Offline engine failed: {sphinx_err}")
 
         except sr.WaitTimeoutError:
             print("\u231B Timed out waiting for speech.")
+            GPIO.output(LED_PIN, GPIO.LOW)  # Turn off LED on timeout
         except Exception as mic_err:
             print(f"\U0001F3A4 Mic/Audio error: {mic_err}")
+            GPIO.output(LED_PIN, GPIO.LOW)  # Turn off LED on error
 
         if attempt < retries:
             time.sleep(0.5)
 
     print("\U0001F615 No intelligible speech captured.")
+    GPIO.output(LED_PIN, GPIO.LOW)  # Ensure LED is off
+    GPIO.cleanup()  # Clean up GPIO
     return None
 
 # Load the Whisper model once
@@ -380,8 +398,8 @@ async def start_assistant_from_text(prompt_text):
         failed_attempts = 0  # Reset on valid input
         
         # Check for "play song" with or without song name
-        song_match = re.match(r'^play\s+song\s+(.+)$', user_input, re.IGNORECASE)
-        if song_match or user_input == "play song":
+        song_match = re.match(r'^play\s+a\s+song\s+(.+)$', user_input, re.IGNORECASE)
+        if song_match or user_input == "play a song" or "play song":
             max_song_attempts = 3
             if song_match:
                 song_input = song_match.group(1).strip()  # Extract song name

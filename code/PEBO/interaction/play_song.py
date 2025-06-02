@@ -24,37 +24,56 @@ GPIO.setup(TOUCH_PIN, GPIO.IN)  # Set pin as input
 stop_music_flag = False
 ffplay_process = None  # To store the ffplay process for termination
 
-def detect_continuous_touch(duration=1):
+def detect_double_tap(max_interval=0.5, min_interval=0.1):
     """
-    Detects if the touch sensor is continuously activated for the given duration (in seconds).
-    Sets stop_music_flag to True if touch is detected continuously for the specified time.
+    Detects a double tap on the touch sensor within the specified time window.
+    Sets stop_music_flag to True if a double tap is detected.
+
+    Args:
+        max_interval (float): Maximum time (seconds) between two taps to count as a double tap.
+        min_interval (float): Minimum time (seconds) between taps to avoid debounce noise.
     """
     global stop_music_flag
-    start_time = None  # To record the start time of the touch
+    first_tap_time = None
 
     while not stop_music_flag:
         if GPIO.input(TOUCH_PIN) == GPIO.HIGH:  # Touch detected
-            if start_time is None:
-                start_time = time.time()  # Start timing
-                print("Touch started")
-            
-            # Check the duration
-            if time.time() - start_time >= duration:
-                print(f"Touch detected continuously for {duration} seconds! Stopping music...")
-                stop_music_flag = True
-                return
+            if first_tap_time is None:
+                first_tap_time = time.time()
+                print("First tap detected")
+                # Wait for the touch to release
+                while GPIO.input(TOUCH_PIN) == GPIO.HIGH:
+                    time.sleep(0.01)
+                print("First tap released")
+            else:
+                # Check if the second tap is within the max_interval
+                current_time = time.time()
+                time_since_first_tap = current_time - first_tap_time
+                if min_interval <= time_since_first_tap <= max_interval:
+                    print("Double tap detected! Stopping music...")
+                    stop_music_flag = True
+                    return
+                else:
+                    # Reset if the second tap is too late or too early
+                    print("Second tap outside valid interval, resetting")
+                    first_tap_time = current_time
+                    # Wait for the touch to release
+                    while GPIO.input(TOUCH_PIN) == GPIO.HIGH:
+                        time.sleep(0.01)
+                    print("Second tap released")
+            # Debounce delay after a touch
+            time.sleep(0.1)
         else:
-            # Reset start time if touch is not continuous
-            if start_time is not None:
-                print("Touch interrupted")
-            start_time = None
-        
-        time.sleep(0.1)  # Debounce delay
+            # Reset first tap if too much time has passed
+            if first_tap_time and (time.time() - first_tap_time) > max_interval:
+                print("First tap timed out, resetting")
+                first_tap_time = None
+            time.sleep(0.01)  # Small delay to reduce CPU usage
 
 async def play_music(song="Perfect Ed Sheeran", controller=None):
     """
     Search YouTube for a song and play it using yt-dlp and ffplay, with voice feedback.
-    Stops playback if a 1-second touch is detected.
+    Stops playback if a double tap is detected on the touch sensor.
     
     Args:
         song (str): Song name to search for on YouTube.
@@ -161,8 +180,8 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
     print(f"Now playing: {song}")
     print(f"Audio URL: {audio_url}")
 
-    # Start touch detection in a separate thread
-    touch_thread = threading.Thread(target=detect_continuous_touch, args=(1,))
+    # Start double-tap detection in a separate thread
+    touch_thread = threading.Thread(target=detect_double_tap, args=(0.5, 0.1))
     touch_thread.start()
 
     # Play audio with ffplay
@@ -176,7 +195,7 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
             if stop_music_flag:
                 ffplay_process.terminate()  # Terminate ffplay
                 ffplay_process.wait()  # Wait for clean exit
-                print("Music stopped due to touch detection.")
+                print("Music stopped due to double tap detection.")
                 break
             await asyncio.sleep(0.1)  # Check frequently without blocking
         else:
@@ -189,7 +208,7 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
 
         # Announce completion or interruption
         if stop_music_flag:
-            message = "Music stopped by touch."
+            message = "Music stopped."
         else:
             message = "Finished playing the song. Anything else?"
         
@@ -242,7 +261,7 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
 
 if __name__ == "__main__":
     try:
-        asyncio.run(play_music("numba ha"))
+        asyncio.run(play_music("imaging dragon"))
     except KeyboardInterrupt:
         print("Script interrupted by user.")
         stop_music_flag = True
