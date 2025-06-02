@@ -11,7 +11,7 @@ class AudioNode:
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
         self.RATE = 44100
-        
+    pa    
         # Network settings
         self.listen_port = listen_port
         self.target_host = target_host
