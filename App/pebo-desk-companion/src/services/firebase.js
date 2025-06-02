@@ -30,16 +30,17 @@ if (!firebase.apps.length) {
 export const auth = firebase.auth();
 export const db = firebase.database();
 
-// ✅ Ensure persistence is explicitly set
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .then(() => {
-    console.log("🔐 Firebase auth persistence set to LOCAL");
-  })
-  .catch((error) => {
-    console.error("❌ Error setting auth persistence:", error);
-  });
 // ------------------ 🔐 AUTH ------------------ //
 export const logout = () => auth.signOut();
+
+export const getUserName = () => {
+  const user = auth.currentUser;
+  if (user && user.displayName) {
+    return user.displayName;
+  } else {
+    return "Guest";
+  }
+};
 
 // ------------------ ✅ TASKS ------------------ //
 export const addTask = async (task) => {
@@ -147,11 +148,16 @@ export const getS3Config = async () => {
 };
 
 // ------------------ 👤 USER PROFILE IMAGE ------------------ //
-export const uploadUserProfileImage = async (imageUri) => {
+export const uploadUserProfileImage = async (imageUri, username) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
+  if (!username) throw new Error("Username is required");
 
-  const imageName = `user_${user.uid}.jpg`;
+  // Sanitize username for safe filename
+  const sanitizedUsername = username
+    .replace(/[^a-zA-Z0-9]/g, "_")
+    .toLowerCase();
+  const imageName = `user_${sanitizedUsername}.jpg`;
   const storage = getStorage();
   const imageRef = storageRef(storage, `userImages/${imageName}`);
 
@@ -244,6 +250,7 @@ export const setProfileImageFromHistory = async (imageId) => {
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    console.log("User is logged in:", user.uid);
+    console.log("User's name:", user.displayName);
   }
 });
+
