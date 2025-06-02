@@ -1,21 +1,25 @@
-# pi_audio_node.py - Run on Raspberry Pi
 import socket
 import pyaudio
 import threading
 import time
+import queue
+import argparse
 
 class AudioNode:
-    def __init__(self, listen_port=8888, target_host='192.168.38.182', target_port=8889):
-        # Audio settings
-        self.CHUNK = 1024
+    def __init__(self, listen_port, target_host, target_port):
+        # Audio settings for Raspberry Pi (48kHz for Bluetooth compatibility)
+        self.CHUNK = 2048
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 44100
+        self.RATE = 48000
         
         # Network settings
         self.listen_port = listen_port
         self.target_host = target_host
         self.target_port = target_port
+        
+        # Audio buffer queue for smoother playback
+        self.audio_queue = queue.Queue(maxsize=20)  # Increased for stability
         
         # Initialize audio
         self.audio = pyaudio.PyAudio()
@@ -31,7 +35,8 @@ class AudioNode:
             channels=self.CHANNELS,
             rate=self.RATE,
             input=True,
-            frames_per_buffer=self.CHUNK
+            frames_per_buffer=self.CHUNK,
+            input_device_index=None  # Use default input
         )
         
         # Speaker stream (output)
@@ -40,20 +45,23 @@ class AudioNode:
             channels=self.CHANNELS,
             rate=self.RATE,
             output=True,
-            frames_per_buffer=self.CHUNK
+            frames_per_buffer=self.CHUNK,
+            output_device_index=None  # Use default output
         )
     
     def send_audio(self):
-        """Send microphone audio to laptop"""
+        """Send microphone audio to target"""
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            time.sleep(2)  # Wait for receiver to start
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
+            time.sleep(5)  # Wait for receiver to start
             sock.connect((self.target_host, self.target_port))
-            print(f"Connected to laptop at {self.target_host}:{self.target_port}")
+            print(f"Connected to {self.target_host}:{self.target_port}")
             
             while self.running:
                 try:
                     data = self.mic_stream.read(self.CHUNK, exception_on_overflow=False)
+                    print(f"Sending {len(data)} bytes")  # Debug
                     sock.send(data)
                 except Exception as e:
                     print(f"Send error: {e}")
@@ -68,23 +76,27 @@ class AudioNode:
                 pass
     
     def receive_audio(self):
-        """Receive laptop audio and play through speaker"""
+        """Receive audio and add to playback queue"""
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
             sock.bind(('0.0.0.0', self.listen_port))
             sock.listen(1)
-            print(f"Listening for laptop connection on port {self.listen_port}")
+            print(f"Listening for connection on port {self.listen_port}")
             
             conn, addr = sock.accept()
-            print(f"Laptop connected from {addr}")
+            print(f"Connected from {addr}")
             
             while self.running:
                 try:
-                    data = conn.recv(self.CHUNK)
+                    data = conn.recv(self.CHUNK * 2)  # *2 for int16 format
                     if not data:
                         break
-                    self.speaker_stream.write(data)
+                    
+                    if not self.audio_queue.full():
+                        self.audio_queue.put(data)
+                    
                 except Exception as e:
                     print(f"Receive error: {e}")
                     break
@@ -98,20 +110,34 @@ class AudioNode:
             except:
                 pass
     
+    def play_audio(self):
+        """Play audio from queue"""
+        while self.running:
+            try:
+                data = self.audio_queue.get(timeout=0.1)
+                print(f"Playing {len(data)} bytes")  # Debug
+                self.speaker_stream.write(data)
+            except queue.Empty:
+                continue
+            except Exception as e:
+                print(f"Playback error: {e}")
+                continue
+    
     def start(self):
-        """Start both sending and receiving threads"""
+        """Start sending, receiving, and playback threads"""
         print("Starting Pi audio node...")
-        print("Set your Bluetooth mic as default input:")
-        print("pactl set-default-source bluez_input.E1_0D_7B_25_E6_04.0")
+        print(f"Using 48kHz, listening on {self.listen_port}, sending to {self.target_host}:{self.target_port}")
         
-        # Start threads
         send_thread = threading.Thread(target=self.send_audio)
         receive_thread = threading.Thread(target=self.receive_audio)
+        play_thread = threading.Thread(target=self.play_audio)
         
         send_thread.daemon = True
         receive_thread.daemon = True
+        play_thread.daemon = True
         
         receive_thread.start()
+        play_thread.start()
         send_thread.start()
         
         try:
@@ -129,12 +155,15 @@ class AudioNode:
         self.audio.terminate()
 
 if __name__ == "__main__":
-    # Replace with your laptop's IP address
-    LAPTOP_IP = "192.168.38.182"  # Change this!
+    parser = argparse.ArgumentParser(description="Raspberry Pi audio node for two-way communication")
+    parser.add_argument("--listen-port", type=int, required=True, help="Port to listen on")
+    parser.add_argument("--target-host", type=str, required=True, help="Target IP to send audio to")
+    parser.add_argument("--target-port", type=int, required=True, help="Target port to send audio to")
+    args = parser.parse_args()
     
     node = AudioNode(
-        listen_port=8888,      # Pi listens on this port
-        target_host=LAPTOP_IP, # Laptop IP
-        target_port=8889       # Laptop listens on this port
+        listen_port=args.listen_port,
+        target_host=args.target_host,
+        target_port=args.target_port
     )
     node.start()
