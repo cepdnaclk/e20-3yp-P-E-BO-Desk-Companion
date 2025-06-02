@@ -390,6 +390,7 @@ const TaskManagementScreen = () => {
           />
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           {renderMenu(
             "🚦 Priority",
             priority,
@@ -421,6 +422,10 @@ const TaskManagementScreen = () => {
 
           <View style={styles.sortRow}>
             <Text style={styles.sortText}>Sort by:</Text>
+=======
+          <View style={styles.filterBar}>
+            <Text style={styles.sortTitle}>Sort By:</Text>
+>>>>>>> Stashed changes
 =======
           <View style={styles.filterBar}>
             <Text style={styles.sortTitle}>Sort By:</Text>
@@ -568,6 +573,7 @@ const styles = StyleSheet.create({
   },
   input: {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     paddingHorizontal: 14,
@@ -599,6 +605,19 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
 >>>>>>> Stashed changes
   },
+=======
+    flex: 1,
+    backgroundColor: "transparent",
+    fontSize: 14, // Reduced from 15 to match SettingsScreen
+    color: theme.colors.text,
+  },
+  dateButton: {
+    flex: 1,
+    backgroundColor: "transparent",
+    paddingVertical: 4,
+    justifyContent: "flex-start",
+  },
+>>>>>>> Stashed changes
   buttonLabel: {
     fontSize: 14,
     color: theme.colors.text,
@@ -613,8 +632,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     marginVertical: 20,
     alignItems: "center",
+=======
+    gap: 8,
+    height: 40,
+>>>>>>> Stashed changes
 =======
     gap: 8,
     height: 40,
@@ -714,9 +738,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   info: { fontSize: 14, color: "#6C6C6C" },
   empty: {
 =======
+=======
+>>>>>>> Stashed changes
   taskTitle: {
     fontSize: 16, // Reduced from 18 to match SettingsScreen card text
     fontWeight: "600",
@@ -768,6 +795,9 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16, // Reduced from 18
     color: theme.colors.placeholder,
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     textAlign: "center",
     fontWeight: "500",

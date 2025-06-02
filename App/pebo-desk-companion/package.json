@@ -4,15 +4,21 @@
   "main": "index.js",
   "scripts": {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
 =======
+=======
+>>>>>>> Stashed changes
     "start": "npx expo start",
     "android": "npx expo start --android",
     "ios": "npx expo start --ios",
     "web": "npx expo start --web"
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   },
   "dependencies": {
@@ -33,8 +39,13 @@
     "expo-secure-store": "~14.2.3",
     "expo-status-bar": "~2.2.3",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "expo-updates": "~0.28.13",
     "firebase": "^10.0.0",
+=======
+    "expo-updates": "~0.28.12",
+    "firebase": "^10.14.1",
+>>>>>>> Stashed changes
 =======
     "expo-updates": "~0.28.12",
     "firebase": "^10.14.1",

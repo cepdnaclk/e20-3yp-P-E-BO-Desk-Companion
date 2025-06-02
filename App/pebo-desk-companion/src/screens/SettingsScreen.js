@@ -1,5 +1,9 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import React, { useState, useEffect } from "react";
+=======
+import React, { useState, useEffect, memo } from "react";
+>>>>>>> Stashed changes
 =======
 import React, { useState, useEffect, memo } from "react";
 >>>>>>> Stashed changes
@@ -22,6 +26,9 @@ import QRCode from "react-native-qrcode-svg"; // Added for QR code generation
 =======
 import QRCode from "react-native-qrcode-svg";
 import { Picker } from "@react-native-picker/picker";
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 import {
   auth,
@@ -56,6 +63,9 @@ const SettingsScreen = () => {
   const [deviceSelectModalVisible, setDeviceSelectModalVisible] = useState(false);
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
   const [tempUsername, setTempUsername] = useState("");
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupContent, setPopupContent] = useState({
@@ -102,9 +112,12 @@ const SettingsScreen = () => {
       try {
         const { wifiSSID, wifiPassword } = await getWifiName();
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         setWifiSSID(wifiSSID);
         setWifiPassword(wifiPassword);
 =======
+=======
+>>>>>>> Stashed changes
         console.log("Fetched Wi-Fi settings:", { wifiSSID, wifiPassword });
         setWifiSSID(wifiSSID || "");
         setWifiPassword(wifiPassword || "");
@@ -115,6 +128,7 @@ const SettingsScreen = () => {
       }
     };
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     const userId = auth.currentUser?.uid;
     let unsubscribe;
@@ -144,6 +158,8 @@ const SettingsScreen = () => {
 
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     fetchPeboDevices();
     fetchWifiSettings();
 
@@ -152,6 +168,7 @@ const SettingsScreen = () => {
     };
   }, []);
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
   const captureAndUploadImage = async () => {
     if (!username.trim()) {
@@ -214,6 +231,65 @@ const SettingsScreen = () => {
   }, [currentUser]);
 
   const captureAndUploadImage = async () => {
+=======
+  useEffect(() => {
+    let unsubscribeProfile;
+    let unsubscribeUsername;
+    if (currentUser?.uid) {
+      const profileImageRef = db.ref(`users/${currentUser.uid}/profileImage`);
+      unsubscribeProfile = profileImageRef.on(
+        "value",
+        (snapshot) => {
+          try {
+            const imageUrl = snapshot?.exists() ? snapshot.val() : null;
+            if (imageUrl !== userImage) {
+              console.log("Firebase profileImage:", imageUrl);
+              setUserImage(imageUrl);
+            }
+          } catch (error) {
+            console.error("Error processing Firebase snapshot:", error);
+            setUserImage(null);
+            showPopup("Error", "Failed to fetch profile image", "alert-circle");
+          }
+        },
+        (error) => {
+          console.error("Firebase listener error:", error);
+          setUserImage(null);
+          showPopup("Error", "Failed to fetch profile image", "alert-circle");
+        }
+      );
+
+      const usernameRef = db.ref(`users/${currentUser.uid}/username`);
+      unsubscribeUsername = usernameRef.on(
+        "value",
+        (snapshot) => {
+          try {
+            const fetchedUsername = snapshot?.exists() ? snapshot.val() : null;
+            console.log("Firebase username:", fetchedUsername);
+            setUsername(
+              fetchedUsername || `user_${currentUser.uid.slice(0, 8)}`
+            );
+          } catch (error) {
+            console.error("Error fetching username:", error);
+            setUsername(`user_${currentUser.uid.slice(0, 8)}`);
+            showPopup("Error", "Failed to fetch username", "alert-circle");
+          }
+        },
+        (error) => {
+          console.error("Firebase username listener error:", error);
+          setUsername(`user_${currentUser.uid.slice(0, 8)}`);
+          showPopup("Error", "Failed to fetch username", "alert-circle");
+        }
+      );
+    }
+    return () => {
+      if (unsubscribeProfile) unsubscribeProfile();
+      if (unsubscribeUsername) unsubscribeUsername();
+    };
+  }, [currentUser]);
+
+  const captureAndUploadImage = async () => {
+>>>>>>> Stashed changes
     // Show username prompt modal
     setTempUsername(username || "");
     setUsernameModalVisible(true);
@@ -224,6 +300,9 @@ const SettingsScreen = () => {
     if (!enteredUsername) {
       showPopup("Error", "Please enter a username.", "alert-circle");
       setUsernameModalVisible(false);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       return;
     }
@@ -300,7 +379,11 @@ const SettingsScreen = () => {
 
       if (!uploadResponse.ok) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         throw new Error(`S3 upload failed: ${response.statusText}`);
+=======
+        throw new Error(`S3 upload: ${uploadResponse.statusText}`);
+>>>>>>> Stashed changes
 =======
         throw new Error(`S3 upload: ${uploadResponse.statusText}`);
 >>>>>>> Stashed changes
@@ -408,12 +491,15 @@ const SettingsScreen = () => {
 
   const generateQrCodeValue = () => {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const credentials = {
       ssid: wifiSSID.trim(),
       password: wifiPassword.trim(),
     };
     return JSON.stringify(credentials);
 =======
+=======
+>>>>>>> Stashed changes
     if (
       !wifiSSID.trim() ||
       !wifiPassword.trim() ||
@@ -437,6 +523,9 @@ const SettingsScreen = () => {
     const qrValue = JSON.stringify(credentials);
     console.log("Generated QR code value:", qrValue);
     return qrValue;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   };
 
@@ -820,6 +909,7 @@ const SettingsScreen = () => {
               Show this QR code to the device's camera to configure Wi-Fi.
             </Text>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <View style={styles.qrCodeContainer}>
               <QRCode
                 value={generateQrCodeValue()}
@@ -835,6 +925,8 @@ const SettingsScreen = () => {
               <Text style={[styles.modalButtonText, { color: "#333" }]}>
                 Close
 =======
+=======
+>>>>>>> Stashed changes
             {generateQrCodeValue() ? (
               <View style={styles.qrCodeContainer}>
                 <QRCode
@@ -848,6 +940,9 @@ const SettingsScreen = () => {
               <Text style={styles.errorText}>
                 Unable to generate QR code. Please ensure Wi-Fi settings and
                 device are selected.
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
               </Text>
             )}
@@ -909,8 +1004,11 @@ const SettingsScreen = () => {
 };
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 export default SettingsScreen;
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 const styles = StyleSheet.create({
@@ -1225,7 +1323,70 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 });
+=======
+  closeQrModalButton: {
+    backgroundColor: "#1976D2",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  pickerContainer: {
+    backgroundColor: "#ECEFF1",
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#1976D2",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+  },
+  picker: {
+    flex: 1,
+    height: 40,
+    color: "#212121",
+  },
+  pickerItem: {
+    fontSize: 14,
+    color: "#212121",
+  },
+  pickerItemSelected: {
+    color: "#1976D2",
+    fontWeight: "600",
+  },
+  pickerPlaceholder: {
+    fontSize: 14,
+    color: "#757575",
+  },
+  pickerIcon: {
+    marginRight: 8,
+    fontSize: 20,
+    color: "#1976D2",
+  },
+  errorText: {
+    color: "#D32F2F",
+    fontSize: 12,
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  personCircleSize: 20,
+  primaryColor: "#1976D2",
+  wifiIcon: 20,
+  wifiColor: "#1976D2",
+  personIcon: 80,
+  camera: 20,
+  eyeIcon: 22,
+  wifiIconSize: 20,
+  qrIconSize: 18,
+  addIcon: 16,
+  chipIcon: 20,
+  logoutIcon: 16,
+});
+
+export default memo(SettingsScreen);
+>>>>>>> Stashed changes
 =======
   closeQrModalButton: {
     backgroundColor: "#1976D2",
