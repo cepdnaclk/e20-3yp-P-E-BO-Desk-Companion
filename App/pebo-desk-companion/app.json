@@ -33,6 +33,7 @@
       "url": "https://u.expo.dev/1638de7e-ecf4-48d8-8463-e9aa162f398d"
     },
     "extra": {
+<<<<<<< Updated upstream
       "eas": {
         "projectId": "1638de7e-ecf4-48d8-8463-e9aa162f398d"
       }
@@ -40,5 +41,13 @@
     "runtimeVersion": {
       "policy": "appVersion"
     }
+=======
+       "eas": {
+        "projectId": "1638de7e-ecf4-48d8-8463-e9aa162f398d"
+      }
+    },
+    "newArchEnabled": false,
+    "owner": "yokka_20361"
+>>>>>>> Stashed changes
   }
 }

@@ -16,6 +16,7 @@ import {
 import { auth } from "../services/firebase";
 
 import { getUserName } from "../services/firebase";
+
 const DashboardScreen = () => {
   const [wifiDetails, setWifiDetails] = useState({
     wifiSSID: "",
@@ -24,25 +25,16 @@ const DashboardScreen = () => {
   const [userPebos, setUserPebos] = useState([]);
   const [upcomingTasks, setUpcomingTasks] = useState([]);
   const navigation = useNavigation();
-  // const getUserName = () => {
-  //   const user = auth.currentUser;
-  //   if (user && user.displayName) {
-  //     return user.displayName;
-  //   } else {
-  //     return "Guest"; // Fallback if the user is not logged in
-  //   }
-  // };
+
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
         try {
-     
-          
-          // ✅ Fetch tasks
+          // Fetch tasks
           const tasks = await getTaskOverview();
           console.log("📅 All tasks fetched:", tasks);
 
-          // ✅ Filter upcoming tasks
+          // Filter upcoming tasks
           const today = new Date();
           const upcoming = tasks.filter((task) => {
             if (task.completed || !task.deadline) return false;
@@ -73,11 +65,11 @@ const DashboardScreen = () => {
 
           setUpcomingTasks(upcoming);
 
-          // ✅ Fetch Wi-Fi details
+          // Fetch Wi-Fi details
           const wifi = await getWifiName();
           setWifiDetails(wifi);
 
-          // ✅ Fetch user's PEBO devices
+          // Fetch user's PEBO devices
           const pebos = await getPeboDevices();
           setUserPebos(pebos);
         } catch (error) {
@@ -88,16 +80,16 @@ const DashboardScreen = () => {
       fetchData();
     }, [])
   );
-  
+
   return (
     <View style={styles.container}>
-      <Text style={styles.appName}>PEBO</Text>
+      <Text style={styles.appName}>PEBO Dashboard</Text>
 
-      {/* ✅ PEBOs Assigned to Current User */}
+      {/* PEBOs Assigned to Current User */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Ionicons name="home-outline" size={20} color="#007AFF" />
-          <Text style={styles.cardLabel}>Your PEBOs</Text>
+          <Ionicons name="home-outline" size={20} color="#1976D2" />
+          <Text style={styles.cardLabel}>My PEBOs</Text>
         </View>
         {userPebos.length === 0 ? (
           <Text style={styles.empty}>No PEBOs assigned to you</Text>
@@ -112,10 +104,10 @@ const DashboardScreen = () => {
         )}
       </View>
 
-      {/* ✅ Wi-Fi Details */}
+      {/* Wi-Fi Details */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <MaterialIcons name="wifi" size={20} color="#007AFF" />
+          <MaterialIcons name="wifi" size={20} color="#1976D2" />
           <Text style={styles.cardLabel}>Wi-Fi Details</Text>
         </View>
         <Text style={styles.cardValue}>SSID: {wifiDetails.wifiSSID}</Text>
@@ -124,10 +116,10 @@ const DashboardScreen = () => {
         </Text>
       </View>
 
-      {/* ✅ Upcoming Tasks */}
+      {/* Upcoming Tasks */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <FontAwesome5 name="tasks" size={18} color="#007AFF" />
+          <FontAwesome5 name="tasks" size={18} color="#1976D2" />
           <Text style={styles.cardLabel}>Tasks Due Soon</Text>
         </View>
         {upcomingTasks.length === 0 ? (
@@ -151,7 +143,7 @@ const DashboardScreen = () => {
         )}
       </View>
 
-      {/* ✅ Navigate to Task Management */}
+      {/* Navigate to Task Management */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("Settings")}
@@ -160,7 +152,7 @@ const DashboardScreen = () => {
           <Ionicons
             name="settings-outline"
             size={24}
-            color="white"
+            color="#FFFFFF"
             style={styles.icon}
           />
           <Text style={styles.buttonText}>Change Settings of PEBO</Text>
@@ -178,29 +170,31 @@ const styles = StyleSheet.create({
     paddingTop: 50,
   },
   button: {
-    flexDirection: "row", // Aligns the icon and text horizontally
-    alignItems: "center", // Vertically centers them
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
-    backgroundColor: "#3498db", // Button background color
+    backgroundColor: "#1976D2",
     borderRadius: 5,
-    margin: 10, // Adds some margin to the button
+    margin: 10,
   },
   buttonContent: {
-    flexDirection: "row", // Aligns icon and text in a row
-    alignItems: "center", // Vertically aligns the icon and text
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
   },
   icon: {
-    marginRight: 10, // Adds space between the icon and text
+    marginRight: 10,
   },
   buttonText: {
-    color: "white", // Text color
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
   },
   appName: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#007AFF",
+    color: "#1976D2",
     alignSelf: "center",
     marginBottom: 30,
     letterSpacing: 1.5,
@@ -223,47 +217,36 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 16,
-    color: "#007AFF",
+    color: "#1976D2",
     fontWeight: "600",
     marginLeft: 8,
   },
   cardValue: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#222222",
+    color: "#212121",
     marginBottom: 6,
   },
   empty: {
-    color: "#999999",
+    color: "#757575",
     fontStyle: "italic",
+    backgroundColor: "#F5F5F5",
   },
   taskItem: {
     marginTop: 10,
     padding: 12,
-    backgroundColor: "#EAF2FC",
+    backgroundColor: "#ECEFF1",
     borderRadius: 10,
   },
   taskTitle: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#1C1C1E",
+    color: "#212121",
   },
   taskDate: {
     fontSize: 14,
-    color: "#636366",
+    color: "#757575",
     marginTop: 4,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 24,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
 
