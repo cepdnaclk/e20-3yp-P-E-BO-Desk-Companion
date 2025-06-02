@@ -116,7 +116,7 @@ const SettingsScreen = () => {
 
   const captureAndUploadImage = async () => {
     if (!username.trim()) {
-      showPopup("Error", "Please enter your name", "alert-circle");
+      showPopup("Error", "How PEBO Should call you? ", "alert-circle");
       return;
     }
 
@@ -299,7 +299,7 @@ const SettingsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Settings</Text>
+      <Text style={styles.header}>Seeeeeettings</Text>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
