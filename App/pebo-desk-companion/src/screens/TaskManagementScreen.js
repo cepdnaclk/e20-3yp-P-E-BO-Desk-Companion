@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   FlatList,
@@ -10,7 +11,11 @@ import {
   TouchableOpacity,
   Image,
   Animated,
+  TouchableOpacity,
+  Image,
+  Animated,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import PopupModal from "../components/PopupModal";
 import {
@@ -24,6 +29,13 @@ import {
   ActivityIndicator,
 } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import {
+  auth,
+  db,
+  addTask,
+  getTaskOverview,
+  updateTask,
+} from "../services/firebase";
 import {
   auth,
   db,
@@ -383,14 +395,8 @@ const TaskManagementScreen = () => {
               setPickerVisible(false);
             }}
             onCancel={() => setPickerVisible(false)}
-            buttonColor="#2196F3"
-            confirmTextStyle={{ color: "#2196F3" }}
-            cancelTextStyle={{ color: "#F44336" }}
-            headerTextStyle={{ color: "#212121" }}
           />
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
           {renderMenu(
             "🚦 Priority",
             priority,
@@ -415,21 +421,13 @@ const TaskManagementScreen = () => {
             loading={adding}
             style={styles.addBtn}
             contentStyle={{ paddingVertical: 6 }}
-            labelStyle={{ color: "white", fontWeight: "600" }}
+            labelStyle={{ color: "white", fontWeight: "620" }}
           >
             Add New Task
           </Button>
 
           <View style={styles.sortRow}>
             <Text style={styles.sortText}>Sort by:</Text>
-=======
-          <View style={styles.filterBar}>
-            <Text style={styles.sortTitle}>Sort By:</Text>
->>>>>>> Stashed changes
-=======
-          <View style={styles.filterBar}>
-            <Text style={styles.sortTitle}>Sort By:</Text>
->>>>>>> Stashed changes
             {renderMenu(
               "Sort",
               sortPref.charAt(0).toUpperCase() + sortPref.slice(1),
@@ -572,101 +570,29 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   input: {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 8,
     marginBottom: 14,
-    fontSize: 16,
+    fontSize: 20,
     shadowColor: "#000",
     shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  addBtn: {
-    backgroundColor: "#007AFF",
-    borderRadius: 14,
-    paddingVertical: 12,
-    justifyContent: "center",
-    marginTop: 12,
-=======
-    flex: 1,
-    backgroundColor: "transparent",
-    fontSize: 14, // Reduced from 15 to match SettingsScreen
-    color: theme.colors.text,
-  },
-  dateButton: {
-    flex: 1,
-    backgroundColor: "transparent",
-    paddingVertical: 4,
-    justifyContent: "flex-start",
->>>>>>> Stashed changes
-  },
-=======
-    flex: 1,
-    backgroundColor: "transparent",
-    fontSize: 14, // Reduced from 15 to match SettingsScreen
-    color: theme.colors.text,
-  },
-  dateButton: {
-    flex: 1,
-    backgroundColor: "transparent",
-    paddingVertical: 4,
-    justifyContent: "flex-start",
-  },
->>>>>>> Stashed changes
-  buttonLabel: {
-    fontSize: 14,
-    color: theme.colors.text,
-    fontWeight: "600",
-  },
-  buttonLabelPlaceholder: {
-    fontSize: 14,
-    color: theme.colors.placeholder,
-    fontWeight: "500",
-  },
-  filterRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    marginVertical: 20,
-    alignItems: "center",
-=======
-    gap: 8,
-    height: 40,
->>>>>>> Stashed changes
-=======
-    gap: 8,
-    height: 40,
->>>>>>> Stashed changes
-  },
-  filterBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 12, // Adjusted to match SettingsScreen card padding
-    minHeight: "8%",
-    marginBottom: 16,
-    shadowColor: "#000000",
-    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
     elevation: 3,
   },
-  sortTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.primary,
-    marginLeft: 12,
-    marginRight: 8,
+  addBtn: {
+    backgroundColor: "#007AFF",
+    borderRadius: 14,
+    paddingVertical: 8,
+    justifyContent: "center",
+    marginTop: 12,
   },
-  menuButton: {
+  sortRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 18,
     alignItems: "center",
     backgroundColor: "#ECEFF1",
     borderRadius: 8, // Reduced from 10
@@ -734,71 +660,11 @@ const styles = StyleSheet.create({
   taskHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
   },
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  info: { fontSize: 14, color: "#6C6C6C" },
+  info: { fontSize: 16, color: "#6C6C6C" },
   empty: {
-=======
-=======
->>>>>>> Stashed changes
-  taskTitle: {
-    fontSize: 16, // Reduced from 18 to match SettingsScreen card text
-    fontWeight: "600",
-    color: theme.colors.text,
-    flex: 1,
-    marginRight: 8,
-  },
-  taskSubtitle: {
-    fontSize: 14,
-    color: "#757575", // Changed from #78909C
-    marginBottom: 8,
-  },
-  completedText: {
-    textDecorationLine: "line-through",
-    color: "#90A4AE",
-  },
-  taskInfo: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  infoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ECEFF1",
-    borderRadius: 8,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    maxWidth: (width - 64) / 3,
-  },
-  infoText: {
-    fontSize: 13,
-    color: "#757575", // Changed from #546E7A
-    marginLeft: 4,
-    flexShrink: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 32,
-  },
-  emptyImage: {
-    width: 180,
-    height: 180,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 16, // Reduced from 18
-    color: theme.colors.placeholder,
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     textAlign: "center",
     fontWeight: "500",
   },

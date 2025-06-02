@@ -38,6 +38,7 @@ import {
   addPeboDevice,
   getPeboDevices,
   getUserName,
+  getUserName,
 } from "../services/firebase";
 import PopupModal from "../components/PopupModal";
 
@@ -51,7 +52,9 @@ const SettingsScreen = () => {
   const [peboLocation, setPeboLocation] = useState("");
   const [peboDevices, setPeboDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState(null);
+  const [selectedDeviceId, setSelectedDeviceId] = useState(null);
   const [userImage, setUserImage] = useState(null);
+  const [imageCacheBuster, setImageCacheBuster] = useState(Date.now());
   const [imageCacheBuster, setImageCacheBuster] = useState(Date.now());
   const [isProcessing, setIsProcessing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -72,8 +75,11 @@ const SettingsScreen = () => {
     title: "",
     message: "",
     icon: "checkmark-circle",
+    icon: "checkmark-circle",
   });
   const [username, setUsername] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -82,6 +88,7 @@ const SettingsScreen = () => {
     "https://aw8yn9cbj1.execute-api.us-east-1.amazonaws.com/prod/presigned";
 
   const showPopup = (title, message, icon = "checkmark-circle") => {
+    setPopupContent({ title, message, icon });
     setPopupContent({ title, message, icon });
     setPopupVisible(true);
   };
@@ -94,16 +101,28 @@ const SettingsScreen = () => {
       setIsLoading(false);
     });
 
+    let unsubscribeAuth;
+    unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      console.log("Auth state changed:", user ? user.uid : null);
+      setCurrentUser(user);
+      setIsLoading(false);
+    });
+
     const fetchPeboDevices = async () => {
       try {
         const devices = await getPeboDevices();
+        console.log("Fetched PEBO devices:", devices);
         console.log("Fetched PEBO devices:", devices);
         setPeboDevices(devices);
         if (devices.length > 0) {
           setSelectedDeviceId(devices[0].id);
         }
+        if (devices.length > 0) {
+          setSelectedDeviceId(devices[0].id);
+        }
       } catch (err) {
         console.warn("Error fetching PEBOs:", err);
+        showPopup("Error", "Failed to fetch devices", "alert-circle");
         showPopup("Error", "Failed to fetch devices", "alert-circle");
       }
     };
@@ -125,6 +144,7 @@ const SettingsScreen = () => {
       } catch (err) {
         console.warn("Error fetching Wi-Fi:", err);
         showPopup("Error", "Failed to fetch Wi-Fi settings", "alert-circle");
+        showPopup("Error", "Failed to fetch Wi-Fi settings", "alert-circle");
       }
     };
 
@@ -144,11 +164,13 @@ const SettingsScreen = () => {
           } else {
             console.warn("Snapshot is undefined");
             setUserImage(null);
+            showPopup("Error", "Failed to fetch profile image", "alert-circle");
           }
         },
         (error) => {
           console.error("Firebase listener error:", error);
           setUserImage(null);
+          showPopup("Error", "Failed to fetch profile image", "alert-circle");
         }
       );
     } else {
@@ -326,9 +348,12 @@ const SettingsScreen = () => {
     }
 
     // Launch camera
+    // Launch camera
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
+      quality: 0.95,
       quality: 0.95,
       aspect: [1, 1],
     });
@@ -342,8 +367,10 @@ const SettingsScreen = () => {
 
     try {
       // Construct S3 object name with user_USERNAME format
+      // Construct S3 object name with user_USERNAME format
       const objectName = `user_${sanitizedUsername}.jpg`;
 
+      // Get presigned URL
       // Get presigned URL
       const response = await fetch(
         `${API_GATEWAY_URL}?username=${encodeURIComponent(sanitizedUsername)}`
@@ -351,16 +378,19 @@ const SettingsScreen = () => {
 
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
       let presignedUrl;
       if (data.body) {
         const body = typeof data.body === "object" ? data.body : JSON.parse(data.body);
+        const body = typeof data.body === "object" ? data.body : JSON.parse(data.body);
         presignedUrl = body.presignedUrl;
       } else if (data.presignedUrl) {
         presignedUrl = data.presignedUrl;
       } else {
+        throw new Error("Pre-signed URL not found in response: " + JSON.stringify(data));
         throw new Error("Pre-signed URL not found in response: " + JSON.stringify(data));
       }
 
@@ -368,6 +398,7 @@ const SettingsScreen = () => {
         throw new Error("Pre-signed URL is missing or invalid");
       }
 
+      // Upload image to S3
       // Upload image to S3
       const imageResponse = await fetch(imageUri);
       const blob = await imageResponse.blob();
@@ -390,8 +421,14 @@ const SettingsScreen = () => {
       }
 
       // Construct S3 URL
+      // Construct S3 URL
       const s3Url = `https://${BUCKET_NAME}.s3.amazonaws.com/${objectName}`;
       console.log("S3 URL:", s3Url);
+
+      // Save to Firebase if user is authenticated
+      if (currentUser?.uid) {
+        await db.ref(`users/${currentUser.uid}/profileImage`).set(s3Url);
+        await db.ref(`users/${currentUser.uid}/imageHistory`).push({
 
       // Save to Firebase if user is authenticated
       if (currentUser?.uid) {
@@ -404,13 +441,19 @@ const SettingsScreen = () => {
         // Update username in Firebase
         await db.ref(`users/${currentUser.uid}/username`).set(enteredUsername);
         setUsername(enteredUsername);
+        // Update username in Firebase
+        await db.ref(`users/${currentUser.uid}/username`).set(enteredUsername);
+        setUsername(enteredUsername);
       }
 
       setUserImage(s3Url);
       setImageCacheBuster(Date.now());
       showPopup("Success", "Image captured and uploaded successfully!", "checkmark-circle");
+      setImageCacheBuster(Date.now());
+      showPopup("Success", "Image captured and uploaded successfully!", "checkmark-circle");
     } catch (error) {
       console.error("Upload error:", error);
+      showPopup("Error", `Failed to upload image: ${error.message}`, "alert-circle");
       showPopup("Error", `Failed to upload image: ${error.message}`, "alert-circle");
     } finally {
       setIsProcessing(false);
@@ -425,8 +468,10 @@ const SettingsScreen = () => {
       return;
     }
     if (pwd.length < 8) {
+    if (pwd.length < 8) {
       showPopup(
         "Error",
+        "Password must be at least 8 characters",
         "Password must be at least 8 characters",
         "alert-circle"
       );
@@ -443,7 +488,17 @@ const SettingsScreen = () => {
         "Wi-Fi settings saved successfully!",
         "checkmark-circle"
       );
+      showPopup(
+        "Success",
+        "Wi-Fi settings saved successfully!",
+        "checkmark-circle"
+      );
     } catch (err) {
+      showPopup(
+        "Error",
+        `Failed to save Wi-Fi settings: ${err.message}`,
+        "alert-circle"
+      );
       showPopup(
         "Error",
         `Failed to save Wi-Fi settings: ${err.message}`,
@@ -456,6 +511,7 @@ const SettingsScreen = () => {
 
   const handleShowQrCode = () => {
     if (!wifiSSID.trim() || !wifiPassword.trim()) {
+    if (!wifiSSID.trim() || !wifiPassword.trim()) {
       showPopup(
         "Error",
         "Please save valid Wi-Fi settings first",
@@ -463,6 +519,29 @@ const SettingsScreen = () => {
       );
       return;
     }
+    if (peboDevices.length === 0) {
+      showPopup(
+        "Error",
+        "No PEBO devices available. Please add a device first.",
+        "alert-circle"
+      );
+      return;
+    }
+    if (!currentUser?.uid) {
+      showPopup(
+        "Error",
+        "User not authenticated. Please log in again.",
+        "alert-circle"
+      );
+      return;
+    }
+    setDeviceSelectModalVisible(true);
+  };
+
+  const handleSelectDevice = (deviceId) => {
+    console.log("Selected device ID:", deviceId);
+    setSelectedDeviceId(deviceId);
+    setDeviceSelectModalVisible(false);
     if (peboDevices.length === 0) {
       showPopup(
         "Error",
@@ -538,12 +617,20 @@ const SettingsScreen = () => {
         "Please enter both a PEBO name and a location.",
         "alert-circle"
       );
+      showPopup(
+        "Error",
+        "Please enter both a PEBO name and a location.",
+        "alert-circle"
+      );
       return;
     }
     try {
       await addPeboDevice({ name, location: loc });
       const updated = await getPeboDevices();
       setPeboDevices(updated);
+      if (updated.length > 0 && !selectedDeviceId) {
+        setSelectedDeviceId(updated[0].id);
+      }
       if (updated.length > 0 && !selectedDeviceId) {
         setSelectedDeviceId(updated[0].id);
       }
@@ -555,7 +642,13 @@ const SettingsScreen = () => {
         "New PEBO device added successfully!",
         "checkmark-circle"
       );
+      showPopup(
+        "Success",
+        "New PEBO device added successfully!",
+        "checkmark-circle"
+      );
     } catch (err) {
+      showPopup("Error", `Failed to add PEBO: ${err.message}`, "alert-circle");
       showPopup("Error", `Failed to add PEBO: ${err.message}`, "alert-circle");
     }
   };
@@ -565,6 +658,7 @@ const SettingsScreen = () => {
       await auth.signOut();
       navigation.reset({ index: 0, routes: [{ name: "Login" }] });
     } catch (err) {
+      showPopup("Error", `Logout failed: ${err.message}`, "alert-circle");
       showPopup("Error", `Logout failed: ${err.message}`, "alert-circle");
     }
   };
@@ -593,13 +687,22 @@ const SettingsScreen = () => {
               color={styles.primaryColor}
             />
             <Text style={styles.cardLabel}>My Photo</Text>
+            <Ionicons
+              name="person-circle"
+              size={styles.personCircleSize}
+              color={styles.primaryColor}
+            />
+            <Text style={styles.cardLabel}>My Photo</Text>
           </View>
+          <View style={styles.userSection}>
           <View style={styles.userSection}>
             {userImage && userImage !== "" ? (
               <Image
                 source={{
                   uri: `${userImage}?t=${imageCacheBuster}`,
+                  uri: `${userImage}?t=${imageCacheBuster}`,
                 }}
+                style={styles.userImage}
                 style={styles.userImage}
                 onError={(e) =>
                   console.log("Image load error:", e.nativeEvent.error)
@@ -608,6 +711,7 @@ const SettingsScreen = () => {
             ) : (
               <View style={styles.placeholderImage}>
                 <Ionicons name="person" size={styles.personIcon} color="#ccc" />
+                <Ionicons name="person" size={styles.personIcon} color="#ccc" />
                 <Text style={styles.placeholderText}>No Image</Text>
               </View>
             )}
@@ -615,8 +719,12 @@ const SettingsScreen = () => {
               accessibilityLabel="Capture new image"
               accessibilityRole="button"
               onPress={captureAndUploadImage}
+              accessibilityLabel="Capture new image"
+              accessibilityRole="button"
+              onPress={captureAndUploadImage}
               style={[
                 styles.photoButton,
+                isProcessing ? styles.processingButton : null,
                 isProcessing ? styles.processingButton : null,
               ]}
               disabled={isProcessing}
@@ -625,9 +733,12 @@ const SettingsScreen = () => {
                 <>
                   <ActivityIndicator size="small" color="#fff" />
                   <Text style={styles.buttonText}>Processing...</Text>
+                  <Text style={styles.buttonText}>Processing...</Text>
                 </>
               ) : (
                 <>
+                  <Ionicons name="camera" size={styles.camera} color="#fff" />
+                  <Text style={styles.cameraButtonText}>Capture New Image</Text>
                   <Ionicons name="camera" size={styles.camera} color="#fff" />
                   <Text style={styles.cameraButtonText}>Capture New Image</Text>
                 </>
@@ -642,6 +753,11 @@ const SettingsScreen = () => {
               size={styles.wifiIcon}
               color={styles.wifiColor}
             />
+            <MaterialIcons
+              name="wifi"
+              size={styles.wifiIcon}
+              color={styles.wifiColor}
+            />
             <Text style={styles.cardLabel}>Wi-Fi Configuration</Text>
           </View>
           <TextInput
@@ -651,12 +767,15 @@ const SettingsScreen = () => {
             onChangeText={setWifiSSID}
             placeholderTextColor="#999"
             accessibilityLabel="Wi-Fi SSID"
+            accessibilityLabel="Wi-Fi SSID"
           />
+          <View style={styles.inputContainer}>
           <View style={styles.inputContainer}>
             <TextInput
               placeholder="Password"
               style={[
                 styles.input,
+                (!wifiPassword.trim() || wifiPassword.length < 8) &&
                 (!wifiPassword.trim() || wifiPassword.length < 8) &&
                   styles.inputError,
               ]}
@@ -665,9 +784,14 @@ const SettingsScreen = () => {
               onChangeText={setWifiPassword}
               placeholderTextColor="#999"
               accessibilityLabel="Wi-Fi Password"
+              accessibilityLabel="Wi-Fi Password"
             />
             <TouchableOpacity
               onPress={() => setShowPassword((v) => !v)}
+              style={styles.eyeIconContainer}
+              accessibilityLabel={
+                showPassword ? "Hide password" : "Show password"
+              }
               style={styles.eyeIconContainer}
               accessibilityLabel={
                 showPassword ? "Hide password" : "Show password"
@@ -676,11 +800,13 @@ const SettingsScreen = () => {
               <Ionicons
                 name={showPassword ? "eye-off" : "eye"}
                 size={styles.eyeIcon}
+                size={styles.eyeIcon}
                 color="#999"
               />
             </TouchableOpacity>
           </View>
           <TouchableOpacity
+            accessibilityLabel="Save Wi-Fi settings"
             accessibilityLabel="Save Wi-Fi settings"
             style={[
               styles.saveButton,
@@ -694,6 +820,7 @@ const SettingsScreen = () => {
             ) : (
               <>
                 <Ionicons name="wifi" size={styles.wifiIconSize} color="#fff" />
+                <Ionicons name="wifi" size={styles.wifiIconSize} color="#fff" />
                 <Text style={styles.saveButtonText}>Save Wi-Fi</Text>
               </>
             )}
@@ -706,14 +833,24 @@ const SettingsScreen = () => {
                 backgroundColor: "#ddd",
               },
             ]}
+            accessibilityLabel="Show Wi-Fi QR code"
+            style={[
+              styles.qrButton,
+              (!wifiSSID.trim() || !wifiPassword.trim()) && {
+                backgroundColor: "#ddd",
+              },
+            ]}
             onPress={handleShowQrCode}
             disabled={!wifiSSID.trim() || !wifiPassword.trim()}
           >
             <Ionicons name="qr-code" size={styles.qrIconSize} color="#fff" />
             <Text style={styles.qrButtonText}>Show QR Code</Text>
+            <Ionicons name="qr-code" size={styles.qrIconSize} color="#fff" />
+            <Text style={styles.qrButtonText}>Show QR Code</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
+          accessibilityLabel="Add new device"
           accessibilityLabel="Add new device"
           style={styles.addButton}
           onPress={() => setModalVisible(true)}
@@ -724,10 +861,19 @@ const SettingsScreen = () => {
             color="#fff"
           />
           <Text style={styles.addButtonText}>Add New Device</Text>
+          <Ionicons
+            name="add-circle-outline"
+            size={styles.addIcon}
+            color="#fff"
+          />
+          <Text style={styles.addButtonText}>Add New Device</Text>
         </TouchableOpacity>
         <View style={styles.deviceContainer}>
           <Text style={styles.sectionTitle}>My Devices</Text>
+        <View style={styles.deviceContainer}>
+          <Text style={styles.sectionTitle}>My Devices</Text>
           {peboDevices.length === 0 ? (
+            <Text style={styles.emptyText}>No devices found.</Text>
             <Text style={styles.emptyText}>No devices found.</Text>
           ) : (
             peboDevices.map((pebo) => (
@@ -735,6 +881,7 @@ const SettingsScreen = () => {
                 <View style={styles.peboHeader}>
                   <Ionicons
                     name="hardware-chip-outline"
+                    size={styles.chipIcon}
                     size={styles.chipIcon}
                     color="#007AFF"
                   />
@@ -752,8 +899,16 @@ const SettingsScreen = () => {
         <TouchableOpacity
           accessibilityLabel="Log out"
           style={styles.logoutButton}
+          accessibilityLabel="Log out"
+          style={styles.logoutButton}
           onPress={() => setLogoutModalVisible(true)}
         >
+          <Ionicons
+            name="log-out-outline"
+            size={styles.logoutIcon}
+            color="#fff"
+          />
+          <Text style={styles.logoutText}>Logout</Text>
           <Ionicons
             name="log-out-outline"
             size={styles.logoutIcon}
@@ -771,12 +926,15 @@ const SettingsScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Device</Text>
+            <Text style={styles.modalTitle}>Add New Device</Text>
             <TextInput
+              placeholder="Device Name"
               placeholder="Device Name"
               value={peboName}
               onChangeText={setPeboName}
               style={styles.input}
               placeholderTextColor="#999"
+              accessibilityLabel="Device name"
               accessibilityLabel="Device name"
             />
             <TextInput
@@ -786,20 +944,27 @@ const SettingsScreen = () => {
               style={styles.input}
               placeholderTextColor="#999"
               accessibilityLabel="Device location"
+              accessibilityLabel="Device location"
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalButton}
+                style={styles.modalButton}
                 onPress={handleAddPebo}
                 accessibilityLabel="Add device"
+                accessibilityLabel="Add device"
               >
+                <Text style={styles.modalButtonText}>Add Device</Text>
                 <Text style={styles.modalButtonText}>Add Device</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelButton}
+                style={styles.cancelButton}
                 onPress={() => setModalVisible(false)}
                 accessibilityLabel="Cancel"
+                accessibilityLabel="Cancel"
               >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
@@ -820,16 +985,25 @@ const SettingsScreen = () => {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.logoutConfirmButton}
+              <TouchableOpacity
+                style={styles.logoutConfirmButton}
                 onPress={handleLogout}
+                accessibilityLabel="Confirm logout"
                 accessibilityLabel="Confirm logout"
               >
                 <Text style={styles.modalButtonText}>Logout</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelConfirmButton}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelConfirmButton}
                 onPress={() => setLogoutModalVisible(false)}
                 accessibilityLabel="Cancel logout"
+                accessibilityLabel="Cancel logout"
               >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
@@ -839,11 +1013,45 @@ const SettingsScreen = () => {
       <Modal
         transparent
         visible={deviceSelectModalVisible}
+        visible={deviceSelectModalVisible}
         animationType="fade"
+        onRequestClose={() => setDeviceSelectModalVisible(false)}
         onRequestClose={() => setDeviceSelectModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Device</Text>
+            <View style={styles.pickerContainer}>
+              <Ionicons
+                name="hardware-chip-outline"
+                style={styles.pickerIcon}
+              />
+              <Picker
+                selectedValue={selectedDeviceId}
+                onValueChange={(value) => setSelectedDeviceId(value)}
+                style={styles.picker}
+                itemStyle={styles.pickerItem}
+                accessibilityLabel="Select device"
+              >
+                <Picker.Item
+                  label="Select a device..."
+                  value={null}
+                  style={styles.pickerPlaceholder}
+                />
+                {peboDevices.map((device) => (
+                  <Picker.Item
+                    key={device.id}
+                    label={`${device.name} (${device.location})`}
+                    value={device.id}
+                    style={[
+                      styles.pickerItem,
+                      selectedDeviceId === device.id &&
+                        styles.pickerItemSelected,
+                    ]}
+                  />
+                ))}
+              </Picker>
+            </View>
             <Text style={styles.modalTitle}>Select Device</Text>
             <View style={styles.pickerContainer}>
               <Ionicons
@@ -882,14 +1090,23 @@ const SettingsScreen = () => {
                 onPress={() => handleSelectDevice(selectedDeviceId)}
                 disabled={!selectedDeviceId}
                 accessibilityLabel="Select device and show QR code"
+                style={styles.selectDeviceButton}
+                onPress={() => handleSelectDevice(selectedDeviceId)}
+                disabled={!selectedDeviceId}
+                accessibilityLabel="Select device and show QR code"
               >
+                <Text style={styles.modalButtonText}>Select & Show QR</Text>
                 <Text style={styles.modalButtonText}>Select & Show QR</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelDeviceButton}
                 onPress={() => setDeviceSelectModalVisible(false)}
                 accessibilityLabel="Cancel device selection"
+                style={styles.cancelDeviceButton}
+                onPress={() => setDeviceSelectModalVisible(false)}
+                accessibilityLabel="Cancel device selection"
               >
+                <Text style={styles.modalButtonText}>Cancel</Text>
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
@@ -907,6 +1124,7 @@ const SettingsScreen = () => {
             <Text style={styles.modalTitle}>Wi-Fi QR Code</Text>
             <Text style={styles.modalSubtitle}>
               Show this QR code to the device's camera to configure Wi-Fi.
+              Show this QR code to the device's camera to configure Wi-Fi.
             </Text>
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -919,8 +1137,9 @@ const SettingsScreen = () => {
               />
             </View>
             <TouchableOpacity
-              style={[styles.modalButton, { backgroundColor: "#ccc" }]}
+              style={styles.closeQrModalButton}
               onPress={() => setQrModalVisible(false)}
+              accessibilityLabel="Close QR code modal"
             >
               <Text style={[styles.modalButtonText, { color: "#333" }]}>
                 Close
@@ -992,11 +1211,48 @@ const SettingsScreen = () => {
           </View>
         </View>
       </Modal>
+      <Modal
+        transparent
+        visible={usernameModalVisible}
+        animationType="fade"
+        onRequestClose={() => setUsernameModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Enter Username</Text>
+            <TextInput
+              placeholder="Username"
+              value={tempUsername}
+              onChangeText={setTempUsername}
+              style={styles.input}
+              placeholderTextColor="#999"
+              accessibilityLabel="Username input"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleUsernameSubmit}
+                accessibilityLabel="Submit username"
+              >
+                <Text style={styles.modalButtonText}>Submit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setUsernameModalVisible(false)}
+                accessibilityLabel="Cancel username input"
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <PopupModal
         visible={popupVisible}
         onClose={() => setPopupVisible(false)}
         title={popupContent.title}
         message={popupContent.message}
+        icon={popupContent.icon}
         icon={popupContent.icon}
       />
     </View>
@@ -1022,6 +1278,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 20,
     color: "#1976D2",
+    marginTop: 20,
+    color: "#1976D2",
     marginBottom: 20,
     alignSelf: "center",
   },
@@ -1030,15 +1288,22 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 14,
     color: "#1976D2",
+    color: "#1976D2",
   },
   card: {
+    backgroundColor: "#FFFFFF",
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     elevation: 3,
     shadowColor: "#000000",
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: "#000000",
     shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
   },
@@ -1046,9 +1311,60 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
+    marginBottom: 12,
   },
   cardLabel: {
     fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
+    color: "#1976D2",
+  },
+  userSection: {
+    alignItems: "center",
+    marginVertical: 12,
+  },
+  userImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 8,
+  },
+  placeholderImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#E0E0E0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  placeholderText: {
+    color: "#757575",
+    fontSize: 12,
+    marginTop: 4,
+  },
+  photoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    width: "80%",
+  },
+  processingButton: {
+    backgroundColor: "#B0BEC5",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  cameraButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
     fontWeight: "600",
     marginLeft: 8,
     color: "#1976D2",
@@ -1110,8 +1426,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#212121",
     marginBottom: 8,
+    backgroundColor: "#ECEFF1",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: "#212121",
+    marginBottom: 8,
   },
   inputError: {
+    borderColor: "#D32F2F",
     borderColor: "#D32F2F",
     borderWidth: 1,
   },
@@ -1124,8 +1448,30 @@ const styles = StyleSheet.create({
     right: 12,
     top: 12,
   },
+  inputContainer: {
+    position: "relative",
+    marginBottom: 8,
+  },
+  eyeIconContainer: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+  },
   saveButton: {
     backgroundColor: "#1976D2",
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: "#1976D2",
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+    marginTop: 8,
+    flexDirection: "row",
+  },
+  qrButton: {
+    backgroundColor: "#34C759",
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: "center",
@@ -1145,7 +1491,16 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#FFFFFF",
     fontSize: 14,
+    color: "#FFFFFF",
+    fontSize: 14,
     fontWeight: "600",
+    marginLeft: 8,
+  },
+  qrButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
     marginLeft: 8,
   },
   qrButtonText: {
@@ -1159,16 +1514,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#1976D2",
     borderRadius: 12,
     padding: 12,
+    backgroundColor: "#1976D2",
+    borderRadius: 12,
+    padding: 12,
     alignItems: "center",
     justifyContent: "center",
+    marginVertical: 8,
     marginVertical: 8,
   },
   addButtonText: {
     color: "#FFFFFF",
     fontSize: 14,
+    color: "#FFFFFF",
+    fontSize: 14,
     fontWeight: "600",
     marginLeft: 8,
+    marginLeft: 8,
   },
+  logoutButton: {
+    flexDirection: "row",
+    backgroundColor: "#D32F2F",
+    borderRadius: 12,
+    padding: 12,
   logoutButton: {
     flexDirection: "row",
     backgroundColor: "#D32F2F",
@@ -1177,10 +1544,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginVertical: 8,
+    justifyContent: "center",
+    marginVertical: 8,
   },
   logoutText: {
     color: "#FFFFFF",
+  logoutText: {
+    color: "#FFFFFF",
     fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  deviceContainer: {
+    marginTop: 16,
     fontWeight: "600",
     marginLeft: 8,
   },
@@ -1190,7 +1566,13 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "#616161",
     fontSize: 14,
+    color: "#616161",
+    fontSize: 14,
     textAlign: "center",
+    backgroundColor: "#F5F5F5",
+    padding: 16,
+    borderRadius: 8,
+    marginVertical: 8,
     backgroundColor: "#F5F5F5",
     padding: 16,
     borderRadius: 8,
@@ -1203,7 +1585,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     elevation: 2,
     shadowColor: "#000000",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: "#000000",
     shadowOpacity: 0.1,
+    shadowRadius: 6,
     shadowRadius: 6,
   },
   peboHeader: {
@@ -1212,9 +1601,13 @@ const styles = StyleSheet.create({
   },
   peboInfo: {
     marginLeft: 8,
+    marginLeft: 8,
     flex: 1,
   },
   peboName: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#212121",
     fontSize: 16,
     fontWeight: "500",
     color: "#212121",
@@ -1223,9 +1616,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#757575",
     marginTop: 1,
+    fontSize: 12,
+    color: "#757575",
+    marginTop: 1,
   },
   modalOverlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
@@ -1236,27 +1633,40 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     elevation: 5,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#1976D2",
+    color: "#1976D2",
     textAlign: "center",
+    marginBottom: 16,
     marginBottom: 16,
   },
   modalSubtitle: {
     fontSize: 12,
     color: "#616161",
+    fontSize: 12,
+    color: "#616161",
     textAlign: "center",
+    marginBottom: 12,
     marginBottom: 12,
   },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 12,
+    marginTop: 12,
   },
   modalButton: {
     flex: 1,
+    backgroundColor: "#1976D2",
+    padding: 10,
+    borderRadius: 8,
     backgroundColor: "#1976D2",
     padding: 10,
     borderRadius: 8,
@@ -1270,11 +1680,59 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginLeft: 4,
+    marginRight: 4,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#D32F2F",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginLeft: 4,
   },
   modalButtonText: {
     color: "#FFFFFF",
     fontSize: 14,
+    color: "#FFFFFF",
+    fontSize: 14,
     fontWeight: "600",
+  },
+  cancelButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  logoutConfirmButton: {
+    flex: 1,
+    backgroundColor: "#D32F2F",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginRight: 4,
+  },
+  cancelConfirmButton: {
+    flex: 1,
+    backgroundColor: "#1976D2",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginLeft: 4,
+  },
+  selectDeviceButton: {
+    flex: 1,
+    backgroundColor: "#1976D2",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginRight: 4,
+  },
+  cancelDeviceButton: {
+    flex: 1,
+    backgroundColor: "#D32F2F",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginLeft: 4,
   },
   cancelButtonText: {
     color: "#FFFFFF",
