@@ -242,7 +242,7 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
 
 if __name__ == "__main__":
     try:
-        asyncio.run(play_music("api kawruda"))
+        asyncio.run(play_music("numba ha"))
     except KeyboardInterrupt:
         print("Script interrupted by user.")
         stop_music_flag = True

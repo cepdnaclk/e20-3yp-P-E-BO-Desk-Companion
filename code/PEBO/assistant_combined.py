@@ -3,6 +3,7 @@
 Voice Assistant with Robot Control
 Listens for trigger phrases and controls robot emotions with simultaneous arm/eye expressions and voice output
 Integrated with standalone functions for arm and eye movements
+Includes song playback functionality triggered by 'play song' or 'play song <song name>' command in the main loop
 """
 
 import google.generativeai as genai
@@ -28,13 +29,14 @@ import smbus
 from arms.arms_pwm import (say_hi, express_tired, express_happy, express_sad, express_angry,
                            reset_to_neutral, scan_i2c_devices, angle_to_pulse_value, set_servos, smooth_move)
 from display.eyes import RoboEyesDual
+from interaction.play_song import play_music
 
 # Constants for I2C addresses
 PCA9685_ADDR = 0x40
 LEFT_EYE_ADDRESS = 0x3D
 RIGHT_EYE_ADDRESS = 0x3C
 
-# Global variables to replace RobotController instance attributes
+# Global variables for hardware control
 i2c = None
 eyes = None
 current_eye_thread = None
@@ -50,28 +52,22 @@ def initialize_hardware():
 def run_emotion(arm_func, eye_func):
     """Run arm movement and eye expression simultaneously, then return to normal mode"""
     global current_eye_thread, stop_event
-    # Create a new stop event for this expression
     stop_event = threading.Event()
     
-    # Start eye expression in a separate thread
     current_eye_thread = threading.Thread(target=eye_func, args=(stop_event,))
-    current_eye_thread.daemon = True  # Ensure thread exits when main program does
+    current_eye_thread.daemon = True
     current_eye_thread.start()
     
-    # Run arm movement in the main thread
     arm_func()
     
-    # Wait for 10 seconds total (including arm movement time)
     time.sleep(1)
     
-    # Stop the current eye expression
     stop_event.set()
     if current_eye_thread:
-        current_eye_thread.join(timeout=1.0)  # Wait for thread to terminate
+        current_eye_thread.join(timeout=1.0)
         current_eye_thread = None
     stop_event = None
     
-    # Return to normal mode
     normal()
 
 def hi():
@@ -81,13 +77,10 @@ def hi():
 def normal():
     print("Expressing Normal")
     global current_eye_thread, stop_event
-    # Run both arms and eyes for normal mode
     stop_event = threading.Event()
     current_eye_thread = threading.Thread(target=eyes.Default, args=(stop_event,))
     current_eye_thread.daemon = True
     current_eye_thread.start()
-    # Normal mode persists until next command, so don't stop the eye thread
-    # Clear stop event but keep thread running
     stop_event = None
 
 def happy():
@@ -107,16 +100,14 @@ def love():
     run_emotion(express_happy, eyes.Love)
 
 def cleanup():
-    """Clean up resources, clear displays, and deinitialize I2C bus to clear SCL and SDA."""
+    """Clean up resources, clear displays, and deinitialize I2C bus."""
     global i2c, eyes, current_eye_thread, stop_event
     print("🖥️ Cleaning up resources...")
-    # Stop any running eye thread
     if stop_event:
         stop_event.set()
     if current_eye_thread:
         current_eye_thread.join(timeout=1.0)
         current_eye_thread = None
-    # Reset arms and clear displays
     try:
         reset_to_neutral()
         eyes.display_left.fill(0)
@@ -126,7 +117,6 @@ def cleanup():
         print("🖥️ Displays cleared")
     except Exception as e:
         print(f"🖥️ Error clearing displays: {e}")
-    # Deinitialize I2C bus to clear SCL and SDA
     try:
         i2c.deinit()
         print("🖥️ I2C bus deinitialized, SCL and SDA cleared")
@@ -179,7 +169,7 @@ goodbye_messages = [
 def read_recognition_result(file_path="/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/recognition_result.txt"):
     """Read Name and Emotion from recognition_result.txt with retry on busy file."""
     max_read_retries = 5
-    read_retry_delay = 0.5  # seconds
+    read_retry_delay = 0.5
 
     for attempt in range(max_read_retries):
         try:
@@ -235,7 +225,7 @@ async def speak_text(text):
     pygame.mixer.music.set_volume(1.0)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
-        await asyncio.sleep(0.25)  # Use asyncio.sleep for non-blocking
+        await asyncio.sleep(0.25)
 
     pygame.mixer.music.stop()
     pygame.mixer.music.unload()
@@ -253,9 +243,7 @@ def listen(
         language: str = "en-US",
         calibrate_duration: float = 0.5,
 ) -> str | None:
-    """
-    Capture a single utterance and return the recognized text.
-    """
+    """Capture a single utterance and return the recognized text."""
     for attempt in range(retries + 1):
         try:
             with mic as source:
@@ -296,7 +284,7 @@ def listen(
     return None
 
 # Load the Whisper model once
-whisper_model = whisper.load_model("base")  # Try "tiny" or "small" if Pi is slow
+whisper_model = whisper.load_model("base")
 
 def listen_whisper(duration=1, sample_rate=16000) -> str | None:
     """Capture audio and transcribe using Whisper."""
@@ -333,16 +321,14 @@ async def start_assistant_from_text(prompt_text):
     """Starts Gemini assistant with initial text prompt and controls robot emotions."""
     print(f"\U0001F4AC Initial Prompt: {prompt_text}")
     conversation_history.clear()
-    # Append emotion prompt
-    full_prompt = f"{prompt_text}\n{prompt_text} Above is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion based on the message's context. Provide your answer in the format [emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response to my message."
+    
+    full_prompt = f"{prompt_text}\nAbove is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion based on the message's context. Provide your answer in the format [emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response to my message."
     conversation_history.append({"role": "user", "parts": [full_prompt]})
 
-    # Generate response from Gemini
     response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 60})
     reply = response.text.strip()
 
-    # Parse response to extract emotion and answer
-    emotion = "Normal"  # Default emotion for Gemini response
+    emotion = "Normal"
     answer = reply
     try:
         match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
@@ -354,7 +340,6 @@ async def start_assistant_from_text(prompt_text):
     except Exception as e:
         print(f"Error parsing Gemini response: {e}")
 
-    # Trigger robot emotion and voice output simultaneously
     valid_emotions = {"Happy", "Sad", "Angry", "Normal", "Love"}
     emotion_methods = {
         "Happy": happy,
@@ -363,18 +348,18 @@ async def start_assistant_from_text(prompt_text):
         "Normal": normal,
         "Love": love
     }
-    # Use Normal for arm/eye if emotion is not in valid_emotions
     emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
     
-    # Start emotion expression and voice output concurrently
-    emotion_task = asyncio.to_thread(emotion_method)  # Run emotion in a thread
-    voice_task = speak_text(answer)  # Run voice output
-    await asyncio.gather(emotion_task, voice_task)  # Run both tasks simultaneously
+    emotion_task = asyncio.to_thread(emotion_method)
+    voice_task = speak_text(answer)
+    await asyncio.gather(emotion_task, voice_task)
     
     conversation_history.append({"role": "model", "parts": [answer]})
 
     failed_attempts = 0
     max_attempts = 1
+    positive_responses = ["yes", "yeah", "yep", "correct", "right", "ok", "okay"]
+    negative_responses = ["no", "nope", "not", "wrong", "incorrect"]
 
     while failed_attempts < max_attempts:
         user_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
@@ -393,6 +378,79 @@ async def start_assistant_from_text(prompt_text):
             continue
 
         failed_attempts = 0  # Reset on valid input
+        
+        # Check for "play song" with or without song name
+        song_match = re.match(r'^play\s+song\s+(.+)$', user_input, re.IGNORECASE)
+        if song_match or user_input == "play song":
+            max_song_attempts = 3
+            if song_match:
+                song_input = song_match.group(1).strip()  # Extract song name
+            else:
+                await speak_text("What song should I play?")
+                await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                song_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
+                if song_input is None:
+                    await speak_text("Sorry, I couldn't get the song name. Let's try something else.")
+                    await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                    continue
+
+            for attempt in range(max_song_attempts):
+                if song_input:
+                    await speak_text(f"Your song is {song_input}. Is that correct?")
+                    await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                    confirmation = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
+                    
+                    if confirmation is None:
+                        if attempt < max_song_attempts - 1:
+                            await speak_text(f"I didn't hear you. Is {song_input} the correct song?")
+                            await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                            continue
+                        else:
+                            await speak_text("Sorry, I couldn't confirm the song. Let's try something else.")
+                            await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                            break
+
+                    confirmation = confirmation.lower()
+                    if any(pos in confirmation for pos in positive_responses):
+                        await play_music(song_input, None)  # Pass None for controller
+                        await asyncio.to_thread(normal)
+                        break
+                    elif any(neg in confirmation for neg in negative_responses):
+                        if attempt < max_song_attempts - 1:
+                            await speak_text("Okay, what song should I play?")
+                            await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                            song_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
+                            if song_input is None:
+                                if attempt < max_song_attempts - 2:
+                                    await speak_text("I didn't catch that. What song should I play?")
+                                    await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                                    continue
+                                else:
+                                    await speak_text("Sorry, I couldn't get the song name. Let's try something else.")
+                                    await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                                    break
+                        else:
+                            await speak_text("Sorry, I couldn't get the right song after a few tries. Let's try something else.")
+                            await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                    else:
+                        if attempt < max_song_attempts - 1:
+                            await speak_text(f"I didn't understand. Is {song_input} the correct song?")
+                            await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                            continue
+                        else:
+                            await speak_text("Sorry, I couldn't confirm the song. Let's try something else.")
+                            await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                            break
+                else:
+                    if attempt < max_song_attempts - 1:
+                        await speak_text("I didn't catch that. What song should I play?")
+                        await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                        song_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
+                    else:
+                        await speak_text("Sorry, I couldn't get the song name. Let's try something else.")
+                        await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
+                        break
+            continue  # Continue listening after song handling
 
         if user_input in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
             print("\U0001F44B Exiting assistant.")
@@ -400,30 +458,27 @@ async def start_assistant_from_text(prompt_text):
             normal()
             break
 
-        # Append emotion prompt
         full_user_input = f"{user_input}\nAbove is my conversation part. What is your emotion for that conversation (Happy, Sad, Angry, Normal, or Love)? If my conversation includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion based on the conversation's context. Your emotion is [emotion] and your answer for above conversation is [answer]. Give your answer as [emotion,answer]"
         conversation_history.append({"role": "user", "parts": [full_user_input]})
         response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 60})
         reply = response.text.strip()
 
-        # Parse response
         emotion = "Normal"
         answer = reply
         try:
             match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
             if match:
                 emotion, answer = match.groups()
-                print(f"{emotion} : {answer}")
+                print(f"{emotion}: {answer}")
             else:
                 print(f"Gemini: {reply} (No emotion detected, assuming Normal)")
         except Exception as e:
             print(f"Error parsing Gemini response: {e}")
 
-        # Trigger robot emotion and voice output simultaneously
         emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
-        emotion_task = asyncio.to_thread(emotion_method)  # Run emotion in a thread
-        voice_task = speak_text(answer)  # Run voice output
-        await asyncio.gather(emotion_task, voice_task)  # Run both tasks simultaneously
+        emotion_task = asyncio.to_thread(emotion_method)
+        voice_task = speak_text(answer)
+        await asyncio.gather(emotion_task, voice_task)
         
         conversation_history.append({"role": "model", "parts": [answer]})
     cleanup()
@@ -437,7 +492,7 @@ async def monitor_for_trigger(name, emotion):
     print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
     text = listen(recognizer, mic)
     if text:
-        trigger_pattern = r'\b((hi|hey|hello)\s+)?(' + '|'.join(similar_sounds) + r')\b'
+        trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
         if re.search(trigger_pattern, text, re.IGNORECASE):
             print("✅ Trigger phrase detected! Starting assistant...")
             print(f"Using: Name={name}, Emotion={emotion}")
@@ -474,14 +529,14 @@ async def monitor_start(name, emotion):
             await speak_text("I can't identify you as my user")
     finally:
         print("🖥️ Cleaning up in monitor_start: Clearing displays and I2C bus...")
-        cleanup()  # Clear displays, reset arms, and deinitialize I2C bus
+        cleanup()
         await asyncio.sleep(0.5)
 
 if __name__ == "__main__":
     try:
         name = "Bhagya"
         emotion = "Sad"
-        asyncio.run(monitor_for_trigger(name, emotion))
+        asyncio.run(monitor_start(name, emotion))
     except KeyboardInterrupt:
         print("\nProgram interrupted by user")
     finally:
