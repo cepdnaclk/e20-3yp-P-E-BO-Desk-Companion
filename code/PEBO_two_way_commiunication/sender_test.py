@@ -206,7 +206,146 @@ def store_ip_to_firebase(user_id, device_id, ip_address, ssid):
         logger.info(f"Stored IP {ip_address or 'Disconnected'} and SSID {ssid or 'Unknown'} for user {user_id}, device {device_id}")
     except Exception as e:
         logger.error(f"Error storing data to Firebase: {str(e)}")
-ces' in user_data:
+# ... (keep existing imports and code until initiate_interdevice_communication) ...
+
+# Check for devices on the same Wi-Fi and initiate communication
+def initiate_interdevice_communication(user_id, current_ssid, current_ip):
+    try:
+        users_ref = db.reference('users')
+        users = users_ref.get()
+        if not users:
+            logger.info("No users found in Firebase")
+            print("No other users found.")
+            return
+
+        same_wifi_devices = []
+        for uid, user_data in users.items():
+            if 'peboDevices' in user_data:
+                for device_id, device_data in user_data['peboDevices'].items():
+                    if device_data.get('ssid') == current_ssid and device_data.get('ipAddress') != 'Disconnected':
+                        same_wifi_devices.append({
+                            'user_id': uid,
+                            'device_id': device_id,
+                            'ip_address': device_data.get('ipAddress'),
+                            'ssid': device_data.get('ssid')
+                        })
+
+        if not same_wifi_devices:
+            logger.info(f"No devices found on SSID {current_ssid}")
+            print(f"No other devices found on Wi-Fi {current_ssid}.")
+            return
+
+        print("Available PEBO devices on the same Wi-Fi:")
+        for idx, device in enumerate(same_wifi_devices, 1):
+            print(f"{idx}. Device: {device['device_id']} (User: {device['user_id']}, IP: {device['ip_address']})")
+
+        choice = int(input("Enter the number of the device you want to talk to: ")) - 1
+        if choice < 0 or choice >= len(same_wifi_devices):
+            print("Invalid choice.")
+            return
+
+        selected_device = same_wifi_devices[choice]
+        target_ip = selected_device['ip_address']
+        logger.info(f"Selected device {selected_device['device_id']} with IP {target_ip} for communication")
+
+        # Send communication request to Firebase
+        request_id = f"req_{int(time.time() * 1000)}"
+        requests_ref = db.reference(f'users/{selected_device["user_id"]}/communicationRequests/{request_id}')
+        requests_ref.set({
+            'from_device_id': device_id,
+            'from_user_id': user_id,
+            'to_device_id': selected_device['device_id'],
+            'from_ip': current_ip,
+            'status': 'pending',
+            'timestamp': int(time.time() * 1000)
+        })
+        logger.info(f"Sent call request to {selected_device['device_id']}")
+
+        # Wait for acceptance (simplified polling)
+        while True:
+            request = requests_ref.get()
+            if request and request.get('status') == 'accepted':
+                logger.info(f"Call request accepted by {selected_device['device_id']}")
+                break
+            elif request and request.get('status') == 'rejected':
+                logger.info(f"Call request rejected by {selected_device['device_id']}")
+                return
+            time.sleep(1)
+
+        # Start audio communication
+        audio_node = AudioNode(listen_port=8888, target_host=target_ip, target_port=8889)
+        audio_node.start()
+
+    except Exception as e:
+        logger.error(f"Error in interdevice communication: {str(e)}")
+        print(f"Error occurred: {str(e)}")
+
+# ... (keep rest of the code, update main to pass current_ip) ...
+
+def main():
+    # Initialize Firebase
+    try:
+        initialize_firebase()
+    except Exception as e:
+        logger.error("Exiting due to Firebase initialization failure")
+        return
+
+    user_id = os.getenv('USER_ID', 'CURRENT_USER_ID')
+    device_id = os.getenv('DEVICE_ID', 'pebo_rpi_1')
+
+    last_ip = None
+    last_ssid = None
+
+    while True:
+        try:
+            current_ip = get_ip_address()
+            current_ssid = get_wifi_ssid()
+
+            if current_ip and (current_ip != last_ip or current_ssid != last_ssid):
+                logger.info(f"Wi-Fi change detected: IP={current_ip}, SSID={current_ssid}")
+                store_ip_to_firebase(user_id, device_id, current_ip, current_ssid)
+                last_ip = current_ip
+                last_ssid = current_ssid
+            elif not current_ip and (last_ip or last_ssid):
+                logger.info("No Wi-Fi connection detected")
+                store_ip_to_firebase(user_id, device_id, None, None)
+                last_ip = None
+                last_ssid = None
+
+            user_input = input("Enter command (type 'call pebo' to initiate communication, 'exit' to quit): ").strip().lower()
+            if user_input == 'call pebo':
+                if current_ip and current_ssid:
+                    initiate_interdevice_communication(user_id, current_ssid, current_ip)
+                else:
+                    print("Cannot initiate communication: Not connected to Wi-Fi.")
+            elif user_input == 'exit':
+                logger.info("Program terminated by user")
+                break
+
+            time.sleep(5)
+        except KeyboardInterrupt:
+            logger.info("Program terminated by user")
+            break
+        except Exception as e:
+            logger.error(f"Error in main loop: {str(e)}")
+            time.sleep(60)
+
+if __name__ == "__main__":
+    main()# ... (keep existing imports and code until initiate_interdevice_communication) ...
+
+# Check for devices on the same Wi-Fi and initiate communication
+def initiate_interdevice_communication(user_id, current_ssid, current_ip):
+    try:
+        users_ref = db.reference('users')
+        users = users_ref.get()
+        if not users:
+            logger.info("No users found in Firebase")
+            print("No other users found.")
+            return
+
+        same_wifi_devices = []
+        for uid, user_data in users.items():
+            if 'peboDevices' in user_data:
                 for device_id, device_data in user_data['peboDevices'].items():
                     if device_data.get('ssid') == current_ssid and device_data.get('ipAddress') != 'Disconnected':
                         same_wifi_devices.append({

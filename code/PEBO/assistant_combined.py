@@ -335,6 +335,58 @@ def listen_whisper(duration=1, sample_rate=16000) -> str | None:
         except:
             pass
 
+import firebase_admin
+from firebase_admin import credentials, db
+import json
+import socket
+import fcntl
+import struct
+import subprocess
+import logging
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/ipconfig/store_ip.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Firebase configuration
+SERVICE_ACCOUNT_PATH = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/ipconfig/firebase_config.json'
+DATABASE_URL = 'https://pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app'
+JSON_CONFIG_PATH = "/home/pi/pebo_config.json"
+
+# Get IP address of a network interface
+def get_ip_address(ifname='wlan0'):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        ip = socket.inet_ntoa(fcntl.ioctl(
+            s.fileno(),
+            0x8915,
+            struct.pack('256s', bytes(ifname[:15], 'utf-8'))
+        )[20:24])
+        return ip
+    except Exception as e:
+        logger.warning(f"Error getting IP address for {ifname}: {str(e)}")
+        return None
+
+# Get current Wi-Fi SSID
+def get_wifi_ssid():
+    try:
+        result = subprocess.run(['iwgetid', '-r'], capture_output=True, text=True, timeout=5)
+        ssid = result.stdout.strip()
+        return ssid if ssid else None
+    except subprocess.TimeoutExpired:
+        logger.warning("Timeout while getting SSID")
+        return None
+    except Exception as e:
+        logger.warning(f"Error getting SSID: {str(e)}")
+        return None
+
 async def start_assistant_from_text(prompt_text):
     """Starts Gemini assistant with initial text prompt and controls robot emotions."""
     print(f"\U0001F4AC Initial Prompt: {prompt_text}")
@@ -374,6 +426,18 @@ async def start_assistant_from_text(prompt_text):
     
     conversation_history.append({"role": "model", "parts": [answer]})
 
+    # Initialize Firebase
+    try:
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+            firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
+            logger.info("Firebase initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Firebase: {str(e)}")
+        await speak_text("Sorry, I couldn't connect to the device database.")
+        await asyncio.to_thread(normal)
+        return
+
     failed_attempts = 0
     max_attempts = 1
     positive_responses = ["yes", "yeah", "yep", "correct", "right", "ok", "okay"]
@@ -399,7 +463,7 @@ async def start_assistant_from_text(prompt_text):
         
         # Check for "play song" with or without song name
         song_match = re.match(r'^play\s+a\s+song\s+(.+)$', user_input, re.IGNORECASE)
-        if song_match or user_input == "play a song" or "play song":
+        if song_match or user_input == "play a song" or user_input == "play song":
             max_song_attempts = 3
             if song_match:
                 song_input = song_match.group(1).strip()  # Extract song name
@@ -469,10 +533,102 @@ async def start_assistant_from_text(prompt_text):
                         await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
                         break
             continue  # Continue listening after song handling
+        
+        # Inter-device communication part
+        if user_input == "send message":
+            try:
+                # Read pebo_config.json to get the current device's SSID, deviceId, and userId
+                with open(JSON_CONFIG_PATH, 'r') as config_file:
+                    config = json.load(config_file)
+                    current_ssid = config.get('ssid')
+                    current_device_id = config.get('deviceId')
+                    user_id = config.get('userId')
+                
+                if not current_ssid or not current_device_id or not user_id:
+                    logger.error("Missing SSID, deviceId, or userId in config file")
+                    await speak_text("Sorry, I couldn't read the device configuration.")
+                    await asyncio.to_thread(normal)
+                    continue
+
+                # Get current IP address
+                current_ip = get_ip_address()
+                if not current_ip:
+                    logger.error("No Wi-Fi connection detected")
+                    await speak_text("Cannot initiate communication: Not connected to Wi-Fi.")
+                    await asyncio.to_thread(normal)
+                    continue
+
+                # Query Firebase for devices on the same SSID, excluding this device
+                users_ref = db.reference('users')
+                users = users_ref.get()
+                if not users:
+                    logger.info("No users found in Firebase")
+                    await speak_text("No other devices found.")
+                    await asyncio.to_thread(normal)
+                    continue
+
+                same_wifi_devices = []
+                for uid, user_data in users.items():
+                    if 'peboDevices' in user_data:
+                        for device_id, device_data in user_data['peboDevices'].items():
+                            if (device_data.get('ssid') == current_ssid and 
+                                device_data.get('ipAddress') != 'Disconnected' and 
+                                device_id != current_device_id):
+                                same_wifi_devices.append({
+                                    'user_id': uid,
+                                    'device_id': device_id,
+                                    'ip_address': device_data.get('ipAddress'),
+                                    'location': device_data.get('location', 'Unknown')
+                                })
+
+                if not same_wifi_devices:
+                    logger.info(f"No devices found on SSID {current_ssid}")
+                    await speak_text(f"No other devices found on Wi-Fi {current_ssid}.")
+                    await asyncio.to_thread(normal)
+                    continue
+
+                # Prepare list of locations for user prompt
+                locations = [device['location'] for device in same_wifi_devices]
+                locations_str = ", ".join(locations[:-1]) + (f", or {locations[-1]}" if len(locations) > 1 else locations[0])
+                await speak_text(f"Which device would you like to connect in {locations_str}?")
+                await asyncio.to_thread(normal)
+
+                # Get user input for device location
+                location_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
+                if not location_input:
+                    await speak_text("Sorry, I didn't catch that. Let's try something else.")
+                    await asyncio.to_thread(normal)
+                    continue
+
+                # Find the device matching the user's input
+                selected_device = None
+                for device in same_wifi_devices:
+                    if location_input.lower() in device['location'].lower():
+                        selected_device = device
+                        break
+
+                if selected_device:
+                    print(f"Selected Device: Location={selected_device['location']}, IP={selected_device['ip_address']}")
+                    await speak_text(f"Selected device in {selected_device['location']} with IP {selected_device['ip_address']}.")
+                    await asyncio.to_thread(normal)
+                else:
+                    await speak_text("Sorry, I couldn't find a device in that location. Let's try something else.")
+                    await asyncio.to_thread(normal)
+
+            except FileNotFoundError:
+                logger.error(f"Config file {JSON_CONFIG_PATH} not found")
+                await speak_text("Sorry, I couldn't read the device configuration.")
+                await asyncio.to_thread(normal)
+            except Exception as e:
+                logger.error(f"Error in interdevice communication: {str(e)}")
+                await speak_text("Sorry, there was an error connecting to other devices.")
+                await asyncio.to_thread(normal)
+            continue
 
         if user_input in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
             print("\U0001F44B Exiting assistant.")
-            await speak_text("Goodbye!")
+            message_exit = random.choice(goodbye_messages)
+            await speak_text(message_exit)
             normal()
             break
 
@@ -499,6 +655,14 @@ async def start_assistant_from_text(prompt_text):
         await asyncio.gather(emotion_task, voice_task)
         
         conversation_history.append({"role": "model", "parts": [answer]})
+    
+    # Clean up Firebase app
+    try:
+        firebase_admin.delete_app(firebase_admin.get_app())
+        logger.info("Firebase app cleaned up")
+    except Exception as e:
+        logger.error(f"Error cleaning up Firebase app: {str(e)}")
+    
     cleanup()
     print("this in assistant")
     await asyncio.sleep(1)
@@ -553,8 +717,8 @@ async def monitor_start(name, emotion):
 if __name__ == "__main__":
     try:
         name = "Bhagya"
-        emotion = "Sad"
-        asyncio.run(monitor_start(name, emotion))
+        emotion = "Clam"
+        asyncio.run(monitor_for_trigger(name, emotion))
     except KeyboardInterrupt:
         print("\nProgram interrupted by user")
     finally:
