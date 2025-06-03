@@ -106,7 +106,7 @@ class AudioNode:
 
     def play_audio(self):
         """Play received audio with amplification"""
-        amplification_factor = 2.0  # Adjust volume level here
+        amplification_factor = 3.0  # Adjust volume level here
         while self.running:
             try:
                 data = self.audio_queue.get(timeout=0.1)
