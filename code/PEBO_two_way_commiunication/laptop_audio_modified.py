@@ -1,33 +1,34 @@
-# laptop_audio_node.py - FIXED VERSION for Laptop
+# laptop_audio_node.py - FIXED VERSION for Laptop with Amplified Playback
 import socket
 import pyaudio
 import threading
 import time
 import queue
+import numpy as np  # For amplification
 
 class AudioNode:
     def __init__(self, listen_port=8889, target_host='172.20.10.11', target_port=8888):
         # FIXED: Audio settings to match Pi (48kHz)
-        self.CHUNK = 2048  # Increased buffer size
+        self.CHUNK = 2048
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 48000  # Changed from 44100 to match Pi
+        self.RATE = 48000
         
         # Network settings
         self.listen_port = listen_port
         self.target_host = target_host
         self.target_port = target_port
         
-        # Audio buffer queue for smoother playback
+        # Audio buffer queue
         self.audio_queue = queue.Queue(maxsize=10)
         
-        # Initialize audio
+        # PyAudio instance
         self.audio = pyaudio.PyAudio()
         self.running = True
         
         # Setup audio streams
         self.setup_audio()
-        
+
     def setup_audio(self):
         # Microphone stream (input)
         self.mic_stream = self.audio.open(
@@ -46,14 +47,13 @@ class AudioNode:
             output=True,
             frames_per_buffer=self.CHUNK
         )
-    
+
     def send_audio(self):
         """Send microphone audio to Pi"""
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # FIXED: Increase socket buffer
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
-            time.sleep(2)  # Wait for receiver to start
+            time.sleep(2)
             sock.connect((self.target_host, self.target_port))
             print(f"Connected to Pi at {self.target_host}:{self.target_port}")
             
@@ -64,7 +64,6 @@ class AudioNode:
                 except Exception as e:
                     print(f"Send error: {e}")
                     break
-                    
         except Exception as e:
             print(f"Connection error: {e}")
         finally:
@@ -72,13 +71,12 @@ class AudioNode:
                 sock.close()
             except:
                 pass
-    
+
     def receive_audio(self):
-        """Receive Pi audio and play through speaker"""
+        """Receive Pi audio and queue for playback"""
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # FIXED: Increase receive buffer
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
             sock.bind(('0.0.0.0', self.listen_port))
             sock.listen(1)
@@ -89,19 +87,14 @@ class AudioNode:
             
             while self.running:
                 try:
-                    # FIXED: Receive exact chunk size
-                    data = conn.recv(self.CHUNK * 2)  # *2 for int16 format
+                    data = conn.recv(self.CHUNK * 2)
                     if not data:
                         break
-                    
-                    # FIXED: Add to queue for buffered playback
                     if not self.audio_queue.full():
                         self.audio_queue.put(data)
-                    
                 except Exception as e:
                     print(f"Receive error: {e}")
                     break
-                    
         except Exception as e:
             print(f"Listen error: {e}")
         finally:
@@ -110,45 +103,49 @@ class AudioNode:
                 sock.close()
             except:
                 pass
-    
+
     def play_audio(self):
-        """FIXED: Separate thread for smooth audio playback"""
+        """Play received audio with amplification"""
+        amplification_factor = 2.0  # Adjust volume level here
         while self.running:
             try:
-                # Get audio data from queue with timeout
                 data = self.audio_queue.get(timeout=0.1)
-                self.speaker_stream.write(data)
+
+                # Amplify the audio
+                audio_data = np.frombuffer(data, dtype=np.int16)
+                amplified = np.clip(audio_data * amplification_factor, -32768, 32767).astype(np.int16)
+                self.speaker_stream.write(amplified.tobytes())
+
             except queue.Empty:
                 continue
             except Exception as e:
                 print(f"Playback error: {e}")
                 continue
-    
+
     def start(self):
-        """Start both sending and receiving threads"""
+        """Start audio node"""
         print("Starting laptop audio node...")
         print("Using 48kHz to match Pi Bluetooth speakers")
-        
-        # Start threads
+
         send_thread = threading.Thread(target=self.send_audio)
         receive_thread = threading.Thread(target=self.receive_audio)
-        play_thread = threading.Thread(target=self.play_audio)  # FIXED: Separate playback thread
-        
+        play_thread = threading.Thread(target=self.play_audio)
+
         send_thread.daemon = True
         receive_thread.daemon = True
         play_thread.daemon = True
-        
+
         receive_thread.start()
-        play_thread.start()  # FIXED: Start playback thread
+        play_thread.start()
         send_thread.start()
-        
+
         try:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
             print("\nStopping...")
             self.running = False
-            
+
         # Cleanup
         self.mic_stream.stop_stream()
         self.speaker_stream.stop_stream()
@@ -159,11 +156,10 @@ class AudioNode:
 if __name__ == "__main__":
     # Replace with your Pi's IP address
     PI_IP = "192.168.248.203"  # Change this!
-    
+
     node = AudioNode(
-        listen_port=8889,    # Laptop listens on this port
-        target_host=PI_IP,   # Pi IP
-        target_port=8888     # Pi listens on this port
+        listen_port=8889,
+        target_host=PI_IP,
+        target_port=8888
     )
     node.start()
-
