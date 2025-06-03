@@ -161,7 +161,7 @@ class AudioNode:
 
 if __name__ == "__main__":
     # Replace with your laptop's IP address
-    LAPTOP_IP = "172.20.10.11"  # Change this!
+    LAPTOP_IP = "192.168.248.94"  # Change this!
     
     node = AudioNode(
         listen_port=8888,      # Pi listens on this port
