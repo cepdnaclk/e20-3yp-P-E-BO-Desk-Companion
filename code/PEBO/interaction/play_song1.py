@@ -13,9 +13,9 @@ import time
 import threading
 import signal
 
-# Global variable to control music playback
+# Global variables
 stop_music_flag = False
-ffplay_process = None  # To store the ffplay process for termination
+ffplay_process = None
 
 def detect_double_tap(max_interval=0.5, min_interval=0.1):
     """
@@ -30,7 +30,7 @@ def detect_double_tap(max_interval=0.5, min_interval=0.1):
     first_tap_time = None
 
     while not stop_music_flag:
-        if GPIO.input(TOUCH_PIN) == GPIO.HIGH:  # Touch detected
+        if GPIO.input(TOUCH_PIN) == GPIO.HIGH:
             if first_tap_time is None:
                 first_tap_time = time.time()
                 print("First tap detected")
@@ -70,28 +70,22 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
         bool: True if playback was successful, False otherwise.
     """
     global stop_music_flag, ffplay_process
-    stop_music_flag = False  # Reset flag
+    stop_music_flag = False
 
     # Pin configuration for touch sensor
-    TOUCH_PIN = 17  # GPIO pin number (Pin 11)
-    
-    # Setup GPIO
-    GPIO.setmode(GPIO.BCM)  # Use BCM numbering
-    GPIO.setup(TOUCH_PIN, GPIO.IN)  # Set pin as input
+    TOUCH_PIN = 17
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(TOUCH_PIN, GPIO.IN)
 
     try:
-        # Initialize pygame mixer if not already initialized
         if not pygame.mixer.get_init():
             pygame.mixer.init()
 
         ffplay_exe = "ffplay"
-
-        # Check if ffplay is available in PATH
         if not shutil.which(ffplay_exe):
-            print("Error: ffplay not found in PATH. Please install ffmpeg and ensure ffplay is accessible.")
+            print("Error: ffplay not found in PATH. Please install ffmpeg.")
             return False
 
-        # Announce song playback
         if controller:
             emotion_task = asyncio.to_thread(controller.happy)
         else:
@@ -103,7 +97,6 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
         tts = edge_tts.Communicate(f"Playing {song} now!", voice)
         await tts.save(filename)
 
-        # Amplify voice feedback
         subprocess.run(
             ["ffmpeg", "-y", "-i", filename, "-filter:a", "volume=20dB", boosted_file],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
@@ -119,7 +112,6 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
         os.remove(filename)
         os.remove(boosted_file)
 
-        # Run yt-dlp to get audio URL
         print(f"Searching YouTube for '{song}'...")
         try:
             ydl_opts = {
@@ -175,11 +167,9 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
         print(f"Now playing: {song}")
         print(f"Audio URL: {audio_url}")
 
-        # Start double-tap detection in a separate thread
         touch_thread = threading.Thread(target=detect_double_tap, args=(0.5, 0.1))
         touch_thread.start()
 
-        # Play audio with ffplay
         try:
             ffplay_process = subprocess.Popen(
                 [ffplay_exe, "-nodisp", "-autoexit", "-loglevel", "quiet", audio_url],
@@ -248,15 +238,14 @@ async def play_music(song="Perfect Ed Sheeran", controller=None):
                 os.remove(boosted_file)
             return False
     finally:
-        GPIO.cleanup()  # Clean up GPIO resources
+        GPIO.cleanup()
 
 if __name__ == "__main__":
     try:
         asyncio.run(play_music("soft music"))
     except KeyboardInterrupt:
         print("Script interrupted by user.")
-        global stop_music_flag, ffplay_process
-        stop_music_flag = True
+        stop_music_flag = True  # No global declaration needed
         if ffplay_process and ffplay_process.poll() is None:
             ffplay_process.terminate()
             ffplay_process.wait()
