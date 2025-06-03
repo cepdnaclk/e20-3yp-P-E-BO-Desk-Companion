@@ -142,7 +142,7 @@ def start_audio_node(listen_port=8889, target_host='172.20.10.11', target_port=8
 
 if __name__ == "__main__":
     # Default configuration for testing
-    PI_IP = "172.20.10.11"  # Replace with actual Pi IP for testing
+    PI_IP = "192.168.248.203"  # Replace with actual Pi IP for testing
     start_audio_node(
         listen_port=8889,    # Laptop listens on this port
         target_host=PI_IP,   # Pi IP
