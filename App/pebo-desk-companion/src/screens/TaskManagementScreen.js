@@ -1,41 +1,21 @@
 import React, { useEffect, useState, useRef } from "react";
-import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Dimensions,
   SafeAreaView,
   TouchableOpacity,
-  Image,
-  Animated,
-  TouchableOpacity,
-  Image,
+  Text,
+  TextInput,
+  ActivityIndicator,
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
-import PopupModal from "../components/PopupModal";
-import {
-  TextInput,
-  Button,
-  Card,
-  Text,
-  Menu,
-  Provider as PaperProvider,
-  DefaultTheme,
-  ActivityIndicator,
-} from "react-native-paper";
+import { Menu, Provider as PaperProvider } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import {
-  auth,
-  db,
-  addTask,
-  getTaskOverview,
-  updateTask,
-} from "../services/firebase";
+import PopupModal from "../components/PopupModal";
 import {
   auth,
   db,
@@ -44,8 +24,6 @@ import {
   updateTask,
 } from "../services/firebase";
 import moment from "moment";
-
-const { width } = Dimensions.get("window");
 
 const TaskManagementScreen = () => {
   // State Management
@@ -222,17 +200,14 @@ const TaskManagementScreen = () => {
         <TouchableOpacity
           onPress={() => setVis(true)}
           style={styles.menuButton}
+          accessibilityLabel={`Select ${label}`}
+          accessibilityRole="button"
         >
-          <Ionicons
-            name={icon}
-            size={18}
-            color="#2196F3"
-            style={styles.menuIcon}
-          />
+          <Ionicons name={icon} size={18} color="#1976D2" />
           <Text style={[styles.menuLabel, val && styles.menuLabelSelected]}>
             {val || label}
           </Text>
-          <Ionicons name="chevron-down" size={18} color="#2196F3" />
+          <Ionicons name="chevron-down" size={18} color="#1976D2" />
         </TouchableOpacity>
       }
       style={styles.menu}
@@ -247,55 +222,62 @@ const TaskManagementScreen = () => {
             onSelect(o);
             setVis(false);
           }}
-          titleStyle={o === val ? styles.menuItemSelected : styles.menuItem}
+          titleStyle={
+            o === val ? styles.menuItemTextSelected : styles.menuItemText
+          }
+          style={o === val ? styles.menuItemSelected : styles.menuItem}
         />
       ))}
     </Menu>
   );
 
   const renderTask = ({ item }) => (
-    <Card style={[styles.taskCard, item.completed && styles.completedCard]}>
-      <Card.Content style={styles.taskContent}>
-        <View style={styles.taskHeader}>
-          <Text
-            style={[styles.taskTitle, item.completed && styles.completedText]}
-            numberOfLines={2}
-          >
-            {item.description}
+    <View style={[styles.taskItem, item.completed && styles.completedItem]}>
+      <View style={styles.taskHeader}>
+        <Text
+          style={[styles.taskTitle, item.completed && styles.completedText]}
+          numberOfLines={2}
+        >
+          {item.description}
+        </Text>
+        <TouchableOpacity
+          onPress={() => toggleCompleted(item)}
+          accessibilityLabel={
+            item.completed ? "Mark task incomplete" : "Mark task complete"
+          }
+          accessibilityRole="button"
+        >
+          <Ionicons
+            name={item.completed ? "checkmark-circle" : "ellipse-outline"}
+            size={22}
+            color={item.completed ? "#4CAF50" : "#1976D2"}
+          />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.taskSubtitle}>
+        By: {item.createdBy || "Unknown User"}
+      </Text>
+      <View style={styles.taskInfo}>
+        <View style={styles.infoItem}>
+          <Ionicons name="calendar-outline" size={14} color="#757575" />
+          <Text style={styles.infoText}>
+            {moment(item.deadline).format("DD MMM, hh:mm A")}
           </Text>
-          <TouchableOpacity onPress={() => toggleCompleted(item)}>
-            <Ionicons
-              name={item.completed ? "checkmark-circle" : "ellipse-outline"}
-              size={24}
-              color={item.completed ? "#4CAF50" : "#2196F3"}
-            />
-          </TouchableOpacity>
         </View>
-        {/* <Text style={styles.taskSubtitle}>
-          By: {item.createdBy || "Unknown User"}
-        </Text> */}
-        <View style={styles.taskInfo}>
-          <View style={styles.infoItem}>
-            <Ionicons name="calendar-outline" size={14} color="#546E7A" />
-            <Text style={styles.infoText}>
-              {moment(item.deadline).format("DD MMM, hh:mm A")}
-            </Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="alert-circle-outline" size={14} color="#546E7A" />
-            <Text style={styles.infoText}>{item.priority || "N/A"}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="folder-outline" size={14} color="#546E7A" />
-            <Text style={styles.infoText}>{item.category || "N/A"}</Text>
-          </View>
+        <View style={styles.infoItem}>
+          <Ionicons name="alert-circle-outline" size={14} color="#757575" />
+          <Text style={styles.infoText}>{item.priority || "N/A"}</Text>
         </View>
-      </Card.Content>
-    </Card>
+        <View style={styles.infoItem}>
+          <Ionicons name="folder-outline" size={14} color="#757575" />
+          <Text style={styles.infoText}>{item.category || "N/A"}</Text>
+        </View>
+      </View>
+    </View>
   );
 
   return (
-    <PaperProvider theme={theme}>
+    <PaperProvider>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>My Tasks</Text>
@@ -319,39 +301,39 @@ const TaskManagementScreen = () => {
                 ],
               }}
             >
-              <Card style={styles.inputCard}>
-                <Card.Content>
-                  <Text style={styles.sectionTitle}>Add New Task</Text>
-                  <View style={styles.inputRow}>
-                    <Ionicons
-                      name="create-outline"
-                      size={20}
-                      color="#2196F3"
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      label="Task description"
-                      value={task}
-                      onChangeText={setTask}
-                      mode="flat"
-                      style={styles.input}
-                      textColor="#212121"
-                      placeholderTextColor="#757575"
-                      underlineColor="transparent"
-                    />
-                  </View>
-                  <View style={styles.inputRow}>
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color="#2196F3"
-                      style={styles.inputIcon}
-                    />
-                    <Button
-                      mode="text"
-                      onPress={() => setPickerVisible(true)}
-                      style={styles.dateButton}
-                      labelStyle={
+              <View style={styles.inputCard}>
+                <Text style={styles.sectionTitle}>Add New Task</Text>
+                <View style={styles.inputRow}>
+                  <Ionicons
+                    name="create-outline"
+                    size={20}
+                    color="#1976D2"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    placeholder="Task description"
+                    value={task}
+                    onChangeText={setTask}
+                    style={[styles.input, !task.trim() && styles.inputError]}
+                    placeholderTextColor="#757575"
+                    accessibilityLabel="Task description"
+                  />
+                </View>
+                <View style={styles.inputRow}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color="#1976D2"
+                    style={styles.inputIcon}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setPickerVisible(true)}
+                    style={styles.dateButton}
+                    accessibilityLabel="Select deadline"
+                    accessibilityRole="button"
+                  >
+                    <Text
+                      style={
                         deadline
                           ? styles.buttonLabel
                           : styles.buttonLabelPlaceholder
@@ -360,30 +342,30 @@ const TaskManagementScreen = () => {
                       {deadline
                         ? moment(deadline).format("DD MMM YYYY, hh:mm A")
                         : "Select deadline & time"}
-                    </Button>
-                  </View>
-                  <View style={styles.filterRow}>
-                    {renderMenu(
-                      "Priority",
-                      priority,
-                      ["High", "Medium", "Low"],
-                      showPriMenu,
-                      setShowPriMenu,
-                      setPriority,
-                      "alert-circle-outline"
-                    )}
-                    {renderMenu(
-                      "Category",
-                      category,
-                      ["Work", "Personal", "Study"],
-                      showCatMenu,
-                      setShowCatMenu,
-                      setCategory,
-                      "folder-outline"
-                    )}
-                  </View>
-                </Card.Content>
-              </Card>
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.filterRow}>
+                  {renderMenu(
+                    "Priority",
+                    priority,
+                    ["High", "Medium", "Low"],
+                    showPriMenu,
+                    setShowPriMenu,
+                    setPriority,
+                    "alert-circle-outline"
+                  )}
+                  {renderMenu(
+                    "Category",
+                    category,
+                    ["Work", "Personal", "Study"],
+                    showCatMenu,
+                    setShowCatMenu,
+                    setCategory,
+                    "folder-outline"
+                  )}
+                </View>
+              </View>
             </Animated.View>
           )}
 
@@ -395,39 +377,14 @@ const TaskManagementScreen = () => {
               setPickerVisible(false);
             }}
             onCancel={() => setPickerVisible(false)}
+            buttonColor="#1976D2"
+            confirmTextStyle={{ color: "#1976D2" }}
+            cancelTextStyle={{ color: "#D32F2F" }}
+            headerTextStyle={{ color: "#212121" }}
           />
 
-          {renderMenu(
-            "🚦 Priority",
-            priority,
-            ["High", "Medium", "Low"],
-            showPriMenu,
-            setShowPriMenu,
-            setPriority
-          )}
-          {renderMenu(
-            "📂 Category",
-            category,
-            ["Work", "Personal", "Study"],
-            showCatMenu,
-            setShowCatMenu,
-            setCategory
-          )}
-
-          <Button
-            mode="contained"
-            icon="plus-circle"
-            onPress={addNew}
-            loading={adding}
-            style={styles.addBtn}
-            contentStyle={{ paddingVertical: 6 }}
-            labelStyle={{ color: "white", fontWeight: "620" }}
-          >
-            Add New Task
-          </Button>
-
-          <View style={styles.sortRow}>
-            <Text style={styles.sortText}>Sort by:</Text>
+          <View style={styles.filterBar}>
+            <Text style={styles.sortTitle}>Sort By:</Text>
             {renderMenu(
               "Sort",
               sortPref.charAt(0).toUpperCase() + sortPref.slice(1),
@@ -443,17 +400,11 @@ const TaskManagementScreen = () => {
             {loading ? (
               <ActivityIndicator
                 style={styles.loading}
-                color="#2196F3"
+                color="#1976D2"
                 size="large"
               />
             ) : tasks.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Image
-                  source={{
-                    uri: "https://via.placeholder.com/180?text=No+Tasks",
-                  }}
-                  style={styles.emptyImage}
-                />
                 <Text style={styles.emptyText}>
                   No tasks yet. Tap the "+" button to add one!
                 </Text>
@@ -469,25 +420,31 @@ const TaskManagementScreen = () => {
             )}
           </View>
 
-          <View style={[styles.fab, adding && styles.fabDisabled]}>
-            <TouchableOpacity onPress={handleFabPress} disabled={adding}>
-              {adding ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Ionicons
-                  name={
-                    showAddTask
-                      ? isFormComplete
-                        ? "checkmark"
-                        : "close"
-                      : "add"
-                  }
-                  size={32}
-                  color="#FFFFFF"
-                />
-              )}
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[styles.fab, adding && styles.fabDisabled]}
+            onPress={handleFabPress}
+            disabled={adding}
+            accessibilityLabel={
+              showAddTask
+                ? isFormComplete
+                  ? "Add task"
+                  : "Cancel"
+                : "Add new task"
+            }
+            accessibilityRole="button"
+          >
+            {adding ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Ionicons
+                name={
+                  showAddTask ? (isFormComplete ? "checkmark" : "close") : "add"
+                }
+                size={32}
+                color="#FFFFFF"
+              />
+            )}
+          </TouchableOpacity>
 
           <PopupModal
             visible={popupVisible}
@@ -495,8 +452,6 @@ const TaskManagementScreen = () => {
             title={popupContent.title}
             message={popupContent.message}
             icon={popupContent.icon}
-            style={styles.popup}
-            contentStyle={styles.popupContent}
           />
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -504,133 +459,144 @@ const TaskManagementScreen = () => {
   );
 };
 
-const theme = {
-  ...DefaultTheme,
-  roundness: 16,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: "#1976D2",
-    accent: "#4CAF50",
-    background: "#F4F9FF",
-    surface: "#FFFFFF",
-    text: "#212121",
-    placeholder: "#757575",
-    disabled: "#B0BEC5",
-    error: "#D32F2F",
-  },
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-    padding: 24, // Increased from 16 to match SettingsScreen
+    backgroundColor: "#F4F9FF",
+    padding: 24,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
     marginTop: 20,
-    marginBottom: 20, // Adjusted to match SettingsScreen
+    marginBottom: 20,
   },
   headerTitle: {
-    fontSize: 28, // Reduced from 30 to match SettingsScreen
-    fontWeight: "bold", // Changed to "bold" to match
-    color: theme.colors.primary,
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1976D2",
     textAlign: "center",
   },
   inputCard: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
+    padding: 20,
     marginBottom: 16,
+    elevation: 3,
     shadowColor: "#000000",
     shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#ECEFF1",
+    shadowOffset: { width: 0, height: 2 },
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: theme.colors.primary,
+    color: "#1976D2",
     marginBottom: 12,
   },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ECEFF1",
-    borderRadius: 8, // Reduced from 12 to match SettingsScreen inputs
+    borderRadius: 8,
     marginBottom: 8,
     paddingHorizontal: 12,
-    paddingVertical: 10, // Adjusted to match input padding
+    paddingVertical: 10,
   },
   inputIcon: {
     marginRight: 8,
   },
   input: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginBottom: 14,
-    fontSize: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
+    flex: 1,
+    backgroundColor: "transparent",
+    fontSize: 14,
+    color: "#212121",
   },
-  addBtn: {
-    backgroundColor: "#007AFF",
-    borderRadius: 14,
-    paddingVertical: 8,
-    justifyContent: "center",
-    marginTop: 12,
+  inputError: {
+    borderColor: "#D32F2F",
+    borderWidth: 1,
   },
-  sortRow: {
+  dateButton: {
+    flex: 1,
+    backgroundColor: "transparent",
+    paddingVertical: 10,
+    justifyContent: "flex-start",
+  },
+  buttonLabel: {
+    fontSize: 14,
+    color: "#212121",
+    fontWeight: "600",
+  },
+  buttonLabelPlaceholder: {
+    fontSize: 14,
+    color: "#757575",
+    fontWeight: "500",
+  },
+  filterRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginVertical: 18,
+    gap: 8,
+  },
+  filterBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: "#000000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  sortTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1976D2",
+    marginRight: 8,
+  },
+  menuButton: {
+    flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ECEFF1",
-    borderRadius: 8, // Reduced from 10
+    borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 10,
     flex: 1,
   },
   menuLabel: {
     fontSize: 14,
-    color: theme.colors.text,
+    color: "#212121",
     fontWeight: "600",
     marginRight: 4,
     flex: 1,
   },
   menuLabelSelected: {
-    color: theme.colors.primary,
+    color: "#1976D2",
   },
   menu: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    elevation: 3,
     shadowColor: "#000000",
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
     marginTop: 8,
   },
   menuItem: {
-    fontSize: 14,
-    color: theme.colors.text,
-    fontWeight: "500",
+    backgroundColor: "#FFFFFF",
   },
   menuItemSelected: {
-    fontSize: 14,
-    color: theme.colors.primary,
-    fontWeight: "600",
+    backgroundColor: "#ECEFF1",
   },
-  menuIcon: {
-    marginRight: 4,
+  menuItemText: {
+    fontSize: 14,
+    color: "#212121",
+    fontWeight: "500",
+  },
+  menuItemTextSelected: {
+    fontSize: 14,
+    color: "#1976D2",
+    fontWeight: "600",
   },
   taskListContainer: {
     flex: 1,
@@ -638,33 +604,68 @@ const styles = StyleSheet.create({
   taskListContent: {
     paddingBottom: 80,
   },
-  taskCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    marginBottom: 12,
-    shadowColor: "#000000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#ECEFF1",
-  },
-  completedCard: {
+  taskItem: {
     backgroundColor: "#ECEFF1",
-    borderColor: "#CFD8DC",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
   },
-  taskContent: {
-    padding: 16,
+  completedItem: {
+    backgroundColor: "#F5F5F5",
   },
   taskHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingBottom: 12,
+    alignItems: "center",
+    marginBottom: 8,
   },
-  info: { fontSize: 16, color: "#6C6C6C" },
-  empty: {
+  taskTitle: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#212121",
+    flex: 1,
+    marginRight: 8,
+  },
+  taskSubtitle: {
+    fontSize: 12,
+    color: "#757575",
+    marginBottom: 8,
+  },
+  completedText: {
+    textDecorationLine: "line-through",
+    color: "#90A4AE",
+  },
+  taskInfo: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  infoText: {
+    fontSize: 12,
+    color: "#757575",
+    marginLeft: 4,
+    flexShrink: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    padding: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#757575",
     textAlign: "center",
     fontWeight: "500",
   },
@@ -672,33 +673,24 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 24,
     right: 24,
-    backgroundColor: theme.colors.accent,
+    backgroundColor: "#4CAF50",
     borderRadius: 32,
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     justifyContent: "center",
     alignItems: "center",
+    elevation: 5,
     shadowColor: "#000000",
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   fabDisabled: {
-    backgroundColor: theme.colors.disabled,
-  },
-  popup: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-  },
-  popupContent: {
-    alignItems: "center",
+    backgroundColor: "#B0BEC5",
   },
   loading: {
     marginTop: 32,
   },
 });
+
 export default TaskManagementScreen;
