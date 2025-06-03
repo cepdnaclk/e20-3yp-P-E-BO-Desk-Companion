@@ -24,7 +24,7 @@ Hardware Features
 
 Facial Recognition: Utilizes AWS Rekognition to identify users from camera input, enabling personalized interactions.
 Face Tracking: A camera on a servo-controlled pan-tilt mechanism tracks the user’s face in real time.
-Voice Interaction: Processes commands like "call pebo" or "play song " using Gemini API and Whisper for natural language understanding.
+Voice Interaction: Processes commands like call pebo or play song <song_name> using Gemini API and Whisper for natural language understanding.
 Emotion Expression:
 Dual OLED displays (left and right eyes) show emotions like Happy, Sad, Angry, Love, or Normal.
 Servo-controlled arms express emotions via predefined movements (e.g., say_hi, express_happy).
@@ -32,12 +32,12 @@ Servo-controlled arms express emotions via predefined movements (e.g., say_hi, e
 
 Inter-Device Communication:
 Initiates audio calls between PEBO devices on the same Wi-Fi network.
-Supports voice command "call pebo" to list available devices.
+Supports voice command call pebo to list available devices.
 Displays caller ID and plays a ringing tone for incoming calls.
 Allows call acceptance/rejection via voice or app.
 
 
-Music Playback: Plays songs triggered by "play song" or "play song " commands.
+Music Playback: Plays songs triggered by play song or play song <song_name> commands.
 
 Mobile App Features (pebo-desk-companion)
 The pebo-desk-companion app, built with React Native and Expo, serves as the primary control interface. Key features include:
@@ -91,8 +91,8 @@ PCA9685 PWM Controller: Manages servo motor control (I2C address 0x40).
 LED: Indicates listening state (GPIO 18).
 
 Software
+Mobile App
 
-Mobile App:
 React Native: Framework for building the pebo-desk-companion app.
 Expo: Simplifies app development, testing, and OTA updates.
 expo-image-picker: Handles profile image uploads.
@@ -100,8 +100,8 @@ react-native-qrcode-svg: Generates QR codes for Wi-Fi setup.
 aws-sdk: Integrates with AWS S3 and Rekognition.
 firebase: Manages authentication and real-time database.
 
+Raspberry Pi
 
-Raspberry Pi:
 Python 3.8+: Core programming language for hardware control and AI integration.
 google.generativeai: Interfaces with Gemini API for natural language processing.
 pygame: Handles audio playback for responses and music.
@@ -124,8 +124,6 @@ ffmpeg: Amplifies audio output for text-to-speech.
 threading, asyncio: Manages concurrent tasks (e.g., arm and eye expressions).
 re, random, os, tempfile, errno: Supports text processing, randomization, and file handling.
 
-
-
 Cloud Services
 
 AWS Rekognition: Facial recognition for user identification.
@@ -141,34 +139,31 @@ Cloud-Based Backend: Ensures scalability and real-time operations.
 
 Getting Started
 Prerequisites
+Mobile App Development
 
-Mobile App Development:
-Node.js (v16+): nodejs.org.
-Expo Go app (iOS/Android): App Store or Google Play.
-Code editor (e.g., Visual Studio Code): code.visualstudio.com.
+Node.js (v16+): nodejs.org
+Expo Go app (iOS/Android): App Store or Google Play
+Code editor (e.g., Visual Studio Code): code.visualstudio.com
 
+Raspberry Pi Setup
 
-Raspberry Pi Setup:
-Raspberry Pi 4 with Raspbian OS (Bullseye or later).
-Pi Camera Module (USB or CSI).
-Two SG90 servo motors (GPIO 17 for pan, 18 for tilt).
-USB microphone and speaker (or 3.5mm jack).
-Dual OLED displays (I2C addresses 0x3D, 0x3C).
-PCA9685 PWM controller (I2C address 0x40).
-LED on GPIO 18.
-Python 3.8+.
+Raspberry Pi 4 with Raspbian OS (Bullseye or later)
+Pi Camera Module (USB or CSI)
+Two SG90 servo motors (GPIO 17 for pan, 18 for tilt)
+USB microphone and speaker (or 3.5mm jack)
+Dual OLED displays (I2C addresses 0x3D, 0x3C)
+PCA9685 PWM controller (I2C address 0x40)
+LED on GPIO 18
+Python 3.8+
 
+Cloud Accounts
 
-Cloud Accounts:
-AWS account (Rekognition, S3): aws.amazon.com.
-Firebase account: firebase.google.com.
-Google Gemini API key: ai.google.dev.
-
-
+AWS account (Rekognition, S3): aws.amazon.com
+Firebase account: firebase.google.com
+Google Gemini API key: ai.google.dev
 
 Setting Up the Mobile App
-
-Clone the Repository:
+1. Clone the Repository
 git clone https://github.com/your-username/pebo-desk-companion.git
 cd pebo-desk-companion
 
@@ -176,8 +171,8 @@ If the repository doesn’t exist, create one:
 git init
 git remote add origin https://github.com/your-username/pebo-desk-companion.git
 
-
-Install Dependencies:Install Expo CLI:
+2. Install Dependencies
+Install Expo CLI:
 npm install -g expo-cli
 
 Install project dependencies:
@@ -186,8 +181,8 @@ npm install
 Verify:
 npm list
 
-
-Configure Environment Variables:Create .env in the project root:
+3. Configure Environment Variables
+Create .env in the project root:
 FIREBASE_API_KEY=your_firebase_api_key
 FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 FIREBASE_PROJECT_ID=your_firebase_project_id
@@ -203,8 +198,8 @@ AWS_REGION=your_aws_region
 Firebase: Find credentials in Firebase Console > Project Settings > General > Your Apps.
 AWS: Create an IAM user with S3 and Rekognition permissions.
 
-
-Update Expo Configuration:Edit app.json:
+4. Update Expo Configuration
+Edit app.json:
 {
   "expo": {
     "name": "PEBO Desk Companion",
@@ -229,10 +224,9 @@ Get projectId:
 expo login
 expo whoami
 
+5. Account Creation and Settings Setup
+Account Creation
 
-Account Creation and Settings Setup:
-
-Account Creation:
 Uses Firebase Authentication for email/password or Google Sign-In.
 On first launch, users sign up via the login screen.
 After signup, users create a profile:
@@ -241,7 +235,9 @@ Upload a profile image via the Profile screen (expo-image-picker).
 Image is uploaded to AWS S3 and linked to the user’s Firebase UID.
 
 
-Example code (auth.js):import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+
+Example code (auth.js):
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 const auth = getAuth();
 const db = getFirestore();
@@ -258,10 +254,8 @@ createUserWithEmailAndPassword(auth, email, password)
     console.error('Error:', error.message);
   });
 
+Settings Configuration
 
-
-
-Settings Configuration:
 Access Settings screen to configure:
 Notifications: Enable/disable push notifications for calls/tasks.
 Device Pairing: Link to a PEBO device using its ID (stored in Firestore).
@@ -269,7 +263,9 @@ Profile Updates: Edit username or re-upload profile image.
 Language: Select display language (if supported).
 
 
-Save settings:import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+Save settings:
+
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 const db = getFirestore();
 await updateDoc(doc(db, 'users', user.uid), {
   notifications: true,
@@ -277,47 +273,40 @@ await updateDoc(doc(db, 'users', user.uid), {
   language: 'en'
 });
 
-
-
-
-
-
-Wi-Fi Configuration via QR Code:
+6. Wi-Fi Configuration via QR Code
 
 Purpose: Allows PEBO to connect to Wi-Fi by scanning a QR code.
 App Setup:
 Navigate to Wi-Fi Setup screen.
 Enter SSID and password.
-Generate QR code (react-native-qrcode-svg):import QRCode from 'react-native-qrcode-svg';
+Generate QR code (react-native-qrcode-svg):
+
+
+
+import QRCode from 'react-native-qrcode-svg';
 const wifiData = `WIFI:S:${ssid};T:WPA;P:${password};;`;
 return <QRCode value={wifiData} size={200} />;
 
 
 Display QR code on the phone screen.
-
-
 Verification:
 Ensure QR code format is correct (e.g., WIFI:S:MyNetwork;T:WPA;P:MyPassword;;).
 Use a QR code reader app to verify.
 
 
 
-
-Run the App:
+7. Run the App
 expo start
 
 
 Scan the QR code with Expo Go.
-Or use:expo start --ios  # iOS simulator
+Or use:
+
+expo start --ios  # iOS simulator
 expo start --android  # Android emulator
 
-
-
-
-
 Setting Up the Raspberry Pi
-
-Prepare the Hardware:
+1. Prepare the Hardware
 
 Connect Pi Camera Module to CSI port.
 Attach SG90 servo motors to GPIO 17 (pan) and 18 (tilt).
@@ -326,8 +315,8 @@ Attach dual OLED displays (I2C addresses 0x3D, 0x3C).
 Connect PCA9685 PWM controller (I2C address 0x40).
 Connect LED to GPIO 18.
 
-
-Install Dependencies:Update system:
+2. Install Dependencies
+Update system:
 sudo apt update && sudo apt upgrade -y
 
 Install Python and pip:
@@ -343,27 +332,25 @@ Enable camera:
 sudo raspi-config
 
 Navigate to Interface Options > Camera > Enable.
-
-Configure Firebase:
+3. Configure Firebase
 
 Download service account key (Firebase Console > Project Settings > Service Accounts).
 Save as /home/pi/pebo/serviceAccountKey.json.
-Initialize Firebase:import firebase_admin
+Initialize Firebase:
+
+import firebase_admin
 from firebase_admin import credentials, firestore
 cred = credentials.Certificate('/home/pi/pebo/serviceAccountKey.json')
 firebase_admin.initialize_app(cred, {'databaseURL': 'https://pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app'})
 db = firestore.client()
 
-
-
-
-Configure AWS:
+4. Configure AWS
 pip3 install awscli
 aws configure
 
 Enter Access Key ID, Secret Access Key, region (e.g., us-east-1), and output format (json).
-
-QR Code Wi-Fi Setup:Create wifi_setup.py:
+5. QR Code Wi-Fi Setup
+Create wifi_setup.py:
 import cv2
 import pyzbar.pyzbar as pyzbar
 cap = cv2.VideoCapture(0)
@@ -384,18 +371,15 @@ cap.release()
 Connect to Wi-Fi:
 nmcli dev wifi connect "ssid" password "password"
 
-
-Run the Main Script:Save the provided script as pebo_main.py:
+6. Run the Main Script
+Save the provided script as pebo_main.py:
 nano /home/pi/pebo/pebo_main.py
 
-Update GOOGLE_API_KEY with your Gemini API key.Run:
+Update GOOGLE_API_KEY with your Gemini API key. Run:
 python3 /home/pi/pebo/pebo_main.py
 
-
-
 Building the Production APK
-
-Set Up EAS Build:
+1. Set Up EAS Build
 npm install -g eas-cli
 
 Create eas.json:
@@ -409,19 +393,14 @@ Create eas.json:
   }
 }
 
-
-Configure Signing Credentials:
+2. Configure Signing Credentials
 eas credentials
 
-
-Build the APK:
+3. Build the APK
 eas build -p android --profile production
 
-
-Publish OTA Updates:
+4. Publish OTA Updates
 eas update --branch production
-
-
 
 Usage
 Mobile App
@@ -447,7 +426,7 @@ Manage devices, initiate calls, or set tasks in Device Management screen.
 
 Raspberry Pi
 
-Voice Commands: Say "call pebo", "play song ", or trigger phrases like "hi PEBO".
+Voice Commands: Say call pebo, play song <song_name>, or trigger phrases like hi PEBO.
 Face Tracking: Camera tracks user face.
 Emotion Expression: Arms and OLED eyes display emotions (Happy, Sad, etc.).
 Wi-Fi Setup: Scans QR codes for network connectivity.
@@ -480,13 +459,19 @@ Check microphone/speaker connections and FFmpeg installation.
 Contributing
 
 Fork the repository.
-Create a branch:git checkout -b feature/your-feature
+Create a branch:
+
+git checkout -b feature/your-feature
 
 
-Commit changes:git commit -m "Add your feature"
+Commit changes:
+
+git commit -m "Add your feature"
 
 
-Push:git push origin feature/your-feature
+Push:
+
+git push origin feature/your-feature
 
 
 Open a pull request.
@@ -504,3 +489,4 @@ Acknowledgments
 
 Thanks to the React Native, Expo, AWS, Firebase, and Google AI communities.
 Gratitude to our team for their innovative contributions to PEBO.
+
