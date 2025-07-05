@@ -126,8 +126,13 @@ export default function SignUpScreen({ navigation }) {
             autoCapitalize="none"
             value={email}
             onChangeText={setEmail}
+            testID="email-input"
           />
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+          {errors.email && (
+            <Text style={styles.errorText} testID="error-message">
+              {errors.email}
+            </Text>
+          )}
           <View style={[styles.inputRow, errors.password && styles.inputError]}>
             <TextInput
               style={styles.flexInput}
@@ -175,7 +180,11 @@ export default function SignUpScreen({ navigation }) {
               style={{ marginVertical: 20 }}
             />
           ) : (
-            <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSignUp}
+              testID="submit-button"
+            >
               <Text style={styles.buttonText}>Create Account</Text>
             </TouchableOpacity>
           )}
