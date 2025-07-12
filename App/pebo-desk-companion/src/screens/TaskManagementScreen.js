@@ -1,33 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   StyleSheet,
-  Dimensions,
   SafeAreaView,
+  TouchableOpacity,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  Animated,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { Menu, Provider as PaperProvider } from "react-native-paper";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import PopupModal from "../components/PopupModal";
 import {
-  TextInput,
-  Button,
-  Card,
-  Text,
-  Menu,
-  Provider as PaperProvider,
-  DefaultTheme,
-  ActivityIndicator,
-} from "react-native-paper";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { addTask, getTaskOverview, updateTask } from "../services/firebase";
+  auth,
+  db,
+  addTask,
+  getTaskOverview,
+  updateTask,
+} from "../services/firebase";
 import moment from "moment";
 
-const { width } = Dimensions.get("window");
-
-export default function TaskManagementScreen() {
+const TaskManagementScreen = () => {
+  // State Management
   const [task, setTask] = useState("");
   const [deadline, setDeadline] = useState(null);
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -46,16 +45,65 @@ export default function TaskManagementScreen() {
     message: "",
     icon: "checkmark-circle",
   });
+  const [username, setUsername] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  // Check if required fields are filled for FAB icon
+  const isFormComplete = task.trim() && deadline;
+
+  // Authentication and Username Fetching
+  useEffect(() => {
+    let unsubscribeAuth;
+    unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      console.log("Auth state changed:", user ? user.uid : null);
+      setCurrentUser(user);
+      setLoading(false);
+    });
+    return () => unsubscribeAuth && unsubscribeAuth();
+  }, []);
 
   useEffect(() => {
-    fetchAndSort();
-  }, [sortPref]);
+    let unsubscribeUsername;
+    if (currentUser?.uid) {
+      const usernameRef = db.ref(`users/${currentUser.uid}/username`);
+      unsubscribeUsername = usernameRef.on(
+        "value",
+        (snapshot) => {
+          const fetchedUsername = snapshot?.exists() ? snapshot.val() : null;
+          console.log("Firebase username:", fetchedUsername);
+          setUsername(fetchedUsername || `user_${currentUser.uid.slice(0, 8)}`);
+        },
+        (error) => {
+          console.error("Firebase username listener error:", error);
+          setUsername(`user_${currentUser.uid.slice(0, 8)}`);
+        }
+      );
+    }
+    return () => unsubscribeUsername && unsubscribeUsername();
+  }, [currentUser]);
 
-  async function fetchAndSort() {
+  // Fetch and Sort Tasks
+  useEffect(() => {
+    if (currentUser?.uid) fetchAndSort();
+  }, [sortPref, currentUser]);
+
+  // Animation for Add Task Container
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: showAddTask ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showAddTask]);
+
+  const fetchAndSort = async () => {
     setLoading(true);
     try {
       const data = await getTaskOverview();
-      if (!Array.isArray(data)) throw new Error();
+      console.log("Fetched tasks:", data);
+      if (!Array.isArray(data)) throw new Error("Invalid task data");
       const order = { High: 0, Medium: 1, Low: 2 };
       const sorted = data.sort((a, b) => {
         if (sortPref === "priority")
@@ -63,14 +111,16 @@ export default function TaskManagementScreen() {
         return new Date(a.deadline) - new Date(b.deadline);
       });
       setTasks(sorted);
-    } catch {
+    } catch (error) {
+      console.error("Fetch tasks error:", error);
       showPopup("Error", "Failed to fetch tasks", "alert-circle");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function toggleCompleted(item) {
+  // Task Management Functions
+  const toggleCompleted = async (item) => {
     try {
       await updateTask(item.id, { completed: !item.completed });
       setTasks((ts) =>
@@ -81,18 +131,24 @@ export default function TaskManagementScreen() {
     } catch {
       showPopup("Error", "Failed to update task", "alert-circle");
     }
-  }
+  };
 
-  function showPopup(title, message, icon = "checkmark-circle") {
+  const showPopup = (title, message, icon = "checkmark-circle") => {
     setPopupContent({ title, message, icon });
     setPopupVisible(true);
-  }
+  };
 
-  async function addNew() {
+  const addNew = async () => {
     if (!task.trim())
       return showPopup("Input Error", "Enter a task", "alert-circle");
     if (!deadline)
       return showPopup("Input Error", "Select deadline", "alert-circle");
+    if (!username.trim())
+      return showPopup(
+        "Error",
+        "Username not found. Please update your profile.",
+        "alert-circle"
+      );
     setAdding(true);
     try {
       await addTask({
@@ -101,171 +157,294 @@ export default function TaskManagementScreen() {
         deadline: deadline.toISOString(),
         category,
         priority,
+        createdBy: username,
       });
+      console.log("Added task with category:", category, "priority:", priority);
       setTask("");
       setDeadline(null);
       setCategory("Work");
       setPriority("Medium");
+      setShowAddTask(false);
       await fetchAndSort();
       showPopup("Success", "Task added successfully", "checkmark-circle");
-    } catch {
+    } catch (error) {
+      console.error("Add task error:", error);
       showPopup("Error", "Failed to add task", "alert-circle");
     } finally {
       setAdding(false);
     }
-  }
+  };
 
-  const renderMenu = (label, val, opts, vis, setVis, onSelect) => (
+  const handleFabPress = () => {
+    if (showAddTask) {
+      if (isFormComplete) {
+        addNew();
+      } else {
+        setTask("");
+        setDeadline(null);
+        setCategory("Work");
+        setPriority("Medium");
+        setShowAddTask(false);
+      }
+    } else {
+      setShowAddTask(true);
+    }
+  };
+
+  // Render Helper Functions
+  const renderMenu = (label, val, opts, vis, setVis, onSelect, icon) => (
     <Menu
       visible={vis}
       onDismiss={() => setVis(false)}
       anchor={
-        <Button
-          mode="outlined"
+        <TouchableOpacity
           onPress={() => setVis(true)}
-          style={styles.input}
-          contentStyle={{ justifyContent: "space-between" }}
+          style={styles.menuButton}
+          accessibilityLabel={`Select ${label}`}
+          accessibilityRole="button"
         >
-          {label}: {val}
-        </Button>
+          <Ionicons name={icon} size={18} color="#1976D2" />
+          <Text style={[styles.menuLabel, val && styles.menuLabelSelected]}>
+            {val || label}
+          </Text>
+          <Ionicons name="chevron-down" size={18} color="#1976D2" />
+        </TouchableOpacity>
       }
+      style={styles.menu}
     >
       {opts.map((o) => (
         <Menu.Item
           key={o}
-          title={`• ${o}`}
-          leadingIcon="chevron-right"
+          title={o}
+          leadingIcon={o === val ? "check" : undefined}
           onPress={() => {
+            console.log(`Selected ${label}:`, o);
             onSelect(o);
             setVis(false);
           }}
+          titleStyle={
+            o === val ? styles.menuItemTextSelected : styles.menuItemText
+          }
+          style={o === val ? styles.menuItemSelected : styles.menuItem}
         />
       ))}
     </Menu>
   );
 
   const renderTask = ({ item }) => (
-    <Card style={[styles.card, item.completed && styles.completedCard]}>
-      <Card.Title
-        title={item.description}
-        titleStyle={[styles.cardTitle, item.completed && styles.completedText]}
-        right={() => (
-          <Button
-            icon={
-              item.completed ? "check-circle" : "checkbox-blank-circle-outline"
-            }
-            onPress={() => toggleCompleted(item)}
-            compact
-            color="#007AFF"
+    <View style={[styles.taskItem, item.completed && styles.completedItem]}>
+      <View style={styles.taskHeader}>
+        <Text
+          style={[styles.taskTitle, item.completed && styles.completedText]}
+          numberOfLines={2}
+        >
+          {item.description}
+        </Text>
+        <TouchableOpacity
+          onPress={() => toggleCompleted(item)}
+          accessibilityLabel={
+            item.completed ? "Mark task incomplete" : "Mark task complete"
+          }
+          accessibilityRole="button"
+        >
+          <Ionicons
+            name={item.completed ? "checkmark-circle" : "ellipse-outline"}
+            size={22}
+            color={item.completed ? "#4CAF50" : "#1976D2"}
           />
-        )}
-      />
-      <Card.Content>
-        <View style={styles.taskInfo}>
-          <Text style={styles.info}>
-            📅 {moment(item.deadline).format("DD MMM, hh:mm A")}
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.taskSubtitle}>
+        By: {item.createdBy || "Unknown User"}
+      </Text>
+      <View style={styles.taskInfo}>
+        <View style={styles.infoItem}>
+          <Ionicons name="calendar-outline" size={14} color="#757575" />
+          <Text style={styles.infoText}>
+            {moment(item.deadline).format("DD MMM, hh:mm A")}
           </Text>
-          <Text style={styles.info}>🚦 {item.priority}</Text>
-          <Text style={styles.info}>📂 {item.category}</Text>
         </View>
-      </Card.Content>
-    </Card>
+        <View style={styles.infoItem}>
+          <Ionicons name="alert-circle-outline" size={14} color="#757575" />
+          <Text style={styles.infoText}>{item.priority || "N/A"}</Text>
+        </View>
+        <View style={styles.infoItem}>
+          <Ionicons name="folder-outline" size={14} color="#757575" />
+          <Text style={styles.infoText}>{item.category || "N/A"}</Text>
+        </View>
+      </View>
+    </View>
   );
 
   return (
-    <PaperProvider theme={theme}>
+    <PaperProvider>
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>My Tasks</Text>
+        </View>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <Text style={styles.appName}>My Tasks</Text>
-
-          <TextInput
-            label="Task description"
-            value={task}
-            onChangeText={setTask}
-            mode="outlined"
-            style={styles.input}
-          />
-
-          <Button
-            mode="outlined"
-            icon="calendar"
-            onPress={() => setPickerVisible(true)}
-            style={styles.input}
-          >
-            {deadline
-              ? moment(deadline).format("DD MMM YYYY, hh:mm A")
-              : "Select deadline & time"}
-          </Button>
+          {showAddTask && (
+            <Animated.View
+              style={{
+                opacity: slideAnim,
+                transform: [
+                  {
+                    translateY: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              }}
+            >
+              <View style={styles.inputCard}>
+                <Text style={styles.sectionTitle}>Add New Task</Text>
+                <View style={styles.inputRow}>
+                  <Ionicons
+                    name="create-outline"
+                    size={20}
+                    color="#1976D2"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    placeholder="Task description"
+                    value={task}
+                    onChangeText={setTask}
+                    style={[styles.input, !task.trim() && styles.inputError]}
+                    placeholderTextColor="#757575"
+                    accessibilityLabel="Task description"
+                  />
+                </View>
+                <View style={styles.inputRow}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color="#1976D2"
+                    style={styles.inputIcon}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setPickerVisible(true)}
+                    style={styles.dateButton}
+                    accessibilityLabel="Select deadline"
+                    accessibilityRole="button"
+                  >
+                    <Text
+                      style={
+                        deadline
+                          ? styles.buttonLabel
+                          : styles.buttonLabelPlaceholder
+                      }
+                    >
+                      {deadline
+                        ? moment(deadline).format("DD MMM YYYY, hh:mm A")
+                        : "Select deadline & time"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.filterRow}>
+                  {renderMenu(
+                    "Priority",
+                    priority,
+                    ["High", "Medium", "Low"],
+                    showPriMenu,
+                    setShowPriMenu,
+                    setPriority,
+                    "alert-circle-outline"
+                  )}
+                  {renderMenu(
+                    "Category",
+                    category,
+                    ["Work", "Personal", "Study"],
+                    showCatMenu,
+                    setShowCatMenu,
+                    setCategory,
+                    "folder-outline"
+                  )}
+                </View>
+              </View>
+            </Animated.View>
+          )}
 
           <DateTimePickerModal
             isVisible={isPickerVisible}
             mode="datetime"
-            onConfirm={(d) => {
-              setDeadline(d);
+            onConfirm={(date) => {
+              setDeadline(date);
               setPickerVisible(false);
             }}
             onCancel={() => setPickerVisible(false)}
+            buttonColor="#1976D2"
+            confirmTextStyle={{ color: "#1976D2" }}
+            cancelTextStyle={{ color: "#D32F2F" }}
+            headerTextStyle={{ color: "#212121" }}
           />
 
-          {renderMenu(
-            "🚦 Priority",
-            priority,
-            ["High", "Medium", "Low"],
-            showPriMenu,
-            setShowPriMenu,
-            setPriority
-          )}
-          {renderMenu(
-            "📂 Category",
-            category,
-            ["Work", "Personal", "Study"],
-            showCatMenu,
-            setShowCatMenu,
-            setCategory
-          )}
-
-          <Button
-            mode="contained"
-            icon="plus-circle"
-            onPress={addNew}
-            loading={adding}
-            style={styles.addBtn}
-            contentStyle={{ paddingVertical: 6 }}
-            labelStyle={{ color: "white", fontWeight: "620" }}
-          >
-            Add New Task
-          </Button>
-
-          <View style={styles.sortRow}>
-            <Text style={styles.sortText}>Sort by:</Text>
+          <View style={styles.filterBar}>
+            <Text style={styles.sortTitle}>Sort By:</Text>
             {renderMenu(
               "Sort",
               sortPref.charAt(0).toUpperCase() + sortPref.slice(1),
               ["Deadline", "Priority"],
               showSortMenu,
               setShowSortMenu,
-              (v) => setSortPref(v.toLowerCase())
+              (v) => setSortPref(v.toLowerCase()),
+              "swap-vertical"
             )}
           </View>
 
-          <View style={{ flex: 1 }}>
+          <View style={styles.taskListContainer}>
             {loading ? (
-              <ActivityIndicator style={{ marginTop: 24 }} />
+              <ActivityIndicator
+                style={styles.loading}
+                color="#1976D2"
+                size="large"
+              />
             ) : tasks.length === 0 ? (
-              <Text style={styles.empty}>No tasks available.</Text>
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  No tasks yet. Tap the "+" button to add one!
+                </Text>
+              </View>
             ) : (
               <FlatList
                 data={tasks}
                 renderItem={renderTask}
-                keyExtractor={(_, i) => i.toString()}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.taskListContent}
+                initialNumToRender={10}
               />
             )}
           </View>
+
+          <TouchableOpacity
+            style={[styles.fab, adding && styles.fabDisabled]}
+            onPress={handleFabPress}
+            disabled={adding}
+            accessibilityLabel={
+              showAddTask
+                ? isFormComplete
+                  ? "Add task"
+                  : "Cancel"
+                : "Add new task"
+            }
+            accessibilityRole="button"
+          >
+            {adding ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Ionicons
+                name={
+                  showAddTask ? (isFormComplete ? "checkmark" : "close") : "add"
+                }
+                size={32}
+                color="#FFFFFF"
+              />
+            )}
+          </TouchableOpacity>
 
           <PopupModal
             visible={popupVisible}
@@ -273,28 +452,11 @@ export default function TaskManagementScreen() {
             title={popupContent.title}
             message={popupContent.message}
             icon={popupContent.icon}
-            style={styles.popup}
-            contentStyle={styles.popupContent}
           />
         </KeyboardAvoidingView>
       </SafeAreaView>
     </PaperProvider>
   );
-}
-
-const theme = {
-  ...DefaultTheme,
-  roundness: 12,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: "#007AFF",
-    accent: "#03DAC6",
-    background: "#F4F9FF",
-    surface: "#FFFFFF",
-    text: "#1C1C1E",
-    placeholder: "#999999",
-    disabled: "#BDBDBD",
-  },
 };
 
 const styles = StyleSheet.create({
@@ -302,68 +464,233 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F9FF",
     padding: 24,
-    paddingTop: 50,
   },
-  appName: {
+  header: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  headerTitle: {
     fontSize: 28,
-    fontWeight: "700",
-    color: "#007AFF",
+    fontWeight: "bold",
+    color: "#1976D2",
     textAlign: "center",
-    marginBottom: 30,
   },
-  input: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginBottom: 14,
-    fontSize: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  addBtn: {
-    backgroundColor: "#007AFF",
-    borderRadius: 14,
-    paddingVertical: 8,
-    justifyContent: "center",
-    marginTop: 12,
-  },
-  sortRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 18,
-    alignItems: "center",
-  },
-  sortText: { fontSize: 16, color: "#007AFF", fontWeight: "600" },
-  card: {
+  inputCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    marginBottom: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 4 },
+    padding: 20,
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: "#000000",
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
-  completedCard: { backgroundColor: "#ECECEC" },
-  cardTitle: { fontSize: 18, fontWeight: "600", color: "#1C1C1E" },
-  completedText: { textDecorationLine: "line-through", color: "#A4A4A4" },
-  taskInfo: {
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1976D2",
+    marginBottom: 12,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ECEFF1",
+    borderRadius: 8,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  inputIcon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: "transparent",
+    fontSize: 14,
+    color: "#212121",
+  },
+  inputError: {
+    borderColor: "#D32F2F",
+    borderWidth: 1,
+  },
+  dateButton: {
+    flex: 1,
+    backgroundColor: "transparent",
+    paddingVertical: 10,
+    justifyContent: "flex-start",
+  },
+  buttonLabel: {
+    fontSize: 14,
+    color: "#212121",
+    fontWeight: "600",
+  },
+  buttonLabelPlaceholder: {
+    fontSize: 14,
+    color: "#757575",
+    fontWeight: "500",
+  },
+  filterRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingBottom: 12,
+    gap: 8,
   },
-  info: { fontSize: 16, color: "#6C6C6C" },
-  empty: {
+  filterBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: "#000000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  sortTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1976D2",
+    marginRight: 8,
+  },
+  menuButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ECEFF1",
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    flex: 1,
+  },
+  menuLabel: {
+    fontSize: 14,
+    color: "#212121",
+    fontWeight: "600",
+    marginRight: 4,
+    flex: 1,
+  },
+  menuLabelSelected: {
+    color: "#1976D2",
+  },
+  menu: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: "#000000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    marginTop: 8,
+  },
+  menuItem: {
+    backgroundColor: "#FFFFFF",
+  },
+  menuItemSelected: {
+    backgroundColor: "#ECEFF1",
+  },
+  menuItemText: {
+    fontSize: 14,
+    color: "#212121",
+    fontWeight: "500",
+  },
+  menuItemTextSelected: {
+    fontSize: 14,
+    color: "#1976D2",
+    fontWeight: "600",
+  },
+  taskListContainer: {
+    flex: 1,
+  },
+  taskListContent: {
+    paddingBottom: 80,
+  },
+  taskItem: {
+    backgroundColor: "#ECEFF1",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  completedItem: {
+    backgroundColor: "#F5F5F5",
+  },
+  taskHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  taskTitle: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#212121",
+    flex: 1,
+    marginRight: 8,
+  },
+  taskSubtitle: {
+    fontSize: 12,
+    color: "#757575",
+    marginBottom: 8,
+  },
+  completedText: {
+    textDecorationLine: "line-through",
+    color: "#90A4AE",
+  },
+  taskInfo: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  infoText: {
+    fontSize: 12,
+    color: "#757575",
+    marginLeft: 4,
+    flexShrink: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    padding: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#757575",
     textAlign: "center",
-    color: "#999999",
-    fontStyle: "italic",
-    marginTop: 24,
+    fontWeight: "500",
   },
-  popup: { backgroundColor: "#FFFFFF", borderRadius: 16, padding: 20 },
-  popupContent: { alignItems: "center" },
+  fab: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    backgroundColor: "#4CAF50",
+    borderRadius: 32,
+    width: 56,
+    height: 56,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  fabDisabled: {
+    backgroundColor: "#B0BEC5",
+  },
+  loading: {
+    marginTop: 32,
+  },
 });
+
+export default TaskManagementScreen;

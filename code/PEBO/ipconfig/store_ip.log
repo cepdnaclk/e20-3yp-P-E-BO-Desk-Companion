@@ -1,0 +1,113 @@
+2025-05-28 00:23:10,749 - INFO - Firebase initialized successfully
+2025-05-28 00:23:10,760 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=Galaxy F54 5G 647C
+2025-05-28 00:23:11,878 - INFO - Stored IP 192.168.73.203 and SSID Galaxy F54 5G 647C for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:25:11,891 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=None
+2025-05-28 00:25:20,500 - INFO - Stored IP 192.168.73.203 and SSID Unknown for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:25:50,505 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=Galaxy F54 5G 647C
+2025-05-28 00:25:50,687 - INFO - Stored IP 192.168.73.203 and SSID Galaxy F54 5G 647C for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:28:20,709 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=None
+2025-05-28 00:28:29,372 - INFO - Stored IP 192.168.73.203 and SSID Unknown for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:28:59,378 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=Galaxy F54 5G 647C
+2025-05-28 00:28:59,600 - INFO - Stored IP 192.168.73.203 and SSID Galaxy F54 5G 647C for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:30:29,614 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=None
+2025-05-28 00:30:38,206 - INFO - Stored IP 192.168.73.203 and SSID Unknown for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:31:08,214 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=Galaxy F54 5G 647C
+2025-05-28 00:31:08,400 - INFO - Stored IP 192.168.73.203 and SSID Galaxy F54 5G 647C for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:33:38,426 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=None
+2025-05-28 00:33:47,191 - INFO - Stored IP 192.168.73.203 and SSID Unknown for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:34:17,196 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=Galaxy F54 5G 647C
+2025-05-28 00:34:17,480 - INFO - Stored IP 192.168.73.203 and SSID Galaxy F54 5G 647C for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:45:17,582 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=None
+2025-05-28 00:45:25,300 - INFO - Stored IP 192.168.73.203 and SSID Unknown for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:45:55,303 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=Galaxy F54 5G 647C
+2025-05-28 00:45:55,619 - INFO - Stored IP 192.168.73.203 and SSID Galaxy F54 5G 647C for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:56:55,734 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=None
+2025-05-28 00:57:04,389 - INFO - Stored IP 192.168.73.203 and SSID Unknown for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 00:57:34,402 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=Galaxy F54 5G 647C
+2025-05-28 00:57:34,609 - INFO - Stored IP 192.168.73.203 and SSID Galaxy F54 5G 647C for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 01:00:04,644 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=None
+2025-05-28 01:00:13,308 - INFO - Stored IP 192.168.73.203 and SSID Unknown for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 01:00:43,314 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=Galaxy F54 5G 647C
+2025-05-28 01:00:43,519 - INFO - Stored IP 192.168.73.203 and SSID Galaxy F54 5G 647C for user CURRENT_USER_ID, device pebo_rpi_1
+2025-05-28 01:02:13,532 - INFO - Wi-Fi change detected: IP=192.168.73.203, SSID=None
+2025-05-28 01:02:22,114 - INFO - Stored IP 192.168.73.203 and SSID Unknown for user CURRENT_USER_ID, device pebo_rpi_1
+2025-06-03 01:04:52,198 - INFO - Firebase initialized successfully
+2025-06-03 01:04:52,514 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 01:04:53,808 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user CURRENT_USER_ID, device pebo_rpi_1
+2025-06-03 01:05:38,350 - INFO - Selected device pebo_rpi_1 with IP 172.20.10.12 for communication
+2025-06-03 01:05:38,578 - INFO - Sent call request to pebo_rpi_1
+2025-06-03 01:05:46,721 - INFO - Program terminated by user
+2025-06-03 01:05:46,727 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 01:05:46,909 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user CURRENT_USER_ID, device pebo_rpi_1
+2025-06-03 01:09:12,947 - INFO - Program terminated by user
+2025-06-03 01:16:17,030 - INFO - Firebase initialized successfully
+2025-06-03 01:16:17,034 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 01:16:18,143 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user CURRENT_USER_ID, device pebo_rpi_1
+2025-06-03 01:16:52,399 - INFO - Program terminated by user
+2025-06-03 01:32:38,658 - INFO - Firebase initialized successfully
+2025-06-03 01:32:38,662 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 01:32:39,657 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user CURRENT_USER_ID, device pebo_rpi_1
+2025-06-03 01:47:29,869 - INFO - Firebase initialized successfully
+2025-06-03 01:47:29,869 - INFO - Loaded config: user_id=KNkMZinjhudKvhU7njooXsGM0hj1, device_id=-ORm9R9LcQVt6L69NMez
+2025-06-03 01:47:29,873 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 01:47:30,933 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user KNkMZinjhudKvhU7njooXsGM0hj1, device -ORm9R9LcQVt6L69NMez
+2025-06-03 01:51:09,237 - INFO - Program terminated by user
+2025-06-03 01:51:14,068 - INFO - Firebase initialized successfully
+2025-06-03 01:51:14,069 - INFO - Loaded config: user_id=KNkMZinjhudKvhU7njooXsGM0hj1, device_id=-ORm9R9LcQVt6L69NMez
+2025-06-03 01:51:14,072 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 01:51:15,212 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user KNkMZinjhudKvhU7njooXsGM0hj1, device -ORm9R9LcQVt6L69NMez
+2025-06-03 01:52:38,910 - INFO - Selected device -ORmDp0MHAk6rEy0I_gy with IP None for communication
+2025-06-03 01:52:39,528 - INFO - Sent call request to -ORmDp0MHAk6rEy0I_gy
+2025-06-03 01:56:16,358 - INFO - Program terminated by user
+2025-06-03 02:05:46,387 - INFO - Firebase initialized successfully
+2025-06-03 02:05:46,388 - INFO - Loaded config: user_id=smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device_id=-ORmLJ2zaYA0JG04P7YP
+2025-06-03 02:05:46,394 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 02:05:47,374 - INFO - Stored IP 172.20.10.12, SSID Yasiru Harinda, Location Unknown_Location for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmLJ2zaYA0JG04P7YP
+2025-06-03 02:07:50,292 - INFO - Program terminated by user
+2025-06-03 02:07:58,313 - INFO - Firebase initialized successfully
+2025-06-03 02:07:58,314 - INFO - Loaded config: user_id=smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device_id=-ORmLJ2zaYA0JG04P7YP
+2025-06-03 02:07:58,321 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 02:07:59,299 - INFO - Stored IP 172.20.10.12, SSID Yasiru Harinda, Location Unknown_Location for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmLJ2zaYA0JG04P7YP
+2025-06-03 02:08:18,737 - INFO - Program terminated by user
+2025-06-03 02:08:47,631 - INFO - Firebase initialized successfully
+2025-06-03 02:08:47,632 - INFO - Loaded config: user_id=smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device_id=-ORmLJ2zaYA0JG04P7YP
+2025-06-03 02:08:47,637 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 02:08:48,600 - INFO - Stored IP 172.20.10.12, SSID Yasiru Harinda, Location Unknown_Location for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmLJ2zaYA0JG04P7YP
+2025-06-03 02:11:43,593 - INFO - Program terminated by user
+2025-06-03 02:12:28,970 - INFO - Firebase initialized successfully
+2025-06-03 02:12:28,972 - INFO - Loaded config: user_id=smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device_id=-ORmN5hmsLTbHiC367_l
+2025-06-03 02:12:28,980 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 02:12:29,932 - INFO - Stored IP 172.20.10.12, SSID Yasiru Harinda, Location Unknown_Location for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-03 02:14:22,635 - INFO - Program terminated by user
+2025-06-03 02:14:27,418 - INFO - Firebase initialized successfully
+2025-06-03 02:14:27,422 - INFO - Loaded config: user_id=smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device_id=-ORmN5hmsLTbHiC367_l
+2025-06-03 02:14:27,425 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 02:14:28,490 - INFO - Stored IP 172.20.10.12, SSID Yasiru Harinda, Location Unknown_Location for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-03 02:14:57,367 - INFO - Program terminated by user
+2025-06-03 02:15:02,359 - INFO - Firebase initialized successfully
+2025-06-03 02:15:02,360 - INFO - Loaded config: user_id=smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device_id=-ORmN5hmsLTbHiC367_l
+2025-06-03 02:15:02,363 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 02:15:03,400 - INFO - Stored IP 172.20.10.12, SSID Yasiru Harinda, Location Unknown_Location for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-03 02:19:54,842 - INFO - Firebase initialized successfully
+2025-06-03 02:19:54,843 - INFO - Loaded config: user_id=smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device_id=-ORmN5hmsLTbHiC367_l, location=Unknown_Location
+2025-06-03 02:19:54,847 - INFO - Wi-Fi change detected: IP=172.20.10.12, SSID=Yasiru Harinda
+2025-06-03 02:19:55,913 - INFO - Stored IP 172.20.10.12, SSID Yasiru Harinda, Location Unknown_Location for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-03 02:21:39,232 - INFO - Program terminated by user
+2025-06-03 03:40:12,247 - INFO - Firebase initialized successfully
+2025-06-03 03:44:02,330 - INFO - Firebase app cleaned up
+2025-06-03 03:45:26,742 - INFO - Firebase initialized successfully
+2025-06-03 03:46:14,361 - INFO - Firebase app cleaned up
+2025-06-03 03:55:40,443 - INFO - Firebase initialized successfully
+2025-06-03 03:57:21,874 - INFO - Firebase app cleaned up
+2025-06-03 03:59:53,876 - INFO - Firebase initialized successfully
+2025-06-03 04:00:12,969 - INFO - Firebase app cleaned up
+2025-06-03 04:01:51,113 - INFO - Firebase initialized successfully
+2025-06-03 04:02:01,573 - INFO - Firebase app cleaned up
+2025-06-03 04:04:04,186 - INFO - Firebase initialized successfully
+2025-06-03 04:05:19,797 - INFO - Firebase app cleaned up
+2025-06-03 08:40:26,434 - INFO - Firebase initialized successfully
+2025-06-03 08:41:17,860 - INFO - Firebase app cleaned up
+2025-06-03 08:45:29,509 - INFO - Firebase initialized successfully
+2025-06-03 08:50:08,413 - INFO - Firebase app cleaned up
+2025-06-03 11:49:00,188 - INFO - Firebase initialized successfully
+2025-06-03 11:51:26,599 - INFO - Firebase app cleaned up
