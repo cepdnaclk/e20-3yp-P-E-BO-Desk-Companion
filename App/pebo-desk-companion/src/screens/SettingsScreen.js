@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -15,7 +15,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import QRCode from "react-native-qrcode-svg";
+import QRCode from "react-native-qrcode-svg"; // Added for QR code generation
 import {
   auth,
   db,
@@ -25,30 +25,6 @@ import {
   getPeboDevices,
 } from "../services/firebase";
 import PopupModal from "../components/PopupModal";
-
-// QRErrorBoundary to catch QR code rendering errors
-class QRErrorBoundary extends React.Component {
-  state = { hasError: false };
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error("QR Code Rendering Error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <Text style={{ color: "#FF3B30", textAlign: "center" }}>
-          Error rendering QR code
-        </Text>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -63,12 +39,12 @@ const SettingsScreen = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-  const [qrModalVisible, setQrModalVisible] = useState(false);
+  const [qrModalVisible, setQrModalVisible] = useState(false); // Added for QR code modal
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupContent, setPopupContent] = useState({
     title: "",
     message: "",
-    type: "info",
+    icon: "checkmark-circle",
   });
   const [username, setUsername] = useState("");
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
@@ -77,24 +53,8 @@ const SettingsScreen = () => {
   const API_GATEWAY_URL =
     "https://aw8yn9cbj1.execute-api.us-east-1.amazonaws.com/prod/presigned";
 
-  // Map icon names to PopupModal types
-  const getPopupType = (icon) => {
-    switch (icon) {
-      case "checkmark-circle":
-        return "success";
-      case "alert-circle":
-        return "error";
-      case "wifi":
-        return "success";
-      case "add-circle":
-        return "success";
-      default:
-        return "info";
-    }
-  };
-
   const showPopup = (title, message, icon = "checkmark-circle") => {
-    setPopupContent({ title, message, type: getPopupType(icon) });
+    setPopupContent({ title, message, icon });
     setPopupVisible(true);
   };
 
@@ -111,8 +71,8 @@ const SettingsScreen = () => {
     const fetchWifiSettings = async () => {
       try {
         const { wifiSSID, wifiPassword } = await getWifiName();
-        setWifiSSID(wifiSSID || "");
-        setWifiPassword(wifiPassword || "");
+        setWifiSSID(wifiSSID);
+        setWifiPassword(wifiPassword);
       } catch (err) {
         console.warn("Error fetching Wi-Fi:", err);
       }
@@ -125,12 +85,12 @@ const SettingsScreen = () => {
       unsubscribe = profileImageRef.on(
         "value",
         (snapshot) => {
-          if (snapshot.exists()) {
-            const imageUrl = snapshot.val();
+          if (snapshot) {
+            const imageUrl = snapshot.exists() ? snapshot.val() : null;
             console.log("Firebase profileImage:", imageUrl);
             setUserImage(imageUrl);
           } else {
-            console.log("No profile image found in Firebase");
+            console.warn("Snapshot is undefined");
             setUserImage(null);
           }
         },
@@ -154,19 +114,9 @@ const SettingsScreen = () => {
     };
   }, []);
 
-  // Memoized QR code value
-  const qrCodeValue = useMemo(() => {
-    const ssid = wifiSSID.trim();
-    const password = wifiPassword.trim();
-    if (!ssid || !password) {
-      return "{}"; // Fallback if credentials are empty
-    }
-    return `WIFI:S:${ssid};T:WPA;P:${password};;`;
-  }, [wifiSSID, wifiPassword]);
-
   const captureAndUploadImage = async () => {
     if (!username.trim()) {
-      showPopup("Error", "Please enter your name", "alert-circle");
+      showPopup("Error", "How PEBO Should call you? ", "alert-circle");
       return;
     }
 
@@ -234,7 +184,7 @@ const SettingsScreen = () => {
       });
 
       if (!uploadResponse.ok) {
-        throw new Error(`S3 upload failed: ${uploadResponse.statusText}`);
+        throw new Error(`S3 upload failed: ${response.statusText}`);
       }
 
       const s3Url = `https://${BUCKET_NAME}.s3.amazonaws.com/${objectName}`;
@@ -299,9 +249,7 @@ const SettingsScreen = () => {
   };
 
   const handleShowQrCode = () => {
-    const ssid = wifiSSID.trim();
-    const pwd = wifiPassword.trim();
-    if (!ssid || !pwd) {
+    if (!wifiSSID.trim() || !wifiPassword.trim()) {
       showPopup(
         "Error",
         "Please save valid Wi-Fi settings first",
@@ -310,6 +258,14 @@ const SettingsScreen = () => {
       return;
     }
     setQrModalVisible(true);
+  };
+
+  const generateQrCodeValue = () => {
+    const credentials = {
+      ssid: wifiSSID.trim(),
+      password: wifiPassword.trim(),
+    };
+    return JSON.stringify(credentials);
   };
 
   const handleAddPebo = async () => {
@@ -620,14 +576,12 @@ const SettingsScreen = () => {
               Show this QR code to PEBO's camera to configure Wi-Fi
             </Text>
             <View style={styles.qrCodeContainer}>
-              <QRErrorBoundary>
-                <QRCode
-                  value={qrCodeValue}
-                  size={200}
-                  backgroundColor="#FFF"
-                  color="#000"
-                />
-              </QRErrorBoundary>
+              <QRCode
+                value={generateQrCodeValue()}
+                size={200}
+                backgroundColor="#FFF"
+                color="#000"
+              />
             </View>
             <TouchableOpacity
               style={[styles.modalButton, { backgroundColor: "#ccc" }]}
@@ -645,7 +599,7 @@ const SettingsScreen = () => {
         onClose={() => setPopupVisible(false)}
         title={popupContent.title}
         message={popupContent.message}
-        type={popupContent.type}
+        icon={popupContent.icon}
       />
     </View>
   );
@@ -653,7 +607,6 @@ const SettingsScreen = () => {
 
 export default SettingsScreen;
 
-// Styles remain unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,
