@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Animated,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // Make sure expo/vector-icons is installed
+import { Ionicons } from "@expo/vector-icons";
 
 const PopupModal = ({ visible, message, onClose, type = "info" }) => {
   const scaleValue = React.useRef(new Animated.Value(0)).current;
@@ -27,13 +27,13 @@ const PopupModal = ({ visible, message, onClose, type = "info" }) => {
   const getIconDetails = () => {
     switch (type) {
       case "success":
-        return { name: "checkmark-circle", color: "#28a745" };
+        return { name: "checkmark-circle", color: "#1DE9B6" };
       case "error":
-        return { name: "close-circle", color: "#dc3545" };
+        return { name: "close-circle", color: "#FF3B30" };
       case "warning":
-        return { name: "alert-circle", color: "#ffc107" };
+        return { name: "alert-circle", color: "#FF9500" };
       default:
-        return { name: "information-circle", color: "#007bff" };
+        return { name: "information-circle", color: "#1DE9B6" };
     }
   };
 
@@ -75,20 +75,22 @@ const PopupModal = ({ visible, message, onClose, type = "info" }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: "#1A1A1A",
     width: "80%",
     borderRadius: 20,
     padding: 24,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 20,
+    borderWidth: 1,
+    borderColor: "#333",
   },
   icon: {
     marginBottom: 12,
@@ -97,15 +99,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
-    color: "#333",
+    color: "#FFFFFF",
+    lineHeight: 22,
   },
   okButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 28,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
     borderRadius: 12,
+    minWidth: 80,
   },
   okButtonText: {
-    color: "#fff",
+    color: "#000000",
     fontSize: 16,
     fontWeight: "600",
   },

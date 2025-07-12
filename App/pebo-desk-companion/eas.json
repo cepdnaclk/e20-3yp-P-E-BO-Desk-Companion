@@ -2,7 +2,8 @@
 {
   "cli": {
     "version": ">= 3.0.0",
-    "appVersionSource": "local" },
+    "appVersionSource": "local"
+  },
   "build": {
     "development": {
       "developmentClient": true,
@@ -19,7 +20,7 @@
       }
     },
     "production": {
-      "channel": "production", 
+      "channel": "production",
       "android": {
         "buildType": "apk"
       }

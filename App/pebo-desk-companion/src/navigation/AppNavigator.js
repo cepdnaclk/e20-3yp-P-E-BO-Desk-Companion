@@ -5,8 +5,8 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import SplashScreen from "../screens/SplashScreen";
 import OnboardingScreen from "../screens/OnboardingScreen";
-import LoginScreen from "../screens/LoginScreen";
-import SignUpScreen from "../screens/SignUpScreen";
+import AuthScreen from "../screens/AuthScreen";
+// import AuthScreen from "../screens/AuthScreen";
 import DashboardScreen from "../screens/DashboardScreen";
 import TaskManagementScreen from "../screens/TaskManagementScreen";
 import SettingsScreen from "../screens/SettingsScreen";
@@ -23,8 +23,8 @@ console.log("TaskManagementScreen:", TaskManagementScreen);
 // Auth Stack
 const AuthNavigator = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Login" component={LoginScreen} />
-    <Stack.Screen name="SignUp" component={SignUpScreen} />
+    <Stack.Screen name="Login" component={AuthScreen} />
+    {/* <Stack.Screen name="SignUp" component={AuthScreen} /> */}
   </Stack.Navigator>
 );
 
