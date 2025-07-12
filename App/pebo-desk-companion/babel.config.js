@@ -1,7 +1,8 @@
-module.exports = function (api) {
-  api.cache(true);
-  return {
-    presets: ["babel-preset-expo"],
-    plugins: ["react-native-reanimated/plugin"], // 👈 Must be last
-  };
+// Simplified babel.config.js (if Flow is not used)
+module.exports = {
+  presets: [
+    ["@babel/preset-env", { targets: { node: "current" } }],
+    "@babel/preset-react",
+    "metro-react-native-babel-preset",
+  ],
 };

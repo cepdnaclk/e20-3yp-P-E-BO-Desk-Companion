@@ -15,6 +15,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Log imports to debug
+console.log("SettingsScreen:", SettingsScreen);
+console.log("DashboardScreen:", DashboardScreen);
+console.log("TaskManagementScreen:", TaskManagementScreen);
+
 // Auth Stack
 const AuthNavigator = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -24,49 +29,57 @@ const AuthNavigator = () => (
 );
 
 // Bottom Tabs after login
-const TabNavigator = () => (
-  <Tab.Navigator
-    initialRouteName="Dashboard"
-    screenOptions={{
-      headerShown: false,
-      tabBarStyle: { backgroundColor: "#1e1e1e", borderTopWidth: 0 },
-      tabBarLabelStyle: { fontSize: 14 },
-      tabBarActiveTintColor: "#fff",
-      tabBarInactiveTintColor: "#aaa",
-    }}
-  >
-    <Tab.Screen
-      name="Dashboard"
-      component={DashboardScreen}
-      options={{
-        tabBarLabel: "Dashboard",
-        tabBarIcon: ({ color, size }) => (
-          <MaterialIcons name="home" size={size} color={color} />
-        ),
+const TabNavigator = () => {
+  if (!SettingsScreen) {
+    throw new Error(
+      "SettingsScreen is not a valid component. Check the import."
+    );
+  }
+
+  return (
+    <Tab.Navigator
+      initialRouteName="Dashboard"
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: { backgroundColor: "#1e1e1e", borderTopWidth: 0 },
+        tabBarLabelStyle: { fontSize: 14 },
+        tabBarActiveTintColor: "#fff",
+        tabBarInactiveTintColor: "#aaa",
       }}
-    />
-    <Tab.Screen
-      name="Tasks"
-      component={TaskManagementScreen}
-      options={{
-        tabBarLabel: "Tasks",
-        tabBarIcon: ({ color, size }) => (
-          <MaterialIcons name="check-circle" size={size} color={color} />
-        ),
-      }}
-    />
-    <Tab.Screen
-      name="Settings"
-      component={SettingsScreen}
-      options={{
-        tabBarLabel: "Settings",
-        tabBarIcon: ({ color, size }) => (
-          <MaterialIcons name="settings" size={size} color={color} />
-        ),
-      }}
-    />
-  </Tab.Navigator>
-);
+    >
+      <Tab.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{
+          tabBarLabel: "Dashboard",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Tasks"
+        component={TaskManagementScreen}
+        options={{
+          tabBarLabel: "Tasks",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="check-circle" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: "Settings",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="settings" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 const MainNavigator = () => {
   const { user, authReady } = useContext(AuthContext);
@@ -80,7 +93,7 @@ const MainNavigator = () => {
         setHasSeenOnboarding(seen === "true");
       } catch (err) {
         console.error("Error reading onboarding status:", err);
-        setHasSeenOnboarding(false); // fallback
+        setHasSeenOnboarding(false);
       }
     };
     checkOnboarding();

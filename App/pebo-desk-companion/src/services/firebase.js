@@ -164,17 +164,23 @@ export const uploadUserProfileImage = async (imageUri, username) => {
   const response = await fetch(imageUri);
   const blob = await response.blob();
 
-  await uploadBytes(imageRef, blob);
-  const downloadURL = await getDownloadURL(imageRef);
+  try {
+    await uploadBytes(imageRef, blob);
+    const downloadURL = await getDownloadURL(imageRef);
 
-  await db.ref(`users/${user.uid}/profileImage`).set(downloadURL);
-  await db.ref(`users/${user.uid}/imageHistory`).push({
-    url: downloadURL,
-    timestamp: new Date().toISOString(),
-    path: `userImages/${imageName}`,
-  });
+    // Save the download URL in the Realtime Database
+    await db.ref(`users/${user.uid}/profileImage`).set(downloadURL);
+    await db.ref(`users/${user.uid}/imageHistory`).push({
+      url: downloadURL,
+      timestamp: new Date().toISOString(),
+      path: `userImages/${imageName}`,
+    });
 
-  return downloadURL;
+    return downloadURL;
+  } catch (error) {
+    console.error("Upload error:", error);
+    throw error;
+  }
 };
 
 export const getUserProfileImage = async () => {
@@ -247,3 +253,4 @@ onAuthStateChanged(auth, (user) => {
     console.log("User's name:", user.displayName);
   }
 });
+
