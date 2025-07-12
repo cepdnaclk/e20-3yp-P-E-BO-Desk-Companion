@@ -1,58 +1,58 @@
-// Polyfill TextEncoder and TextDecoder
 import { TextEncoder, TextDecoder } from "text-encoding";
+if (typeof global.TextEncoder === "undefined") global.TextEncoder = TextEncoder;
+if (typeof global.TextDecoder === "undefined") global.TextDecoder = TextDecoder;
 
-if (typeof global.TextEncoder === "undefined") {
-  global.TextEncoder = TextEncoder;
-}
-
-if (typeof global.TextDecoder === "undefined") {
-  global.TextDecoder = TextDecoder;
-}
-
-// Original imports
 import "react-native-gesture-handler";
-import React from "react";
-import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
-import { AuthProvider, useAuth } from "./src/context/AuthContext";
+import React, { useCallback, useEffect, useState } from "react";
+import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
+import { StyleSheet, View } from "react-native";
+import { AuthProvider } from "./src/context/AuthContext";
 import MainNavigator from "./src/navigation/AppNavigator";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-function AppContent() {
-  const { loading } = useAuth();
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
 
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#FFFFFF" />
-        <Text style={{ color: "#FFF", marginTop: 10 }}>Loading...</Text>
-      </View>
-    );
+export default function App() {
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Load fonts or any other resources
+        await Font.loadAsync({
+          "Orbitron-Bold": require("./assets/fonts/Orbitron-Bold.ttf"),
+        });
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+    prepare();
+  }, []);
+
+  // Hide splash screen when app is ready and root view is laid out
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    // Optionally, return null or a custom loading view here
+    return null;
   }
 
   return (
-    <NavigationContainer>
-      <MainNavigator />
-    </NavigationContainer>
-  );
-}
-
-// ✅ Wrap everything and export this as default
-export default function App() {
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <AuthProvider>
-        <AppContent />
+        <NavigationContainer>
+          <MainNavigator />
+        </NavigationContainer>
       </AuthProvider>
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  loader: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#333333",
-  },
-});
