@@ -16,21 +16,1067 @@
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Importing Modern and Futuristic Fonts */
+        @import url("https://fonts.googleapis.com/css2?family=Orbitron&family=Russo+One&display=swap");
 
+        /* General Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Headings - Orbitron */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Body text - Roboto */
+        body,
+        p,
+        span,
+        li,
+        div {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 550;
+        }
+
+        /* Navbar, Hero Section, and Specific Elements - Orbitron */
+        nav,
+        .hero-section,
+        .member-name,
+        .numbers,
+        a,
+        button {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Ensure buttons and links stand out */
+        button,
+        a {
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+
+        /* Adjustments for readability */
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+        }
+
+        h3 {
+            font-size: 1.75rem;
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Body and General Styles */
+        body {
+            background-color: #121212;
+            color: #f1f1f1;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navbar */
+        /* Navbar */
+        .navbar {
+            background-color: #1a1a1a;
+            border-bottom: 1px solid #444;
+            padding: 15px 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .navbar .navbar-brand {
+            font-size: 1.8rem;
+            color: #fff;
+            text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
+            justify-content: left;
+        }
+
+        .navbar .nav-link {
+            font-size: 0.7rem;
+            color: #bbb !important;
+            text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+            text-decoration: none;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+            justify-content: right;
+        }
+
+        .navbar .nav-link:hover {
+            color: #ffffff !important;
+            text-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+        }
+
+        /* Hero Section */
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            background: url("bot.png") no-repeat center center/cover;
+            padding: 120px 0;
+            color: #fff;
+            transition: height 0.3s ease-in-out;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-section.shrink {
+            height: 70vh;
+            filter: blur(2px);
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .hero-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1;
+        }
+
+        .hero-section.shrink::before {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(7px);
+        }
+
+        .hero-section .container {
+            position: absolute;
+            top: 48%;
+            left: 48%;
+            transform: translate(-50%, -50%);
+            text-align: center !important;
+            color: #fff;
+            z-index: 2;
+        }
+
+        .hero-section h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #4caf50;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 0, 0.5);
+        }
+
+        .hero-section p,
+        .hero-section a.btn {
+            z-index: 2;
+            position: relative;
+        }
+
+        /* Section Backgrounds */
+        #solution-architecture,
+        #hardware,
+        #testing,
+        #security,
+        .bg-dark,
+        #team,
+        #features,
+        #links,
+        #timeline {
+            background-color: #121212 !important;
+            color: #f1f1f1;
+        }
+
+        #solution-architecture ul,
+        #hardware ul,
+        #testing ul,
+        #security ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        #solution-architecture ul li,
+        #hardware ul li,
+        #testing ul li,
+        #security ul li {
+            margin-bottom: 10px;
+        }
+
+        /* Budget and Useful Links Section */
+        #budget,
+        #useful-links {
+            background-color: #1a1a1a;
+            padding: 40px 0;
+        }
+
+        #budget h2,
+        #useful-links h2 {
+            color: #f5b1ab;
+            text-shadow: 0 0 10px #ff6f61, 0 0 15px #ff6f61;
+        }
+
+        /* Team Section */
+        .team-img {
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border: 3px solid #ff6f61;
+        }
+
+        #team .col-md-3 {
+            margin-bottom: 30px;
+        }
+
+        #team h5 {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+        }
+
+        /* Links Section */
+        #links .list-inline-item {
+            margin-right: 10px;
+        }
+
+        #links .btn-outline-dark {
+            border-color: #fff;
+            color: #fff;
+            border-radius: 25px;
+            padding: 12px 24px;
+            margin: 10px 0;
+            text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+        }
+
+        #links .btn-outline-dark:hover {
+            background-color: #fff;
+            color: #121212;
+            text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #1a1a1a;
+            color: #bbb;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Feature Section */
+        .feature-card {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 2px solid #ff6f61;
+            padding: 20px;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card i {
+            color: #ff6f61;
+            text-shadow: 0 0 10px #ff6f61, 0 0 18px #ff6f61;
+        }
+
+        .feature-card i:hover {
+            color: #f1f1f1;
+            text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .col-md-4 {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+            height: 100%;
+        }
+
+        @media (max-width: 767px) {
+            .col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        /* Custom Table Styling */
+        table {
+            background-color: #1a1a1a;
+            color: #f1f1f1;
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            text-align: center;
+            padding: 15px;
+        }
+
+        table th {
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        table td {
+            color: #f1f1f1;
+        }
+
+        table td strong {
+            color: #ff6f61;
+        }
+
+        /* General Section Padding */
+        section {
+            padding: 60px 0;
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #f5b1ab;
+            text-shadow: 0 0 10px #ff6f61, 0 0 15px #ff6f61;
+        }
+
+        section p {
+            font-size: 1.1rem;
+        }
+
+        /* Solution Architecture Section */
+        #solution-architecture ul,
+        #hardware ul {
+            list-style-type: none;
+            padding-left: 0;
+            text-align: left;
+        }
+
+        #solution-architecture ul li,
+        #hardware ul li {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 30px;
+        }
+
+        #solution-architecture ul li::before,
+        #hardware ul li::before {
+            content: "•";
+            font-size: 2rem;
+            color: #ff6f61;
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #solution-architecture ul li:hover,
+        #hardware ul li:hover {
+            color: #29b6f6;
+            transition: color 0.3s ease;
+        }
+
+        #solution-architecture img,
+        #hardware img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 0 auto;
+            border: 5px solid #ff6f61;
+        }
+
+        #solution-architecture img:hover,
+        #hardware img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            display: flex;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            max-width: 80%;
+            max-height: 80%;
+            margin: auto;
+            transition: transform 0.3s ease;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #2A9D8F;
+        }
+
+        .modal-content:hover {
+            transform: scale(1.05);
+        }
+
+        .close {
+            color: #fff;
+            font-size: 30px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 35px;
+            transition: 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #f1f1f1;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Button Style for Portfolio Links */
+        #team .btn-outline-light {
+            text-decoration: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            transition: background-color 0.3s, color 0.3s;
+            border: 1px solid orange;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #team .btn-outline-light:hover {
+            background-color: #ff6f61;
+            color: #121212;
+        }
+
+        /* AOS Animation */
+        [data-aos="fade-up"] {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-in-out;
+        }
+
+        [data-aos="fade-up"]:not([data-aos="fade-up"][data-aos-delay]) {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        [data-aos="fade-up"]:not([data-aos="fade-up"][data-aos-delay]) {
+            transition-delay: 0.2s;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 767px) {
+
+            #solution-architecture h2,
+            #hardware h2 {
+                font-size: 2rem;
+            }
+
+            #solution-architecture p,
+            #hardware p {
+                font-size: 1rem;
+            }
+
+            #solution-architecture ul li,
+            #hardware ul li {
+                font-size: 1rem;
+            }
+
+            #solution-architecture img,
+            #hardware img {
+                width: 100%;
+                height: auto;
+                border-radius: 10px;
+            }
+
+            .navbar-toggler {
+                border-color: #fff;
+            }
+
+            .navbar-toggler-icon {
+                background-color: #fff;
+            }
+
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+
+            .feature-card {
+                padding: 20px;
+            }
+
+            .team-img {
+                width: 120px;
+                height: 120px;
+                border: 5px solid orange;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                transition: transform 0.3s ease;
+            }
+
+            .btn-outline-dark {
+                padding: 10px 20px;
+            }
+
+            .hero-section {
+                background-position: top;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+                padding: 10px;
+            }
+
+            .container {
+                display: flex;
+                flex-direction: column;
+                padding: 5px;
+            }
+
+            img {
+                width: 100%;
+                height: auto;
+            }
+
+            nav {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .bot-image {
+                width: 70%;
+            }
+        }
+
+        /* Scroll Animation */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-in-out;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+        }
+
+        /* Description Fonts Styling */
+        .description {
+            font-family: "Roboto", sans-serif;
+            font-size: 28px;
+            line-height: 1.3;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+            text-align: center;
+        }
+
+        .description em {
+            font-style: italic;
+        }
+
+        .description strong {
+            font-weight: bold;
+        }
+
+        .tech-card {
+            background: var(--bs-dark);
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .clickable-img {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .clickable-img:hover {
+            transform: scale(1.03);
+        }
+
+        :root {
+            --primary: #2A9D8F;
+            --secondary: #264653;
+            --accent: #E9C46A;
+            --dark: #2B2D42;
+        }
+
+        .bg-dark2 {
+            background: #1a1a1a;
+        }
+
+        .section-title {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        .tech-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .tech-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .arch-image {
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .arch-image:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+
+        .achievement-card {
+            position: relative;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .achievement-number {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            background: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--dark) 100%);
+        }
+
+        .styled-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .styled-list li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .styled-list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        /* Technology Stack */
+        .stack-tabs .nav-link {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stack-tabs .nav-link.active {
+            border-left-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stack-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 100%;
+        }
+
+        .stack-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Achievements Timeline */
+        .achievement-timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 2rem 0;
+            border-left: 2px solid var(--primary);
+        }
+
+        .timeline-badge {
+            position: absolute;
+            left: -21px;
+            top: 2rem;
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .timeline-content {
+            background: rgb(0, 0, 0);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-left: 3rem;
+        }
+
+        .progress-wrapper {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            height: 30px;
+        }
+
+        .achievement-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .achievement-meta li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Frontend Specific Styles */
+        .bg-flutter {
+            background: #02569B;
+            background: linear-gradient(135deg, #02569B 0%, #13B9FD 100%);
+        }
+
+        .bg-robot {
+            background: #FF6F61;
+            background: linear-gradient(135deg, #FF6F61 0%, #FFA500 100%);
+        }
+
+        .bg-web {
+            background: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+        }
+
+        .stack-item .row {
+            margin-top: 1rem;
+        }
+
+        .stack-item img {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stack-item img:hover {
+            transform: scale(1.03);
+            border-color: var(--primary);
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list i {
+            width: 24px;
+            margin-right: 0.75rem;
+            color: var(--primary);
+        }
+
+        .stack-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .tech-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .stack-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline-content {
+                margin-left: 1rem;
+            }
+
+            .stack-item {
+                padding: 1rem;
+            }
+
+            .stack-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .feature-list li {
+                font-size: 0.9rem;
+            }
+
+            .stack-item h5 {
+                font-size: 1.1rem;
+            }
+
+            .stack-item .row>div {
+                margin-bottom: 1rem;
+            }
+
+            .stack-item img {
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stack-item .row>div {
+                margin-bottom: 1rem;
+            }
+
+            .stack-item img {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Mobile App Grid for 3+2 Image Layout */
+        .mobile-app-grid {
+            margin-top: 2rem;
+        }
+
+        .mobile-app-grid .row {
+            margin-bottom: 1.5rem;
+            /* Reduced space between rows */
+        }
+
+        .mobile-app-grid .mobile-app-image {
+            width: 350px;
+            /* Fixed width for uniform size */
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            /* Ensures images fit without stretching */
+            border-radius: 10px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .mobile-app-grid .mobile-app-image:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            /* #2A9D8F */
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 767px) {
+            .mobile-app-grid .row {
+                margin-bottom: 0;
+                /* Remove extra margin on mobile */
+            }
+
+            .mobile-app-grid .mobile-app-image {
+                width: 180px;
+                /* Slightly smaller on mobile */
+                margin-bottom: 1rem;
+                /* Space between stacked images */
+            }
+        }
+
+        /* Stacked Images for Mobile App Section */
+        .stacked-images {
+            display: flex;
+            flex-direction: ROW;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stacked-images .arch-image {
+            max-width: 100%;
+            width: 300px;
+            /* Fixed width for consistency */
+            height: auto;
+            border-radius: 10px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stacked-images .arch-image:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            /* #2A9D8F */
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 576px) {
+            .stacked-images .arch-image {
+                width: 100%;
+                max-width: 280px;
+                /* Slightly smaller on mobile */
+            }
+        }
+    </style>
 </head>
 
 <body class="dark-mode">
-
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="#">P-E-BO</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-label="Toggle navigation">
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -39,10 +1085,13 @@
                     <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
                     <li class="nav-item"><a class="nav-link" href="#solution-architecture">Solution Architecture</a>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="#hardware-and-software-designs">Hardware &
-                            Software</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#hardware">Hardware</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#mobile-app">Mobile App</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#technology-stack">Technology Stack</a></li>
                     <li class="nav-item"><a class="nav-link" href="#testing">Testing</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#detailed-budget">Budget</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#security">Security</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#budget">Budget</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#timeline">Timeline</a></li>
                     <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
                     <li class="nav-item"><a class="nav-link" href="#links">Links</a></li>
                 </ul>
@@ -65,18 +1114,17 @@
         </div>
     </section>
 
-
     <!-- Introduction Section -->
     <section id="introduction" class="py-5">
         <div class="container">
             <h2 class="text-center mb-4">Introduction</h2>
-            <p data-aos="fade-up">
-            <div class="description strong em">
-                PEBO is an interactive desk assistant robot that blends emotional engagement, entertainment, task
-                management, and
-                intercommunication features.
+            <div class="description strong em" data-aos="fade-up">
+                <p>Urban residents often struggle with loneliness, stress, and poor device interconnectivity due to
+                    limited companionship and space constraints.</p>
+                <p><strong>PEBO</strong> is an interactive desk assistant robot designed to enhance well-being and
+                    productivity by offering emotional support, entertainment, task management, and two-way voice
+                    communication.</p>
             </div>
-            </p>
         </div>
     </section>
 
@@ -85,84 +1133,159 @@
         <div class="container">
             <h2 class="text-center mb-4">Features</h2>
             <div class="row">
-                <!-- First Row of Features -->
-                <div class="row">
-                    <div class="col-md-4" data-aos="fade-up">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-person-badge fs-1"></i>
-                            <h5 class="mt-3">User Identification</h5>
-                            <p>Recognizes individual users via biometric data for personalized interactions.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-cpu fs-1"></i>
-                            <h5 class="mt-3">AI Voice Response</h5>
-                            <p>Advanced natural language processing for contextual command understanding and execution.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-camera-reels fs-1"></i>
-                            <h5 class="mt-3">Movement Tracking</h5>
-                            <p>Spatial awareness with automatic face-tracking for perfect positioning.</p>
-                        </div>
+                <div class="col-md-4" data-aos="fade-up">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-person-badge fs-1"></i>
+                        <h5 class="mt-3">User Identification</h5>
+                        <p>Recognizes individual users via biometric data for personalized interactions.</p>
                     </div>
                 </div>
-
-                <!-- Second Row of Features -->
-                <div class="row mt-4">
-                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-emoji-heart-eyes fs-1"></i>
-                            <h5 class="mt-3">Emotion Recognition</h5>
-                            <p>Real-time mood analysis through voice tone and facial expression detection.</p>
-                        </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-cpu fs-1"></i>
+                        <h5 class="mt-3">AI Voice Response</h5>
+                        <p>Advanced natural language processing for contextual command understanding and execution.</p>
                     </div>
-                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-heart-fill fs-1 text-danger"></i>
-                            <h5 class="mt-3">Affection Response</h5>
-                            <p>Responds to petting and gentle touches with happy lights, vibrations, and emotive sounds.
-                            </p>
-                        </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-camera-reels fs-1"></i>
+                        <h5 class="mt-3">Movement Tracking</h5>
+                        <p>Spatial awareness with automatic face-tracking for perfect positioning.</p>
                     </div>
-                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
-                        <div class="feature-card text-center p-4">
-                            <i class="bi bi-hand-index fs-1"></i>
-                            <h5 class="mt-3">Touch Interaction</h5>
-                            <p>Responsive touch sensors with haptic feedback for precise gesture controls.</p>
-                        </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-emoji-heart-eyes fs-1"></i>
+                        <h5 class="mt-3">Emotion Recognition</h5>
+                        <p>Real-time mood analysis through voice tone and facial expression detection.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-telephone fs-1"></i>
+                        <h5 class="mt-3">Two-Way Voice Communication</h5>
+                        <p>Enables real-time audio communication between PEBO devices for seamless connectivity.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-hand-index fs-1"></i>
+                        <h5 class="mt-3">Touch Interaction</h5>
+                        <p>Responsive touch sensors with haptic feedback for precise gesture controls.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-heart-fill fs-1 text-danger"></i>
+                        <h5 class="mt-3">Affection Response</h5>
+                        <p>Responds to petting and gentle touches with happy lights, vibrations, and emotive sounds.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="700">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-music-note-beamed fs-1"></i>
+                        <h5 class="mt-3">Music Playback</h5>
+                        <p>Plays songs on voice command for entertainment and relaxation.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="800">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-list-check fs-1"></i>
+                        <h5 class="mt-3">Task Management</h5>
+                        <p>Organizes and reminds users of tasks and schedules through voice-activated commands.</p>
                     </div>
                 </div>
             </div>
+        </div>
     </section>
 
-    <!-- Additional Sections -->
-    <!-- Add other sections like Solution Architecture, Hardware, Testing, etc., as needed -->
+    <!-- Solution Architecture Section -->
     <section id="solution-architecture" class="py-5 bg-light">
         <div class="container">
             <h2 class="text-center mb-4">Solution Architecture</h2>
             <p data-aos="fade-up">
-                P-E-BO's architecture is designed to seamlessly integrate hardware and software components for optimal
-                performance.
+                P-E-BO's architecture integrates hardware and software for optimal performance, addressing urban
+                challenges through advanced technology.
             </p>
             <ul data-aos="fade-up" data-aos-delay="100">
-                <li>Modular hardware design for easy upgrades.</li>
-                <li>AI-powered software for voice recognition and task automation.</li>
-                <li>Cloud-based data storage for personalized settings and backups.</li>
+                <li>Modular hardware design for easy upgrades and maintenance.</li>
+                <li>AI-powered software for voice recognition, emotion detection, and task automation.</li>
+                <li>Cloud-based data storage with Amazon S3 for secure, scalable personalized settings.</li>
+                <li>Real-time inter-device communication via Firebase for seamless connectivity.</li>
+                <li>Threaded architecture for efficient processing of multiple tasks.</li>
             </ul>
-            <!-- Image with Click Event to Open Modal -->
-            <img id="solution-architecture-image" src="./images/High_Level_Architecture.jpg"
-                alt="Solution Architecture Diagram" class="img-fluid mt-4" data-aos="fade-up" data-aos-delay="200"
-                onclick="openModal();">
+            <div class="architecture-grid">
+                <img src="./images/High_Level_Architecture.jpg" alt="High-Level Architecture Diagram" class="arch-image"
+                    data-aos="fade-up" data-aos-delay="200" onclick="openModal(this);">
+                <img src="./images/Data_Control_Flow.jpg" alt="Data and Control Flow Diagram" class="arch-image"
+                    data-aos="fade-up" data-aos-delay="300" onclick="openModal(this);">
+            </div>
+        </div>
+    </section>
 
-            <!-- Modal for Full Image View -->
-            <div id="imageModal" class="modal">
-                <span class="close" onclick="closeModal();">&times;</span>
-                <img class="modal-content" id="img01">
-                <div id="caption"></div>
+    <!-- Hardware Section -->
+    <section id="hardware" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-4">Hardware</h2>
+            <p data-aos="fade-up">
+                P-E-BO's hardware is designed for modularity and efficiency, utilizing a range of components to deliver
+                advanced functionality in a compact form.
+            </p>
+            <ul data-aos="fade-up" data-aos-delay="100">
+                <li>Raspberry Pi 4 B: Powers the core processing and connectivity.</li>
+                <li>Servo Motors & Camera: Enable precise movement tracking and user identification.</li>
+                <li>Microphone & Speaker: Facilitate voice interaction and audio playback.</li>
+                <li>Touch Sensors & Display: Provide intuitive user interaction and feedback.</li>
+            </ul>
+            <div class="architecture-grid">
+                <img src="./images/PEBO_Inside_View.jpg" alt="Complete PEBO Inside View" class="arch-image"
+                    data-aos="fade-up" data-aos-delay="200" onclick="openModal(this);">
+                <img src="./images/3D_Design_Model.jpg" alt="3D Design Model" class="arch-image" data-aos="fade-up"
+                    data-aos-delay="300" onclick="openModal(this);">
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile App Section -->
+    <section id="mobile-app" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-4">Mobile App</h2>
+            <p data-aos="fade-up">
+                The P-E-BO mobile app provides a user-friendly interface to control and interact with your desk
+                companion,
+                offering real-time monitoring, configuration, and personalized settings.
+            </p>
+            <div class="mobile-app-grid">
+                <div class="row g-3">
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-1.jpg" alt="Mobile App Screen 1"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="200"
+                            onclick="openModal(this);">
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-2.jpg" alt="Mobile App Screen 2"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="300"
+                            onclick="openModal(this);">
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-3.jpg" alt="Mobile App Screen 3"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="400"
+                            onclick="openModal(this);">
+                    </div>
+                </div>
+                <div class="row g-3 justify-content-center">
+                    <div class="col-md-6 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-4.jpg" alt="Mobile App Screen 4"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="500"
+                            onclick="openModal(this);">
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-5.jpg" alt="Mobile App Screen 5"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="600"
+                            onclick="openModal(this);">
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -171,10 +1294,7 @@
     <section id="technology-stack" class="py-5 bg-dark">
         <div class="container">
             <h2 class="text-center mb-5 section-title">Technology Stack</h2>
-    
-            <!-- Stack Tabs -->
             <div class="row g-4">
-                <!-- Tab Navigation -->
                 <div class="col-lg-3" data-aos="fade-right">
                     <div class="nav flex-column nav-pills stack-tabs">
                         <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#cloud-ai">
@@ -188,17 +1308,14 @@
                         </button>
                     </div>
                 </div>
-    
-                <!-- Tab Content -->
                 <div class="col-lg-9" data-aos="fade-left">
                     <div class="tab-content">
-                        <!-- Cloud & AI Tab -->
                         <div class="tab-pane fade show active" id="cloud-ai">
                             <div class="stack-grid">
-                                <!-- AWS Rekognition -->
                                 <div class="stack-item">
                                     <div class="stack-icon bg-aws">
-                                        <img src="./images/aws-rekognition-icon.png" alt="AWS Rekognition" class="tech-icon">
+                                        <img src="./images/aws-rekognition-icon.png" alt="AWS Rekognition"
+                                            class="tech-icon">
                                     </div>
                                     <h5>AWS Rekognition</h5>
                                     <ul>
@@ -208,8 +1325,6 @@
                                         <li>Age range estimation</li>
                                     </ul>
                                 </div>
-    
-                                <!-- Gemini API -->
                                 <div class="stack-item">
                                     <div class="stack-icon bg-gemini">
                                         <img src="./images/gemini-icon.png" alt="Gemini AI" class="tech-icon">
@@ -222,8 +1337,6 @@
                                         <li>Knowledge graph integration</li>
                                     </ul>
                                 </div>
-    
-                                <!-- Amazon S3 -->
                                 <div class="stack-item">
                                     <div class="stack-icon bg-s3">
                                         <img src="./images/amazon-s3-icon.jpg" alt="Amazon S3" class="tech-icon">
@@ -236,25 +1349,33 @@
                                         <li>99.9% uptime SLA</li>
                                     </ul>
                                 </div>
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-firebase">
+                                        <img src="./images/firebase-icon.png" alt="Firebase" class="tech-icon">
+                                    </div>
+                                    <h5>Firebase</h5>
+                                    <ul>
+                                        <li>Real-time database</li>
+                                        <li>Inter-device communication</li>
+                                        <li>Push notifications</li>
+                                        <li>Authentication services</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-    
-                        <!-- Frontend Tab -->
                         <div class="tab-pane fade" id="frontend">
                             <div class="row g-4">
-                                <!-- Mobile App Section -->
                                 <div class="col-md-6">
                                     <div class="stack-item h-100">
                                         <div class="d-flex align-items-center mb-3">
-                                            <div class="stack-icon bg-flutter me-3">
-                                                <!-- <img src="./images/flutsdter-icon.jpg" alt="Flutter" class="tech-icon"> -->
-                                            </div>
+                                            <div class="stack-icon bg-flutter me-3"></div>
                                             <h5 class="mb-0">Mobile Application</h5>
                                         </div>
                                         <div class="row g-3">
                                             <div class="col-md-6">
-                                                <img src="./images/mobile-app-screens.jpg" class="img-fluid rounded clickable-img"
-                                                    alt="Mobile App Screens" onclick="openModal(this)">
+                                                <img src="./images/mobile-app-screens.jpg"
+                                                    class="img-fluid rounded clickable-img" alt="Mobile App Screens"
+                                                    onclick="openModal(this)">
                                             </div>
                                             <div class="col-md-6">
                                                 <ul class="feature-list">
@@ -267,8 +1388,6 @@
                                         </div>
                                     </div>
                                 </div>
-    
-                                <!-- Robot Face Interface Section -->
                                 <div class="col-md-6">
                                     <div class="stack-item h-100">
                                         <div class="d-flex align-items-center mb-3">
@@ -279,14 +1398,15 @@
                                         </div>
                                         <div class="row g-3">
                                             <div class="col-md-6">
-                                                <img src="./images/robot-face-ui.jpg" class="img-fluid rounded clickable-img"
-                                                    alt="Robot Face UI" onclick="openModal(this)">
+                                                <img src="./images/robot-face-ui.jpg"
+                                                    class="img-fluid rounded clickable-img" alt="Robot Face UI"
+                                                    onclick="openModal(this)">
                                             </div>
                                             <div class="col-md-6">
                                                 <ul class="feature-list">
                                                     <li><i class="bi bi-eye"></i> Dynamic eye movements</li>
                                                     <li><i class="bi bi-emoji-smile"></i> Emotion expressions</li>
-                                                    <li><i class="bi bi-lightning"></i> 60 FPS animation</li>
+                                                    <li><i class="bi bi-lightning"></i> Adaptive animation</li>
                                                     <li><i class="bi bi-cpu"></i> OLED display powered</li>
                                                 </ul>
                                             </div>
@@ -295,11 +1415,8 @@
                                 </div>
                             </div>
                         </div>
-    
-                        <!-- IoT & Hardware Tab -->
                         <div class="tab-pane fade" id="iot">
                             <div class="stack-grid">
-                                <!-- Servo Control -->
                                 <div class="stack-item">
                                     <div class="stack-icon bg-servo">
                                         <i class="bi bi-gear"></i>
@@ -310,13 +1427,11 @@
                                         <li>PID control system</li>
                                     </ul>
                                 </div>
-    
-                                <!-- Raspberry Pi -->
                                 <div class="stack-item">
                                     <div class="stack-icon bg-raspberry">
                                         <img src="./images/raspberry-pi-icon.svg" alt="Raspberry Pi" class="tech-icon">
                                     </div>
-                                    <h5>Raspberry Pi 3</h5>
+                                    <h5>Raspberry Pi 4</h5>
                                     <ul>
                                         <li>Quad-core ARM CPU</li>
                                         <li>1GB RAM</li>
@@ -324,8 +1439,6 @@
                                         <li>GPIO for hardware control</li>
                                     </ul>
                                 </div>
-    
-                                <!-- Sensors -->
                                 <div class="stack-item">
                                     <div class="stack-icon bg-sensor">
                                         <i class="bi bi-soundwave"></i>
@@ -334,6 +1447,7 @@
                                     <ul>
                                         <li>Microphone Array</li>
                                         <li>Touch Sensors</li>
+                                        <li>Raspberry Pi Camera</li>
                                     </ul>
                                 </div>
                             </div>
@@ -343,38 +1457,192 @@
             </div>
         </div>
     </section>
-    
-    <!-- Modal for Image Preview -->
-    <div class="modal fade" id="imageModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <img src="" alt="Preview" class="img-fluid" id="modalImage">
+
+    <!-- Testing Section -->
+    <section id="testing" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-4">Testing</h2>
+            <p data-aos="fade-up">Rigorous testing ensures P-E-BO's reliability and performance across various
+                conditions.</p>
+            <div class="row">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-check-circle fs-1"></i>
+                        <h5 class="mt-3">Functional Testing</h5>
+                        <ul class="feature-list">
+                            <li>Voice assistant responds accurately via Gemini API.</li>
+                            <li>Face and emotion recognition correctly identifies users and emotions.</li>
+                            <li>Face tracking ensures smooth movement following.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-speedometer fs-1"></i>
+                        <h5 class="mt-3">Performance Testing</h5>
+                        <ul class="feature-list">
+                            <li>Optimized response time in edge cases.</li>
+                            <li>Operates in low-light and noisy environments.</li>
+                            <li>TracksEli>Fast-moving users effectively.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-hdd-rack fs-1"></i>
+                        <h5 class="mt-3">Hardware Testing</h5>
+                        <ul class="feature-list">
+                            <li>Ensures all components function as expected.</li>
+                            <li>Validates servo motor and sensor reliability.</li>
+                            <li>Confirms camera and microphone performance.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
+    </section>
 
-<style>
-    .tech-icon {
-        width: 40px;
-        /* Adjust size as needed */
-        height: 40px;
-        /* Adjust size as needed */
-        object-fit: contain;
-        /* Ensures icons maintain aspect ratio */
-    }
+    <!-- Security Section -->
+    <section id="security" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-4">Security</h2>
+            <p data-aos="fade-up">P-E-BO prioritizes user data security with robust measures.</p>
+            <ul data-aos="fade-up" data-aos-delay="100">
+                <li>IAM Roles & Least Privilege: Blocks public access to Amazon S3.</li>
+                <li>Data Encryption: Uses AES-256-GCM and server-side encryption with Amazon S3 managed keys (SSE-S3).
+                </li>
+                <li>No Local Storage of Faces: Enhances privacy by storing facial data in the cloud.</li>
+                <li>Secure Authentication: Requires sign-in to access the mobile app.</li>
+            </ul>
+            <!-- <img src="./images/security-diagram.jpg" alt="Security Architecture Diagram" class="img-fluid mt-4"
+                data-aos="fade-up" data-aos-delay="200" onclick="openModal(this);"> -->
+        </div>
+    </section>
 
-</style>
-    <!-- Script for Image Modal -->
-    <script>
-        function openModal(img) {
-            const modalImage = document.getElementById('modalImage');
-            modalImage.src = img.src;
-            new bootstrap.Modal(document.getElementById('imageModal')).show();
-        }
-    </script>
+    <!-- Budget Section -->
+    <section id="budget" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-4">Budget</h2>
+            <p data-aos="fade-up">P-E-BO's budget maximizes impact while staying cost-effective.</p>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Unit Price (Rs)</th>
+                        <th>All Cost (Rs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Raspberry Pi 4 B</td>
+                        <td>1</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>0.9" TFT Display</td>
+                        <td>2</td>
+                        <td>890</td>
+                        <td>1780</td>
+                    </tr>
+                    <tr>
+                        <td>Servo Motor SG90</td>
+                        <td>5</td>
+                        <td>395</td>
+                        <td>1975</td>
+                    </tr>
+                    <tr>
+                        <td>Raspberry Pi Camera</td>
+                        <td>1</td>
+                        <td>1390</td>
+                        <td>1390</td>
+                    </tr>
+                    <tr>
+                        <td>USB Microphone Dongle</td>
+                        <td>1</td>
+                        <td>660</td>
+                        <td>660</td>
+                    </tr>
+                    <tr>
+                        <td>PWM Servo Motor Drive</td>
+                        <td>1</td>
+                        <td>960</td>
+                        <td>960</td>
+                    </tr>
+                    <tr>
+                        <td>Servo-9g-Bracket-PT</td>
+                        <td>1</td>
+                        <td>450</td>
+                        <td>450</td>
+                    </tr>
+                    <tr>
+                        <td>4 ohm 2W Speaker</td>
+                        <td>1</td>
+                        <td>190</td>
+                        <td>190</td>
+                    </tr>
+                    <tr>
+                        <td>3.3W Stereo Audio Amplifier</td>
+                        <td>1</td>
+                        <td>130</td>
+                        <td>130</td>
+                    </tr>
+                    <tr>
+                        <td>TTP223 1-channel Digital Capacitive Touch Sensor</td>
+                        <td>2</td>
+                        <td>60</td>
+                        <td>120</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td></td>
+                        <td></td>
+                        <td><strong>7655</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section id="timeline" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-4">Project Timeline</h2>
+            <p data-aos="fade-up">P-E-BO's development is structured into key milestones to ensure timely progress.</p>
+            <div class="achievement-timeline" data-aos="fade-up" data-aos-delay="100">
+                <div class="timeline-item">
+                    <div class="timeline-badge">1</div>
+                    <div class="timeline-content">
+                        <h5>Milestone 1</h5>
+                        <p>Initial design and prototyping of hardware and software components.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-badge">2</div>
+                    <div class="timeline-content">
+                        <h5>Milestone 2</h5>
+                        <p>Integration of AI and cloud services with core functionalities.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-badge">3</div>
+                    <div class="timeline-content">
+                        <h5>Milestone 3</h5>
+                        <p>Testing and refinement of features and performance.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-badge">4</div>
+                    <div class="timeline-content">
+                        <h5>Milestone 4</h5>
+                        <p>Final deployment and user testing phase.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Challenges & Future Section -->
     <section id="challenges-future" class="py-5 gradient-bg">
         <div class="container">
@@ -389,7 +1657,6 @@
                         </ul>
                     </div>
                 </div>
-
                 <div class="col-lg-6" data-aos="fade-left">
                     <div class="future-card">
                         <h3><i class="bi bi-rocket-takeoff"></i> Future Roadmap</h3>
@@ -404,26 +1671,7 @@
         </div>
     </section>
 
-    <section id="budget" class="py-5 bg-dark">
-        <div class="container">
-            <h2 class="text-center mb-4">Budget</h2>
-            <p data-aos="fade-up">
-                P-E-BO's Budget - Maximizing impact while staying within budget!
-            </p>
-            <!-- Image with Click Event to Open Modal -->
-            <img id="solution-architecture-image" src="./images/budget.jpg"
-                alt="budget" class="img-fluid mt-4" data-aos="fade-up" data-aos-delay="200"
-                onclick="openModal();">
-    
-            <!-- Modal for Full Image View -->
-            <div id="imageModal" class="modal">
-                <span class="close" onclick="closeModal();">&times;</span>
-                <img class="modal-content" id="img01">
-                <div id="caption"></div>
-            </div>
-        </div>
-    </section>
-   
+    <!-- Team Section -->
     <section id="team" class="py-5 bg-dark">
         <div class="container" data-aos="fade-up">
             <h2 class="text-center mb-4">Meet the Team</h2>
@@ -433,28 +1681,24 @@
                     <h5 class="text-light">Buddhika Ariyarathne</h5>
                     <p class="text-secondary">E/20/024</p>
                     <a href="https://www.thecn.com/EA770" class="btn btn-outline-light mt-2">View Portfolio</a>
-                    <!-- Add portfolio link here -->
                 </div>
                 <div class="col-md-3">
                     <img src="Member2.png" alt="Yasiru" class="team-img mb-3">
-                    <h5 class="text-light">Yasiru Edirimanna</h5>
+                    <h5 class="text-light">Yasiru Harinda</h5>
                     <p class="text-secondary">E/20/089</p>
-                    <a href="https://portfolio2.com" class="btn btn-outline-light mt-2">View Portfolio</a>
-                    <!-- Add portfolio link here -->
+                    <a href="https://www.thecn.com/EE452" class="btn btn-outline-light mt-2">View Portfolio</a>
                 </div>
                 <div class="col-md-3">
                     <img src="Member3.png" alt="Yohan" class="team-img mb-3">
                     <h5 class="text-light">Yohan Senadheera</h5>
                     <p class="text-secondary">E/20/361</p>
                     <a href="https://www.thecn.com/ES1366" class="btn btn-outline-light mt-2">View Portfolio</a>
-                    <!-- Add portfolio link here -->
                 </div>
                 <div class="col-md-3">
                     <img src="Member4.png" alt="Bhagya" class="team-img mb-3">
                     <h5 class="text-light">Bhagya Senevirathna</h5>
                     <p class="text-secondary">E/20/366</p>
-                    <a href="https://portfolio4.com" class="btn btn-outline-light mt-2">View Portfolio</a>
-                    <!-- Add portfolio link here -->
+                    <a href="https://www.thecn.com/ES1368" class="btn btn-outline-light mt-2">View Portfolio</a>
                 </div>
             </div>
         </div>
@@ -463,21 +1707,18 @@
     <!-- Links Section -->
     <section id="links" class="py-5 bg-light">
         <div class="container text-center">
-            <h2 class="text-dark mb-4">Useful Links</h2>
+            <h2 class="mb-4">Useful Links</h2>
             <p data-aos="fade-up">Explore more about P-E-BO and related resources through the following links:</p>
             <ul class="list-inline" data-aos="fade-up" data-aos-delay="100">
                 <li class="list-inline-item">
                     <a href="https://github.com/cepdnaclk/e20-3yp-P-E-BO-Desk-Companion"
                         class="btn btn-outline-dark">GitHub</a>
                 </li>
-
-                <!-- Additional Links -->
                 <li class="list-inline-item">
                     <a href="https://www.ce.pdn.ac.lk/" class="btn btn-outline-dark">Computer Engineering Department</a>
                 </li>
                 <li class="list-inline-item">
-                    <a href="https://eng.pdn.ac.lk/" class="btn btn-outline-dark">Faculty of
-                        Engineering</a>
+                    <a href="https://eng.pdn.ac.lk/" class="btn btn-outline-dark">Faculty of Engineering</a>
                 </li>
                 <li class="list-inline-item">
                     <a href="https://www.pdn.ac.lk/" class="btn btn-outline-dark">University of Peradeniya</a>
@@ -492,14 +1733,166 @@
 
     <!-- Footer -->
     <footer class="py-4 bg-dark text-center text-white">
-        <p>&copy; 2025 P-E-BO. All rights reserved.</p>
+        <p>© 2025 P-E-BO. All rights reserved.</p>
     </footer>
+
+    <!-- Modal for Image Preview -->
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal();">×</span>
+        <img class="modal-content" id="img01">
+        <div id="caption"></div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
     <script>
         AOS.init();
+
+        // Smooth Scroll for Navigation Links with Offset
+        document.querySelectorAll("a.nav-link").forEach((link) => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute("href"));
+                if (target) {
+                    const offset = window.innerWidth < 768 ? 70 : 0;
+                    const targetPosition =
+                        target.getBoundingClientRect().top + window.scrollY - offset;
+                    window.scrollTo({ top: targetPosition, behavior: "smooth" });
+                }
+            });
+        });
+
+        // Function to open modal
+        function openModal(img) {
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("img01");
+            const caption = document.getElementById("caption");
+
+            modal.style.display = "block";
+            modalImg.src = img.src;
+            caption.innerHTML = img.alt;
+        }
+
+        // Function to close modal
+        function closeModal() {
+            document.getElementById("imageModal").style.display = "none";
+        }
+
+        // Close when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById("imageModal");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        // Dark Mode Toggle with Animation
+        const toggleDarkMode = () => {
+            const body = document.body;
+            body.classList.toggle("dark-mode");
+
+            if (body.classList.contains("dark-mode")) {
+                localStorage.setItem("theme", "dark");
+                body.animate(
+                    [
+                        { backgroundColor: "#fff", color: "#000" },
+                        { backgroundColor: "#121212", color: "#fff" },
+                    ],
+                    { duration: 500, easing: "ease-in-out" }
+                );
+            } else {
+                localStorage.setItem("theme", "light");
+                body.animate(
+                    [
+                        { backgroundColor: "#121212", color: "#fff" },
+                        { backgroundColor: "#fff", color: "#000" },
+                    ],
+                    { duration: 500, easing: "ease-in-out" }
+                );
+            }
+        };
+
+        // Persist Dark Mode
+        document.addEventListener("DOMContentLoaded", () => {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") {
+                document.body.classList.add("dark-mode");
+            }
+        });
+
+        // Scroll Animation for Elements on Scroll
+        const animatedElements = document.querySelectorAll(".animate-on-scroll");
+
+        const observeElements = new IntersectionObserver(
+            (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("visible");
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.2 }
+        );
+
+        animatedElements.forEach((element) => observeElements.observe(element));
+
+        document.querySelectorAll(".fade-in").forEach((el) => {
+            el.classList.add("animate-on-scroll");
+        });
+
+        // Mobile Menu Animation
+        const mobileMenuButton = document.querySelector(".navbar-toggler");
+        const navbarMenu = document.querySelector(".navbar-collapse");
+
+        mobileMenuButton.addEventListener("click", () => {
+            if (navbarMenu.classList.contains("show")) {
+                navbarMenu.animate(
+                    [
+                        { opacity: 1, transform: "translateY(0)" },
+                        { opacity: 0, transform: "translateY(-10px)" },
+                    ],
+                    { duration: 300, easing: "ease-in-out" }
+                );
+            } else {
+                navbarMenu.animate(
+                    [
+                        { opacity: 0, transform: "translateY(-10px)" },
+                        { opacity: 1, transform: "translateY(0)" },
+                    ],
+                    { duration: 300, easing: "ease-in-out" }
+                );
+            }
+        });
+
+        const adjustFontSize = () => {
+            const descriptions = document.querySelectorAll(".description");
+            const isMobile = window.innerWidth < 768;
+
+            descriptions.forEach((desc) => {
+                if (isMobile) {
+                    desc.style.fontSize = "14px";
+                } else {
+                    desc.style.fontSize = "16px";
+                }
+            });
+        };
+
+        window.addEventListener("resize", adjustFontSize);
+        document.addEventListener("DOMContentLoaded", adjustFontSize);
+
+        // Add scroll event listener
+        window.addEventListener("scroll", () => {
+            const hero = document.getElementById("hero");
+            const scrollY = window.scrollY;
+
+            if (scrollY > 50) {
+                hero.classList.add("shrink");
+            } else {
+                hero.classList.remove("shrink");
+            }
+        });
     </script>
 </body>
 
