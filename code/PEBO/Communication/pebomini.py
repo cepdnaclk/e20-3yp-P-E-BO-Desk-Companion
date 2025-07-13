@@ -10,7 +10,7 @@ CHANNELS = 1
 RATE = 16000
 
 # IP address of the laptop/peer device
-PEER_IP = '192.168.1.5'  # change to your laptop's IP
+PEER_IP = ' 192.168.124.182'  # change to your laptop's IP
 PORT = 5001
 
 is_communicating = False
