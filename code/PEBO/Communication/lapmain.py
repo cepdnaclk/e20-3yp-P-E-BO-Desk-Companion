@@ -19,18 +19,18 @@ is_communicating = False
 def listen_for_command():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        print("🎤 Laptop: Listening for voice command...")
+        print(" Laptop: Listening for voice command...")
         try:
             audio_input = r.listen(source, timeout=5)
             command = r.recognize_google(audio_input).lower()
-            print("🗣️ Heard:", command)
+            print(" Heard:", command)
             return command
         except:
             return ""
 
 def ring_loop():
     for _ in range(5):
-        print("🔔 Laptop: Ringing... (waiting for 'answer')")
+        print(" Laptop: Ringing... (waiting for 'answer')")
         time.sleep(1)
 
 def handle_signaling():
@@ -45,7 +45,7 @@ def handle_signaling():
             cmd = listen_for_command()
             if "answer" in cmd:
                 conn.send(b"ANSWER")
-                print("✅ Laptop: Answered the call.")
+                print(" Laptop: Answered the call.")
                 return True
     conn.close()
     return False
@@ -55,13 +55,13 @@ def send_call_signal():
         s = socket.socket()
         s.connect((PEER_IP, SIGNAL_PORT))
         s.send(b"CALL")
-        print("📞 Laptop: Calling Pi...")
+        print(" Laptop: Calling Pi...")
         response = s.recv(1024).decode()
         if response == "ANSWER":
-            print("✅ Laptop: Call answered by Pi.")
+            print(" Laptop: Call answered by Pi.")
             return True
     except:
-        print("❌ Laptop: Failed to connect to Pi for call.")
+        print(" Laptop: Failed to connect to Pi for call.")
     return False
 
 def send_audio():
@@ -70,14 +70,14 @@ def send_audio():
         s = socket.socket()
         s.connect((PEER_IP, PORT))
         stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
-        print("🔊 Laptop: Sending audio...")
+        print(" Laptop: Sending audio...")
         while is_communicating:
             s.sendall(stream.read(CHUNK))
         stream.stop_stream()
         stream.close()
         s.close()
     except Exception as e:
-        print("❌ Laptop Send error:", e)
+        print(" Laptop Send error:", e)
 
 def receive_audio():
     global is_communicating
@@ -86,7 +86,7 @@ def receive_audio():
     server.listen(1)
     conn, _ = server.accept()
     stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True, frames_per_buffer=CHUNK)
-    print("🔊 Laptop: Receiving audio...")
+    print("Laptop: Receiving audio...")
     while is_communicating:
         data = conn.recv(CHUNK)
         if not data:
@@ -119,7 +119,7 @@ while True:
             end_cmd = listen_for_command()
             if "end communication" in end_cmd or "message end" in end_cmd:
                 is_communicating = False
-                print("📴 Laptop: Call ended.")
+                print(" Laptop: Call ended.")
                 break
         t_send.join()
         t_recv.join()
