@@ -3,6 +3,8 @@ import threading
 import speech_recognition as sr
 import pyaudio
 import time
+import subprocess
+import os
 
 # Audio configuration
 CHUNK = 2048
@@ -17,25 +19,64 @@ audio = pyaudio.PyAudio()
 is_communicating = False
 stop_threads = False
 
+def check_audio_setup():
+    """Check and fix audio setup on Pi"""
+    print(" Pi: Checking audio setup...")
+    
+    # Check if FLAC is installed
+    try:
+        result = subprocess.run(['flac', '--version'], capture_output=True, text=True)
+        print(" Pi: FLAC is installed")
+    except FileNotFoundError:
+        print(" Pi: Installing FLAC...")
+        os.system('sudo apt-get update && sudo apt-get install -y flac')
+    
+    # Check audio devices
+    print(" Pi: Available audio devices:")
+    for i in range(audio.get_device_count()):
+        info = audio.get_device_info_by_index(i)
+        print(f"  {i}: {info['name']} - {info['maxInputChannels']} input, {info['maxOutputChannels']} output")
+    
+    # Try to start pulseaudio if it's not running
+    try:
+        os.system('pulseaudio --start --verbose 2>/dev/null')
+    except:
+        pass
+
 def listen_for_command():
     r = sr.Recognizer()
-    with sr.Microphone() as source:
-        print(" Pi: Listening for voice command...")
-        try:
+    try:
+        with sr.Microphone() as source:
+            print(" Pi: Listening for voice command...")
             r.adjust_for_ambient_noise(source, duration=0.5)
-            audio_input = r.listen(source, timeout=5)
-            command = r.recognize_google(audio_input).lower()
-            print(" Heard:", command)
-            return command
-        except sr.WaitTimeoutError:
-            print(" Pi: No speech detected")
-            return ""
-        except sr.UnknownValueError:
-            print(" Pi: Could not understand audio")
-            return ""
-        except Exception as e:
-            print(f" Pi: Error in speech recognition: {e}")
-            return ""
+            r.energy_threshold = 300
+            r.dynamic_energy_threshold = True
+            r.pause_threshold = 0.8
+            
+            audio_input = r.listen(source, timeout=5, phrase_time_limit=10)
+            
+            # Try Google first, then fall back to offline recognition
+            try:
+                command = r.recognize_google(audio_input, language="en-US").lower()
+                print(" Heard:", command)
+                return command
+            except sr.RequestError:
+                print(" Pi: Google speech recognition unavailable, trying offline...")
+                try:
+                    command = r.recognize_sphinx(audio_input).lower()
+                    print(" Heard (offline):", command)
+                    return command
+                except:
+                    print(" Pi: Offline recognition also failed")
+                    return ""
+                    
+    except sr.WaitTimeoutError:
+        return ""
+    except sr.UnknownValueError:
+        return ""
+    except Exception as e:
+        print(f" Pi: Error in speech recognition: {e}")
+        return ""
 
 def ring_loop():
     for i in range(5):
@@ -43,56 +84,99 @@ def ring_loop():
         time.sleep(1)
 
 def handle_signaling():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    """Handle incoming call signaling with better error handling"""
+    server = None
     try:
-        server.bind(('0.0.0.0', SIGNAL_PORT))
-        server.listen(1)
-        print(" Pi: Waiting for incoming call...")
-        conn, addr = server.accept()
-        print(f" Pi: Connection from {addr}")
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
-        signal = conn.recv(1024).decode()
-        if signal == "CALL":
-            ring_loop()
-            while True:
-                cmd = listen_for_command()
-                if "answer" in cmd:
-                    conn.send(b"ANSWER")
-                    print(" Pi: Answered the call.")
-                    conn.close()
-                    server.close()
-                    return True
-                elif "reject" in cmd or "decline" in cmd:
-                    conn.send(b"REJECT")
-                    print(" Pi: Rejected the call.")
-                    conn.close()
-                    server.close()
+        # Try multiple times to bind
+        for attempt in range(3):
+            try:
+                server.bind(('0.0.0.0', SIGNAL_PORT))
+                break
+            except OSError as e:
+                if attempt < 2:
+                    print(f" Pi: Port {SIGNAL_PORT} busy, waiting... (attempt {attempt+1})")
+                    time.sleep(2)
+                else:
+                    print(f" Pi: Cannot bind to port {SIGNAL_PORT}: {e}")
                     return False
-        conn.close()
+        
+        server.listen(1)
+        server.settimeout(1)  # 1 second timeout for accept
+        print(" Pi: Waiting for incoming call...")
+        
+        try:
+            conn, addr = server.accept()
+            print(f" Pi: Connection from {addr}")
+            
+            conn.settimeout(5)
+            signal = conn.recv(1024).decode()
+            
+            if signal == "CALL":
+                ring_loop()
+                start_time = time.time()
+                while time.time() - start_time < 30:  # 30 second timeout
+                    cmd = listen_for_command()
+                    if "answer" in cmd:
+                        conn.send(b"ANSWER")
+                        print(" Pi: Answered the call.")
+                        return True
+                    elif "reject" in cmd or "decline" in cmd:
+                        conn.send(b"REJECT")
+                        print(" Pi: Rejected the call.")
+                        return False
+                
+                print(" Pi: Call timed out")
+                conn.send(b"TIMEOUT")
+                return False
+                
+        except socket.timeout:
+            return False
+        except Exception as e:
+            print(f" Pi: Connection error: {e}")
+            return False
+            
     except Exception as e:
-        print(f" Pi: Signaling error: {e}")
+        print(f" Pi: Signaling setup error: {e}")
+        return False
     finally:
-        server.close()
-    return False
+        if server:
+            server.close()
 
 def send_call_signal():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((PEER_IP, SIGNAL_PORT))
-        s.send(b"CALL")
-        print(" Pi: Calling laptop...")
-        s.settimeout(10)  # 10 second timeout
-        response = s.recv(1024).decode()
-        s.close()
-        if response == "ANSWER":
-            print(" Pi: Call answered by laptop.")
-            return True
-        else:
-            print(" Pi: Call rejected by laptop.")
-            return False
-    except Exception as e:
-        print(f" Pi: Failed to connect to laptop for call: {e}")
+    """Send call signal with retry logic"""
+    for attempt in range(3):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(10)
+            s.connect((PEER_IP, SIGNAL_PORT))
+            s.send(b"CALL")
+            print(f" Pi: Calling laptop... (attempt {attempt+1})")
+            
+            response = s.recv(1024).decode()
+            s.close()
+            
+            if response == "ANSWER":
+                print(" Pi: Call answered by laptop.")
+                return True
+            elif response == "REJECT":
+                print(" Pi: Call rejected by laptop.")
+                return False
+            else:
+                print(f" Pi: Unexpected response: {response}")
+                return False
+                
+        except socket.timeout:
+            print(f" Pi: Connection timeout (attempt {attempt+1})")
+        except Exception as e:
+            print(f" Pi: Connection error (attempt {attempt+1}): {e}")
+        
+        if attempt < 2:
+            time.sleep(2)
+    
+    print(" Pi: Failed to connect after 3 attempts")
     return False
 
 def send_audio():
@@ -101,9 +185,25 @@ def send_audio():
     s = None
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(5)
         s.connect((PEER_IP, PORT))
-        stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, 
-                          input=True, frames_per_buffer=CHUNK)
+        
+        # Find a suitable input device
+        input_device = None
+        for i in range(audio.get_device_count()):
+            info = audio.get_device_info_by_index(i)
+            if info['maxInputChannels'] > 0:
+                input_device = i
+                break
+        
+        stream = audio.open(
+            format=FORMAT,
+            channels=min(CHANNELS, info['maxInputChannels']) if input_device else CHANNELS,
+            rate=RATE,
+            input=True,
+            frames_per_buffer=CHUNK,
+            input_device_index=input_device
+        )
         print(" Pi: Sending audio...")
         
         while is_communicating and not stop_threads:
@@ -133,12 +233,28 @@ def receive_audio():
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind(('0.0.0.0', PORT))
         server.listen(1)
+        server.settimeout(5)
         print(" Pi: Waiting for audio connection...")
         
         conn, addr = server.accept()
         print(f" Pi: Audio connection from {addr}")
-        stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, 
-                          output=True, frames_per_buffer=CHUNK)
+        
+        # Find a suitable output device
+        output_device = None
+        for i in range(audio.get_device_count()):
+            info = audio.get_device_info_by_index(i)
+            if info['maxOutputChannels'] > 0:
+                output_device = i
+                break
+        
+        stream = audio.open(
+            format=FORMAT,
+            channels=min(CHANNELS, info['maxOutputChannels']) if output_device else CHANNELS,
+            rate=RATE,
+            output=True,
+            frames_per_buffer=CHUNK,
+            output_device_index=output_device
+        )
         print(" Pi: Receiving audio...")
         
         while is_communicating and not stop_threads:
@@ -166,21 +282,25 @@ def receive_audio():
 print(" Pi: Voice Communication System Started")
 print(" Commands: 'send message', 'answer', 'message end'")
 
+# Check and setup audio
+check_audio_setup()
+
 while True:
     try:
         command = listen_for_command()
         
         if command == "":
-            # Check for incoming calls
-            if handle_signaling():
-                is_communicating = True
-                stop_threads = False
-            else:
-                continue
+            # Only check for incoming calls if not already communicating
+            if not is_communicating:
+                if handle_signaling():
+                    is_communicating = True
+                    stop_threads = False
+            continue
         
         elif "send message" in command:
-            is_communicating = send_call_signal()
-            stop_threads = False
+            if not is_communicating:
+                is_communicating = send_call_signal()
+                stop_threads = False
         
         elif "quit" in command or "exit" in command:
             print(" Pi: Shutting down...")
@@ -204,8 +324,8 @@ while True:
                     break
             
             # Wait for threads to finish
-            t_send.join(timeout=2)
-            t_recv.join(timeout=2)
+            t_send.join(timeout=3)
+            t_recv.join(timeout=3)
             
     except KeyboardInterrupt:
         print("\n Pi: Shutting down...")
@@ -214,6 +334,7 @@ while True:
         break
     except Exception as e:
         print(f" Pi: Unexpected error: {e}")
+        time.sleep(1)
 
 # Cleanup
 audio.terminate()
