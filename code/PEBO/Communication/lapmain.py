@@ -3,13 +3,13 @@ import threading
 import speech_recognition as sr
 import pyaudio
 
+# Audio config
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 48000
-
-PEER_IP = '192.168.124.94'  # change to Pi’s IP
+CHANNELS = 2
+RATE = 44100
 PORT = 5001
+PEER_IP = '192.168.124.94'  # Raspberry Pi IP (no spaces!)
 
 is_communicating = False
 audio = pyaudio.PyAudio()
@@ -28,40 +28,40 @@ def listen_for_command():
 
 def send_audio():
     global is_communicating
-    s = socket.socket()
-    s.connect((PEER_IP, PORT))
-    stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
-    print("Laptop: Sending audio...")
-    while is_communicating:
-        try:
+    try:
+        s = socket.socket()
+        s.connect((PEER_IP, PORT))
+        stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+        print("Laptop: Sending audio...")
+        while is_communicating:
             data = stream.read(CHUNK)
             s.sendall(data)
-        except:
-            break
-    stream.stop_stream()
-    stream.close()
-    s.close()
+        stream.stop_stream()
+        stream.close()
+        s.close()
+    except Exception as e:
+        print("Send error:", e)
 
 def receive_audio():
     global is_communicating
-    server = socket.socket()
-    server.bind(('0.0.0.0', PORT))
-    server.listen(1)
-    conn, _ = server.accept()
-    stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True, frames_per_buffer=CHUNK)
-    print("Laptop: Receiving audio...")
-    while is_communicating:
-        try:
+    try:
+        server = socket.socket()
+        server.bind(('0.0.0.0', PORT))
+        server.listen(1)
+        conn, _ = server.accept()
+        stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True, frames_per_buffer=CHUNK)
+        print("Laptop: Receiving audio...")
+        while is_communicating:
             data = conn.recv(CHUNK)
             if not data:
                 break
             stream.write(data)
-        except:
-            break
-    stream.stop_stream()
-    stream.close()
-    conn.close()
-    server.close()
+        stream.stop_stream()
+        stream.close()
+        conn.close()
+        server.close()
+    except Exception as e:
+        print("Receive error:", e)
 
 # Main loop
 while True:
@@ -74,7 +74,6 @@ while True:
         t_send.start()
         t_recv.start()
 
-        # Wait for end command
         while True:
             end_command = listen_for_command()
             if "end communication" in end_command:
