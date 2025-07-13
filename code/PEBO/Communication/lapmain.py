@@ -6,7 +6,7 @@ import pyaudio
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
-RATE = 16000
+RATE = 48000
 
 PEER_IP = '192.168.124.94'  # change to Pi’s IP
 PORT = 5001

@@ -7,7 +7,7 @@ import pyaudio
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
-RATE = 16000
+RATE = 48000
 
 # IP address of the laptop/peer device
 PEER_IP = ' 192.168.124.182'  # change to your laptop's IP
