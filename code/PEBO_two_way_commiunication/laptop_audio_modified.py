@@ -7,7 +7,7 @@ import queue
 import numpy as np  # For amplification
 
 class AudioNode:
-    def __init__(self, listen_port=8889, target_host='172.20.10.11', target_port=8888):
+    def __init__(self, listen_port=8889, target_host='192.168.124.94', target_port=8888):
         # FIXED: Audio settings to match Pi (48kHz)
         self.CHUNK = 2048
         self.FORMAT = pyaudio.paInt16
