@@ -10,11 +10,11 @@ import os
 os.environ["PYTHONWARNINGS"] = "ignore"
 os.environ["ALSA_CARD"] = "default"
 
-# Audio configuration
+# Audio configuration - FIXED for your USB device
 CHUNK = 2048
-FORMAT = pyaudio.paInt16
-CHANNELS = 1  # Changed to mono for better compatibility
-RATE = 44100
+FORMAT = pyaudio.paInt16  # This corresponds to S16_LE format
+CHANNELS = 1  # Mono - your device only supports 1 channel
+RATE = 44100  # Your device supports 44100 Hz and 48000 Hz
 PORT = 5001
 SIGNAL_PORT = 6001
 
@@ -52,23 +52,30 @@ def check_audio_setup():
 def get_best_audio_device(input_device=True):
     """Find the best audio device for input or output"""
     best_device = None
+    usb_device = None
+    
     for i in range(audio.get_device_count()):
         info = audio.get_device_info_by_index(i)
         if input_device:
             if info['maxInputChannels'] > 0:
-                # Prefer USB devices over built-in
-                if 'usb' in info['name'].lower() or 'USB' in info['name']:
-                    return i
+                # Prefer USB devices (like your PCM2902)
+                if 'usb' in info['name'].lower() or 'USB' in info['name'] or 'PCM2902' in info['name']:
+                    usb_device = i
+                    print(f"Pi: Found USB audio device: {info['name']}")
                 if best_device is None:
                     best_device = i
         else:
             if info['maxOutputChannels'] > 0:
-                # Prefer headphones/speakers over default
+                # Prefer USB devices or dedicated audio outputs
+                if 'usb' in info['name'].lower() or 'USB' in info['name'] or 'PCM2902' in info['name']:
+                    usb_device = i
+                    print(f"Pi: Found USB audio device: {info['name']}")
                 if 'headphone' in info['name'].lower() or 'speaker' in info['name'].lower():
                     return i
                 if best_device is None:
                     best_device = i
-    return best_device
+    
+    return usb_device if usb_device is not None else best_device
 
 def listen_for_command():
     r = sr.Recognizer()
@@ -76,7 +83,19 @@ def listen_for_command():
         # Get the best input device
         input_device = get_best_audio_device(input_device=True)
         
-        with sr.Microphone(device_index=input_device) as source:
+        if input_device is None:
+            print("Pi: No input device found!")
+            return ""
+        
+        device_info = audio.get_device_info_by_index(input_device)
+        print(f"Pi: Using microphone: {device_info['name']}")
+        
+        # FIXED: Use correct parameters for your USB device
+        with sr.Microphone(
+            device_index=input_device,
+            sample_rate=RATE,
+            chunk_size=CHUNK
+        ) as source:
             print("Pi: Listening for voice command...")
             r.adjust_for_ambient_noise(source, duration=0.5)
             r.energy_threshold = 300
@@ -235,14 +254,32 @@ def send_audio():
         device_info = audio.get_device_info_by_index(input_device)
         print(f"Pi: Using input device: {device_info['name']}")
         
-        stream = audio.open(
-            format=FORMAT,
-            channels=min(CHANNELS, device_info['maxInputChannels']),
-            rate=RATE,
-            input=True,
-            frames_per_buffer=CHUNK,
-            input_device_index=input_device
-        )
+        # FIXED: Use correct audio parameters for your USB device
+        try:
+            stream = audio.open(
+                format=FORMAT,  # S16_LE
+                channels=CHANNELS,  # 1 (mono)
+                rate=RATE,  # 44100 Hz
+                input=True,
+                frames_per_buffer=CHUNK,
+                input_device_index=input_device
+            )
+        except Exception as e:
+            print(f"Pi: Failed to open audio stream: {e}")
+            # Try with device's preferred settings
+            try:
+                stream = audio.open(
+                    format=FORMAT,
+                    channels=1,  # Force mono
+                    rate=44100,  # Force 44100 Hz
+                    input=True,
+                    frames_per_buffer=CHUNK,
+                    input_device_index=input_device
+                )
+            except Exception as e2:
+                print(f"Pi: Second attempt failed: {e2}")
+                return
+        
         print("Pi: Sending audio...")
        
         while is_communicating and not stop_threads:
@@ -288,14 +325,32 @@ def receive_audio():
         device_info = audio.get_device_info_by_index(output_device)
         print(f"Pi: Using output device: {device_info['name']}")
         
-        stream = audio.open(
-            format=FORMAT,
-            channels=min(CHANNELS, device_info['maxOutputChannels']),
-            rate=RATE,
-            output=True,
-            frames_per_buffer=CHUNK,
-            output_device_index=output_device
-        )
+        # FIXED: Use correct audio parameters
+        try:
+            stream = audio.open(
+                format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                output=True,
+                frames_per_buffer=CHUNK,
+                output_device_index=output_device
+            )
+        except Exception as e:
+            print(f"Pi: Failed to open output stream: {e}")
+            # Try with default settings
+            try:
+                stream = audio.open(
+                    format=FORMAT,
+                    channels=1,
+                    rate=44100,
+                    output=True,
+                    frames_per_buffer=CHUNK,
+                    output_device_index=output_device
+                )
+            except Exception as e2:
+                print(f"Pi: Output stream second attempt failed: {e2}")
+                return
+        
         print("Pi: Receiving audio...")
        
         while is_communicating and not stop_threads:
@@ -330,12 +385,55 @@ def test_network_connectivity():
         print(f"Pi: Cannot reach {PEER_IP}. Check network connection and IP address.")
         return False
 
+def test_audio_recording():
+    """Test audio recording with your USB device"""
+    print("Pi: Testing audio recording...")
+    try:
+        input_device = get_best_audio_device(input_device=True)
+        if input_device is None:
+            print("Pi: No input device found for testing!")
+            return False
+        
+        device_info = audio.get_device_info_by_index(input_device)
+        print(f"Pi: Testing with device: {device_info['name']}")
+        
+        stream = audio.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
+            input=True,
+            frames_per_buffer=CHUNK,
+            input_device_index=input_device
+        )
+        
+        print("Pi: Recording test audio for 2 seconds...")
+        frames = []
+        for i in range(0, int(RATE / CHUNK * 2)):
+            data = stream.read(CHUNK)
+            frames.append(data)
+        
+        stream.stop_stream()
+        stream.close()
+        
+        print("Pi: Audio recording test successful!")
+        return True
+        
+    except Exception as e:
+        print(f"Pi: Audio recording test failed: {e}")
+        return False
+
 # === MAIN LOOP ===
 print("Pi: Voice Communication System Started")
 print("Commands: 'send message', 'answer', 'message end'")
 
 # Check and setup audio
 check_audio_setup()
+
+# Test audio recording
+if not test_audio_recording():
+    print("Pi: Audio recording test failed - check your USB microphone")
+else:
+    print("Pi: Audio system is working correctly")
 
 # Test network connectivity
 if not test_network_connectivity():

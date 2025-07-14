@@ -7,11 +7,11 @@ import sys
 import os
 import ctypes
 
-# Audio configuration
+# Audio configuration - FIXED for better compatibility
 CHUNK = 2048
-FORMAT = pyaudio.paInt16
-CHANNELS = 1  # Changed to mono for better compatibility
-RATE = 44100
+FORMAT = pyaudio.paInt16  # S16_LE format
+CHANNELS = 1  # Mono for better compatibility
+RATE = 44100  # Standard rate that most devices support
 PORT = 5001
 SIGNAL_PORT = 6001
 
@@ -39,6 +39,9 @@ def get_best_audio_device(input_device=True):
                 # Prefer microphone array or dedicated microphones
                 if 'microphone' in info['name'].lower() and 'array' in info['name'].lower():
                     return i
+                # Also prefer USB microphones
+                if 'usb' in info['name'].lower() or 'USB' in info['name']:
+                    return i
                 if best_device is None:
                     best_device = i
         else:
@@ -56,7 +59,19 @@ def listen_for_command():
         # Get the best input device
         input_device = get_best_audio_device(input_device=True)
         
-        with sr.Microphone(device_index=input_device) as source:
+        if input_device is None:
+            print("Laptop: No input device found!")
+            return ""
+        
+        device_info = audio.get_device_info_by_index(input_device)
+        print(f"Laptop: Using microphone: {device_info['name']}")
+        
+        # FIXED: Use correct parameters
+        with sr.Microphone(
+            device_index=input_device,
+            sample_rate=RATE,
+            chunk_size=CHUNK
+        ) as source:
             print("Laptop: Listening for voice command...")
             r.adjust_for_ambient_noise(source, duration=0.5)
             r.energy_threshold = 300
@@ -213,14 +228,32 @@ def send_audio():
         device_info = audio.get_device_info_by_index(input_device)
         print(f"Laptop: Using input device: {device_info['name']}")
         
-        stream = audio.open(
-            format=FORMAT,
-            channels=min(CHANNELS, device_info['maxInputChannels']),
-            rate=RATE,
-            input=True,
-            frames_per_buffer=CHUNK,
-            input_device_index=input_device
-        )
+        # FIXED: Better audio stream handling
+        try:
+            stream = audio.open(
+                format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                frames_per_buffer=CHUNK,
+                input_device_index=input_device
+            )
+        except Exception as e:
+            print(f"Laptop: Failed to open input stream: {e}")
+            # Try with default device settings
+            try:
+                stream = audio.open(
+                    format=FORMAT,
+                    channels=1,
+                    rate=44100,
+                    input=True,
+                    frames_per_buffer=CHUNK,
+                    input_device_index=input_device
+                )
+            except Exception as e2:
+                print(f"Laptop: Input stream second attempt failed: {e2}")
+                return
+        
         print("Laptop: Sending audio...")
        
         while is_communicating and not stop_threads:
@@ -266,14 +299,32 @@ def receive_audio():
         device_info = audio.get_device_info_by_index(output_device)
         print(f"Laptop: Using output device: {device_info['name']}")
         
-        stream = audio.open(
-            format=FORMAT,
-            channels=min(CHANNELS, device_info['maxOutputChannels']),
-            rate=RATE,
-            output=True,
-            frames_per_buffer=CHUNK,
-            output_device_index=output_device
-        )
+        # FIXED: Better audio stream handling
+        try:
+            stream = audio.open(
+                format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                output=True,
+                frames_per_buffer=CHUNK,
+                output_device_index=output_device
+            )
+        except Exception as e:
+            print(f"Laptop: Failed to open output stream: {e}")
+            # Try with default settings
+            try:
+                stream = audio.open(
+                    format=FORMAT,
+                    channels=1,
+                    rate=44100,
+                    output=True,
+                    frames_per_buffer=CHUNK,
+                    output_device_index=output_device
+                )
+            except Exception as e2:
+                print(f"Laptop: Output stream second attempt failed: {e2}")
+                return
+        
         print("Laptop: Receiving audio...")
        
         while is_communicating and not stop_threads:
@@ -300,86 +351,3 @@ def receive_audio():
 def test_network_connectivity():
     """Test if we can reach the peer IP"""
     print(f"Laptop: Testing connectivity to {PEER_IP}...")
-    result = os.system(f"ping -n 1 {PEER_IP} > nul 2>&1")
-    if result == 0:
-        print(f"Laptop: Network connectivity to {PEER_IP} is working")
-        return True
-    else:
-        print(f"Laptop: Cannot reach {PEER_IP}. Check network connection and IP address.")
-        return False
-
-# Check if running as administrator on Windows
-def is_admin():
-    try:
-        return os.getuid() == 0
-    except AttributeError:
-        return ctypes.windll.shell32.IsUserAnAdmin() != 0
-
-# === MAIN LOOP ===
-print("Laptop: Voice Communication System Started")
-print("Commands: 'start communication', 'answer', 'end communication'")
-
-if sys.platform == "win32" and not is_admin():
-    print("WARNING: Running as administrator might help with port binding issues")
-
-check_audio_devices()
-
-# Test network connectivity
-if not test_network_connectivity():
-    print("Laptop: Please check your network setup and PEER_IP configuration")
-    print(f"Laptop: Current PEER_IP is set to: {PEER_IP}")
-
-while True:
-    try:
-        command = listen_for_command()
-       
-        if command == "":
-            # Only check for incoming calls if not already communicating
-            if not is_communicating:
-                if handle_signaling():
-                    is_communicating = True
-                    stop_threads = False
-            continue
-       
-        elif "start communication" in command:
-            if not is_communicating:
-                is_communicating = send_call_signal()
-                stop_threads = False
-       
-        elif "quit" in command or "exit" in command:
-            print("Laptop: Shutting down...")
-            break
-       
-        if is_communicating:
-            print("Laptop: Starting communication threads...")
-            t_send = threading.Thread(target=send_audio)
-            t_recv = threading.Thread(target=receive_audio)
-            t_send.daemon = True
-            t_recv.daemon = True
-            t_send.start()
-            t_recv.start()
-           
-            while is_communicating:
-                end_cmd = listen_for_command()
-                if "end communication" in end_cmd or "message end" in end_cmd:
-                    is_communicating = False
-                    stop_threads = True
-                    print("Laptop: Call ended.")
-                    break
-           
-            # Wait for threads to finish
-            t_send.join(timeout=3)
-            t_recv.join(timeout=3)
-           
-    except KeyboardInterrupt:
-        print("\nLaptop: Shutting down...")
-        is_communicating = False
-        stop_threads = True
-        break
-    except Exception as e:
-        print(f"Laptop: Unexpected error: {e}")
-        time.sleep(1)
-
-# Cleanup
-audio.terminate()
-print("Laptop: System shutdown complete.")
