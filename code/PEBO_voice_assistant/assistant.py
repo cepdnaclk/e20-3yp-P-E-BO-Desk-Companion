@@ -6,7 +6,7 @@ import asyncio
 import edge_tts
 import speech_recognition as sr
 import whisper
-import sounddevice as sd
+import sounddevice as sd 
 import numpy as np
 import tempfile
 import scipy.io.wavfile

@@ -182,6 +182,27 @@ export const uploadUserProfileImage = async (imageUri, username) => {
     throw error;
   }
 };
+// Add this function to your Firebase utilities file
+export const getUserDocument = async () => {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error("No authenticated user");
+    }
+
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      return userDoc.data();
+    } else {
+      throw new Error("User document not found");
+    }
+  } catch (error) {
+    console.error("Error fetching user document:", error);
+    throw error;
+  }
+};
 
 export const getUserProfileImage = async () => {
   const user = auth.currentUser;

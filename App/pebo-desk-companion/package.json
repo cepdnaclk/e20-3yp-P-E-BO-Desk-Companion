@@ -21,11 +21,11 @@
     "axios": "^1.9.0",
     "dayjs": "^1.11.13",
     "expo": "53.0.19",
-    "expo-av": "~15.1.7",
     "expo-blur": "~14.1.5",
     "expo-dev-client": "~5.2.4",
     "expo-font": "~13.3.2",
     "expo-image-picker": "~16.1.4",
+    "expo-linear-gradient": "~14.1.5",
     "expo-secure-store": "~14.2.3",
     "expo-splash-screen": "~0.30.10",
     "expo-status-bar": "~2.2.3",
@@ -53,11 +53,11 @@
     "react-native-svg": "15.11.2",
     "react-native-ui-datepicker": "^3.1.2",
     "react-native-vector-icons": "^10.2.0",
-    "text-encoding": "^0.7.0",
-    "expo-linear-gradient": "~14.1.5"
+    "text-encoding": "^0.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.28.0",
     "@expo/cli": "^0.24.13",
     "@react-native-community/cli": "^18.0.0"
   },
