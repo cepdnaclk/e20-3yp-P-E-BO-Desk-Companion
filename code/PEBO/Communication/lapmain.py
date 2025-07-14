@@ -5,63 +5,90 @@ import pyaudio
 import time
 import sys
 import os
+import ctypes
 
 # Audio configuration
-CHUNK = 1024
+CHUNK = 2048
 FORMAT = pyaudio.paInt16
-CHANNELS = 2
+CHANNELS = 1  # Changed to mono for better compatibility
 RATE = 44100
 PORT = 5001
 SIGNAL_PORT = 6001
 
-PEER_IP = '192.168.124.94'  # ← Your Pi IP
+# CRITICAL: Make sure this is the correct IP address of your Pi
+PEER_IP = '192.168.124.94'  # Your Pi IP - VERIFY THIS IS CORRECT
+
 audio = pyaudio.PyAudio()
 is_communicating = False
 stop_threads = False
 
 def check_audio_devices():
     """Check available audio devices"""
-    print(" Laptop: Available audio devices:")
+    print("Laptop: Available audio devices:")
     for i in range(audio.get_device_count()):
         info = audio.get_device_info_by_index(i)
         print(f"  {i}: {info['name']} - {info['maxInputChannels']} input, {info['maxOutputChannels']} output")
 
+def get_best_audio_device(input_device=True):
+    """Find the best audio device for input or output"""
+    best_device = None
+    for i in range(audio.get_device_count()):
+        info = audio.get_device_info_by_index(i)
+        if input_device:
+            if info['maxInputChannels'] > 0:
+                # Prefer microphone array or dedicated microphones
+                if 'microphone' in info['name'].lower() and 'array' in info['name'].lower():
+                    return i
+                if best_device is None:
+                    best_device = i
+        else:
+            if info['maxOutputChannels'] > 0:
+                # Prefer speakers or headphones
+                if 'speaker' in info['name'].lower() or 'headphone' in info['name'].lower():
+                    return i
+                if best_device is None:
+                    best_device = i
+    return best_device
+
 def listen_for_command():
     r = sr.Recognizer()
     try:
-        with sr.Microphone() as source:
-            print(" Laptop: Listening for voice command...")
+        # Get the best input device
+        input_device = get_best_audio_device(input_device=True)
+        
+        with sr.Microphone(device_index=input_device) as source:
+            print("Laptop: Listening for voice command...")
             r.adjust_for_ambient_noise(source, duration=0.5)
             r.energy_threshold = 300
             r.dynamic_energy_threshold = True
             audio_input = r.listen(source, timeout=5, phrase_time_limit=10)
-            
+           
             # Try Google first, then fall back to offline recognition
             try:
                 command = r.recognize_google(audio_input).lower()
-                print(" Heard:", command)
+                print("Heard:", command)
                 return command
             except sr.RequestError:
-                print(" Laptop: Google speech recognition unavailable, trying offline...")
+                print("Laptop: Google speech recognition unavailable, trying offline...")
                 try:
                     command = r.recognize_sphinx(audio_input).lower()
-                    print(" Heard (offline):", command)
+                    print("Heard (offline):", command)
                     return command
                 except:
-                    print(" Laptop: Offline recognition also failed")
+                    print("Laptop: Offline recognition also failed")
                     return ""
-                    
+                   
     except sr.WaitTimeoutError:
         return ""
     except sr.UnknownValueError:
         return ""
     except Exception as e:
-        print(f" Laptop: Error in speech recognition: {e}")
+        print(f"Laptop: Error in speech recognition: {e}")
         return ""
 
 def ring_loop():
     for i in range(5):
-        print(f" Laptop: Ringing... {i+1}/5 (waiting for 'answer')")
+        print(f"Laptop: Ringing... {i+1}/5 (waiting for 'answer')")
         time.sleep(1)
 
 def handle_signaling():
@@ -70,7 +97,7 @@ def handle_signaling():
     try:
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
+       
         # Try multiple times to bind
         for attempt in range(3):
             try:
@@ -78,23 +105,23 @@ def handle_signaling():
                 break
             except OSError as e:
                 if attempt < 2:
-                    print(f" Laptop: Port {SIGNAL_PORT} busy, waiting... (attempt {attempt+1})")
+                    print(f"Laptop: Port {SIGNAL_PORT} busy, waiting... (attempt {attempt+1})")
                     time.sleep(2)
                 else:
-                    print(f" Laptop: Cannot bind to port {SIGNAL_PORT}: {e}")
+                    print(f"Laptop: Cannot bind to port {SIGNAL_PORT}: {e}")
                     return False
-        
+       
         server.listen(1)
         server.settimeout(1)  # 1 second timeout for accept
-        print(" Laptop: Waiting for incoming call...")
-        
+        print("Laptop: Waiting for incoming call...")
+       
         try:
             conn, addr = server.accept()
-            print(f" Laptop: Connection from {addr}")
-            
+            print(f"Laptop: Connection from {addr}")
+           
             conn.settimeout(5)
             signal = conn.recv(1024).decode()
-            
+           
             if signal == "CALL":
                 ring_loop()
                 start_time = time.time()
@@ -102,25 +129,25 @@ def handle_signaling():
                     cmd = listen_for_command()
                     if "answer" in cmd:
                         conn.send(b"ANSWER")
-                        print(" Laptop: Answered the call.")
+                        print("Laptop: Answered the call.")
                         return True
                     elif "reject" in cmd or "decline" in cmd:
                         conn.send(b"REJECT")
-                        print(" Laptop: Rejected the call.")
+                        print("Laptop: Rejected the call.")
                         return False
-                
-                print(" Laptop: Call timed out")
+               
+                print("Laptop: Call timed out")
                 conn.send(b"TIMEOUT")
                 return False
-                
+               
         except socket.timeout:
             return False
         except Exception as e:
-            print(f" Laptop: Connection error: {e}")
+            print(f"Laptop: Connection error: {e}")
             return False
-            
+           
     except Exception as e:
-        print(f" Laptop: Signaling setup error: {e}")
+        print(f"Laptop: Signaling setup error: {e}")
         return False
     finally:
         if server:
@@ -132,32 +159,39 @@ def send_call_signal():
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(10)
+            
+            print(f"Laptop: Attempting to connect to {PEER_IP}:{SIGNAL_PORT}")
             s.connect((PEER_IP, SIGNAL_PORT))
             s.send(b"CALL")
-            print(f" Laptop: Calling Pi... (attempt {attempt+1})")
-            
+            print(f"Laptop: Calling Pi... (attempt {attempt+1})")
+           
             response = s.recv(1024).decode()
             s.close()
-            
+           
             if response == "ANSWER":
-                print(" Laptop: Call answered by Pi.")
+                print("Laptop: Call answered by Pi.")
                 return True
             elif response == "REJECT":
-                print(" Laptop: Call rejected by Pi.")
+                print("Laptop: Call rejected by Pi.")
                 return False
             else:
-                print(f" Laptop: Unexpected response: {response}")
+                print(f"Laptop: Unexpected response: {response}")
                 return False
-                
+               
         except socket.timeout:
-            print(f" Laptop: Connection timeout (attempt {attempt+1})")
+            print(f"Laptop: Connection timeout (attempt {attempt+1})")
+        except socket.gaierror as e:
+            print(f"Laptop: DNS/IP resolution error (attempt {attempt+1}): {e}")
+            print(f"Laptop: Check that PEER_IP '{PEER_IP}' is correct")
+        except ConnectionRefusedError:
+            print(f"Laptop: Connection refused (attempt {attempt+1}). Is Pi script running?")
         except Exception as e:
-            print(f" Laptop: Connection error (attempt {attempt+1}): {e}")
-        
+            print(f"Laptop: Connection error (attempt {attempt+1}): {e}")
+       
         if attempt < 2:
             time.sleep(2)
-    
-    print(" Laptop: Failed to connect after 3 attempts")
+   
+    print("Laptop: Failed to connect after 3 attempts")
     return False
 
 def send_audio():
@@ -168,27 +202,37 @@ def send_audio():
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(5)
         s.connect((PEER_IP, PORT))
+       
+        # Find a suitable input device
+        input_device = get_best_audio_device(input_device=True)
+        
+        if input_device is None:
+            print("Laptop: No input device found!")
+            return
+            
+        device_info = audio.get_device_info_by_index(input_device)
+        print(f"Laptop: Using input device: {device_info['name']}")
         
         stream = audio.open(
             format=FORMAT,
-            channels=CHANNELS,
+            channels=min(CHANNELS, device_info['maxInputChannels']),
             rate=RATE,
             input=True,
             frames_per_buffer=CHUNK,
-            input_device_index=None  # Use default device
+            input_device_index=input_device
         )
-        print(" Laptop: Sending audio...")
-        
+        print("Laptop: Sending audio...")
+       
         while is_communicating and not stop_threads:
             try:
                 data = stream.read(CHUNK, exception_on_overflow=False)
                 s.sendall(data)
             except Exception as e:
-                print(f" Laptop: Send audio error: {e}")
+                print(f"Laptop: Send audio error: {e}")
                 break
-                
+               
     except Exception as e:
-        print(f" Laptop: Send audio connection error: {e}")
+        print(f"Laptop: Send audio connection error: {e}")
     finally:
         if stream:
             stream.stop_stream()
@@ -207,21 +251,31 @@ def receive_audio():
         server.bind(('0.0.0.0', PORT))
         server.listen(1)
         server.settimeout(5)
-        print(" Laptop: Waiting for audio connection...")
-        
+        print("Laptop: Waiting for audio connection...")
+       
         conn, addr = server.accept()
-        print(f" Laptop: Audio connection from {addr}")
+        print(f"Laptop: Audio connection from {addr}")
+       
+        # Find a suitable output device
+        output_device = get_best_audio_device(input_device=False)
+        
+        if output_device is None:
+            print("Laptop: No output device found!")
+            return
+            
+        device_info = audio.get_device_info_by_index(output_device)
+        print(f"Laptop: Using output device: {device_info['name']}")
         
         stream = audio.open(
             format=FORMAT,
-            channels=CHANNELS,
+            channels=min(CHANNELS, device_info['maxOutputChannels']),
             rate=RATE,
             output=True,
             frames_per_buffer=CHUNK,
-            output_device_index=None  # Use default device
+            output_device_index=output_device
         )
-        print(" Laptop: Receiving audio...")
-        
+        print("Laptop: Receiving audio...")
+       
         while is_communicating and not stop_threads:
             try:
                 data = conn.recv(CHUNK)
@@ -229,11 +283,11 @@ def receive_audio():
                     break
                 stream.write(data)
             except Exception as e:
-                print(f" Laptop: Receive audio error: {e}")
+                print(f"Laptop: Receive audio error: {e}")
                 break
-                
+               
     except Exception as e:
-        print(f" Laptop: Receive audio connection error: {e}")
+        print(f"Laptop: Receive audio connection error: {e}")
     finally:
         if stream:
             stream.stop_stream()
@@ -243,27 +297,42 @@ def receive_audio():
         if server:
             server.close()
 
+def test_network_connectivity():
+    """Test if we can reach the peer IP"""
+    print(f"Laptop: Testing connectivity to {PEER_IP}...")
+    result = os.system(f"ping -n 1 {PEER_IP} > nul 2>&1")
+    if result == 0:
+        print(f"Laptop: Network connectivity to {PEER_IP} is working")
+        return True
+    else:
+        print(f"Laptop: Cannot reach {PEER_IP}. Check network connection and IP address.")
+        return False
+
 # Check if running as administrator on Windows
 def is_admin():
     try:
         return os.getuid() == 0
     except AttributeError:
-        import ctypes
         return ctypes.windll.shell32.IsUserAnAdmin() != 0
 
 # === MAIN LOOP ===
-print(" Laptop: Voice Communication System Started")
-print(" Commands: 'start communication', 'answer', 'end communication'")
+print("Laptop: Voice Communication System Started")
+print("Commands: 'start communication', 'answer', 'end communication'")
 
 if sys.platform == "win32" and not is_admin():
-    print(" WARNING: Running as administrator might help with port binding issues")
+    print("WARNING: Running as administrator might help with port binding issues")
 
 check_audio_devices()
+
+# Test network connectivity
+if not test_network_connectivity():
+    print("Laptop: Please check your network setup and PEER_IP configuration")
+    print(f"Laptop: Current PEER_IP is set to: {PEER_IP}")
 
 while True:
     try:
         command = listen_for_command()
-        
+       
         if command == "":
             # Only check for incoming calls if not already communicating
             if not is_communicating:
@@ -271,46 +340,46 @@ while True:
                     is_communicating = True
                     stop_threads = False
             continue
-        
+       
         elif "start communication" in command:
             if not is_communicating:
                 is_communicating = send_call_signal()
                 stop_threads = False
-        
+       
         elif "quit" in command or "exit" in command:
-            print(" Laptop: Shutting down...")
+            print("Laptop: Shutting down...")
             break
-        
+       
         if is_communicating:
-            print(" Laptop: Starting communication threads...")
+            print("Laptop: Starting communication threads...")
             t_send = threading.Thread(target=send_audio)
             t_recv = threading.Thread(target=receive_audio)
             t_send.daemon = True
             t_recv.daemon = True
             t_send.start()
             t_recv.start()
-            
+           
             while is_communicating:
                 end_cmd = listen_for_command()
                 if "end communication" in end_cmd or "message end" in end_cmd:
                     is_communicating = False
                     stop_threads = True
-                    print(" Laptop: Call ended.")
+                    print("Laptop: Call ended.")
                     break
-            
+           
             # Wait for threads to finish
             t_send.join(timeout=3)
             t_recv.join(timeout=3)
-            
+           
     except KeyboardInterrupt:
-        print("\n Laptop: Shutting down...")
+        print("\nLaptop: Shutting down...")
         is_communicating = False
         stop_threads = True
         break
     except Exception as e:
-        print(f" Laptop: Unexpected error: {e}")
+        print(f"Laptop: Unexpected error: {e}")
         time.sleep(1)
 
 # Cleanup
 audio.terminate()
-print(" Laptop: System shutdown complete.")
+print("Laptop: System shutdown complete.")
