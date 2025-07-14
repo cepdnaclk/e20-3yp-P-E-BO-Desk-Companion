@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient"; // Install: npx expo install expo-linear-gradient
+import { LinearGradient } from "expo-linear-gradient";
+import { Video } from "expo-av";
 import {
   getWifiName,
   getTaskOverview,
@@ -35,15 +36,40 @@ const DashboardScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [networkCount, setNetworkCount] = useState(0);
+  const [robotGreeting, setRobotGreeting] = useState(false);
   const navigation = useNavigation();
 
-  // Multiple animations for energetic background
-  const pulse1 = React.useRef(new Animated.Value(0)).current;
-  const pulse2 = React.useRef(new Animated.Value(0)).current;
-  const rotate = React.useRef(new Animated.Value(0)).current;
-  const float1 = React.useRef(new Animated.Value(0)).current;
-  const float2 = React.useRef(new Animated.Value(0)).current;
-  const glow = React.useRef(new Animated.Value(0)).current;
+  // Animation refs
+  const pulse1 = useRef(new Animated.Value(0)).current;
+  const pulse2 = useRef(new Animated.Value(0)).current;
+  const rotate = useRef(new Animated.Value(0)).current;
+  const float1 = useRef(new Animated.Value(0)).current;
+  const float2 = useRef(new Animated.Value(0)).current;
+  const glow = useRef(new Animated.Value(0)).current;
+  const videoRef = useRef(null);
+
+  // Helper function to get time difference from now
+  const getTimeFromNow = (deadline) => {
+    const now = new Date();
+    const due = new Date(deadline);
+    const diffMs = due - now;
+    
+    if (diffMs < 0) return "Overdue";
+    
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+    } else if (diffHours > 0) {
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''}`;
+    } else if (diffMinutes > 0) {
+      return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''}`;
+    } else {
+      return "Due now";
+    }
+  };
 
   useEffect(() => {
     // Energetic pulsing animation
@@ -146,141 +172,142 @@ const DashboardScreen = () => {
     return unsubscribe;
   }, []);
 
-useFocusEffect(
-  useCallback(() => {
-    const fetchData = async () => {
-      try {
-        if (!currentUser) {
-          console.log("No authenticated user");
-          setUserName("Guest");
-          return;
-        }
-
-        // Enhanced username fetching with profile image priority
-        let fetchedUsername = "";
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
         try {
-          // Priority 0 - Extract username from profile image URL
+          if (!currentUser) {
+            console.log("No authenticated user");
+            setUserName("Guest");
+            return;
+          }
+
+          // Enhanced username fetching with profile image priority
+          let fetchedUsername = "";
           try {
-            const userId = auth.currentUser?.uid;
-            if (userId) {
-              // Get profile image URL from Firebase
-              const profileImageRef = db.ref(`users/${userId}/profileImage`);
+            // Priority 0 - Extract username from profile image URL
+            try {
+              const userId = auth.currentUser?.uid;
+              if (userId) {
+                // Get profile image URL from Firebase
+                const profileImageRef = db.ref(`users/${userId}/profileImage`);
 
-              // Use once() for a single read instead of continuous listener
-              const snapshot = await profileImageRef.once("value");
-              const imageUrl = snapshot.exists() ? snapshot.val() : null;
+                // Use once() for a single read instead of continuous listener
+                const snapshot = await profileImageRef.once("value");
+                const imageUrl = snapshot.exists() ? snapshot.val() : null;
 
-              console.log(
-                "Firebase profileImage for username extraction:",
-                imageUrl
-              );
+                console.log(
+                  "Firebase profileImage for username extraction:",
+                  imageUrl
+                );
 
-              if (imageUrl) {
-                // Extract username from URL like: https://pebo-user-images.s3.amazonaws.com/user_yohan.jpg
-                const urlMatch = imageUrl.match(/user_([^.]+)\.jpg$/);
-                if (urlMatch && urlMatch[1]) {
-                  const extractedUsername = urlMatch[1].replace(/_/g, " ");
-                  // Capitalize first letter of each word
-                  const formattedUsername = extractedUsername
-                    .split(" ")
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" ");
+                if (imageUrl) {
+                  // Extract username from URL like: https://pebo-user-images.s3.amazonaws.com/user_yohan.jpg
+                  const urlMatch = imageUrl.match(/user_([^.]+)\.jpg$/);
+                  if (urlMatch && urlMatch[1]) {
+                    const extractedUsername = urlMatch[1].replace(/_/g, " ");
+                    // Capitalize first letter of each word
+                    const formattedUsername = extractedUsername
+                      .split(" ")
+                      .map(
+                        (word) => word.charAt(0).toUpperCase() + word.slice(1)
+                      )
+                      .join(" ");
 
-                  console.log(
-                    "Username extracted from profile image:",
-                    formattedUsername
-                  );
-                  setUserName(formattedUsername);
-                  fetchedUsername = formattedUsername;
+                    console.log(
+                      "Username extracted from profile image:",
+                      formattedUsername
+                    );
+                    setUserName(formattedUsername);
+                    fetchedUsername = formattedUsername;
 
-                  if (formattedUsername && formattedUsername !== "Guest") {
-                    console.log("Using username from profile image URL");
+                    if (formattedUsername && formattedUsername !== "Guest") {
+                      console.log("Using username from profile image URL");
+                    } else {
+                      throw new Error("Invalid username from image URL");
+                    }
                   } else {
-                    throw new Error("Invalid username from image URL");
+                    throw new Error(
+                      "Could not extract username from image URL pattern"
+                    );
                   }
                 } else {
-                  throw new Error(
-                    "Could not extract username from image URL pattern"
-                  );
+                  throw new Error("No profile image URL found in Firebase");
                 }
               } else {
-                throw new Error("No profile image URL found in Firebase");
+                throw new Error("No userId available");
               }
-            } else {
-              throw new Error("No userId available");
-            }
-          } catch (imageError) {
-            console.log(
-              "Profile image username extraction failed:",
-              imageError.message
-            );
+            } catch (imageError) {
+              console.log(
+                "Profile image username extraction failed:",
+                imageError.message
+              );
 
-            // Priority 1 - getUserName() from Firebase database
-            const name = await getUserName();
-            console.log("Fetched username from database:", name);
-            if (name && name.trim() && name !== "Guest") {
-              setUserName(name);
-              fetchedUsername = name;
-            } else {
-              // Priority 2 - currentUser.displayName from Firebase Auth
-              const fallbackName =
-                currentUser.displayName ||
-                currentUser.email?.split("@")[0] ||
-                "User";
-              setUserName(fallbackName);
-              fetchedUsername = fallbackName;
+              // Priority 1 - getUserName() from Firebase database
+              const name = await getUserName();
+              console.log("Fetched username from database:", name);
+              if (name && name.trim() && name !== "Guest") {
+                setUserName(name);
+                fetchedUsername = name;
+              } else {
+                // Priority 2 - currentUser.displayName from Firebase Auth
+                const fallbackName =
+                  currentUser.displayName ||
+                  currentUser.email?.split("@")[0] ||
+                  "User";
+                setUserName(fallbackName);
+                fetchedUsername = fallbackName;
+              }
             }
+          } catch (error) {
+            console.error("Error in username fetching:", error);
+            // Priority 3 - Final fallback
+            const finalFallback =
+              currentUser.displayName ||
+              currentUser.email?.split("@")[0] ||
+              "User";
+            setUserName(finalFallback);
+            fetchedUsername = finalFallback;
           }
+
+          // Rest of your existing code...
+          const tasks = await getTaskOverview();
+          const today = new Date();
+          const upcoming = tasks.filter((task) => {
+            if (task.completed || !task.deadline) return false;
+            const due = new Date(task.deadline);
+            const diffDays = (due - today) / (1000 * 60 * 60 * 24);
+            return diffDays >= 0 && diffDays <= 5;
+          });
+          setUpcomingTasks(upcoming);
+
+          const wifi = await getWifiName();
+          setWifiDetails(wifi);
+
+          let count = 0;
+          if (wifi.wifiSSID && wifi.wifiSSID.trim()) count++;
+          setNetworkCount(count);
+
+          const pebos = await getPeboDevices();
+          setUserPebos(pebos);
+
+          console.log("Dashboard data loaded for user:", fetchedUsername);
         } catch (error) {
-          console.error("Error in username fetching:", error);
-          // Priority 3 - Final fallback
-          const finalFallback =
-            currentUser.displayName ||
-            currentUser.email?.split("@")[0] ||
-            "User";
-          setUserName(finalFallback);
-          fetchedUsername = finalFallback;
+          console.error("Dashboard Error - fetchData:", error);
+          setUserName("Guest");
         }
+      };
 
-        // Rest of your existing code...
-        const tasks = await getTaskOverview();
-        const today = new Date();
-        const upcoming = tasks.filter((task) => {
-          if (task.completed || !task.deadline) return false;
-          const due = new Date(task.deadline);
-          const diffDays = (due - today) / (1000 * 60 * 60 * 24);
-          return diffDays >= 0 && diffDays <= 5;
-        });
-        setUpcomingTasks(upcoming);
-
-        const wifi = await getWifiName();
-        setWifiDetails(wifi);
-
-        let count = 0;
-        if (wifi.wifiSSID && wifi.wifiSSID.trim()) count++;
-        setNetworkCount(count);
-
-        const pebos = await getPeboDevices();
-        setUserPebos(pebos);
-
-        console.log("Dashboard data loaded for user:", fetchedUsername);
-      } catch (error) {
-        console.error("Dashboard Error - fetchData:", error);
-        setUserName("Guest");
-      }
-    };
-
-    fetchData();
-  }, [currentUser])
-);
-
+      fetchData();
+    }, [currentUser])
+  );
 
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return "Good Morning";
     if (hour >= 12 && hour < 17) return "Good Afternoon";
     if (hour >= 17 && hour < 22) return "Good Evening";
-    return "Good Night"; // For late night/early morning (22:00 - 04:59)
+    return "Good Night";
   };
 
   const maskPassword = (password) => {
@@ -288,28 +315,103 @@ useFocusEffect(
     return showPassword ? password : "••••••••";
   };
 
+  const triggerRobotGreeting = () => {
+    setRobotGreeting(true);
+    setTimeout(() => setRobotGreeting(false), 3000);
+  };
+
   const rotateInterpolate = rotate.interpolate({
     inputRange: [0, 1],
     outputRange: ["0deg", "360deg"],
   });
 
+  // Check if WiFi is configured
+  const isWifiConfigured = wifiDetails.wifiSSID && wifiDetails.wifiSSID.trim();
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
-      {/* Futuristic Animated Background */}
+      {/* Enhanced Futuristic Animated Background with PEBO Robot */}
       <View style={styles.backgroundContainer}>
-        {/* Main rotating ring */}
+        {/* PEBO Robot Video Animation - NO ROTATION */}
         <Animated.View
+          style={[
+            styles.peboRobotContainer,
+            {
+              // ✅ Removed rotation transform, kept only scaling
+              transform: [
+                {
+                  scale: robotGreeting
+                    ? pulse1.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1.0, 1.3],
+                      })
+                    : pulse1.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.8, 1.1],
+                      }),
+                },
+              ],
+              opacity: glow.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.7, 1],
+              }),
+            },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={triggerRobotGreeting}
+            style={styles.robotTouchArea}
+          >
+            <Video
+              ref={videoRef}
+              source={require("../../assets/peb-video.mp4")} // Update with your video path
+              style={styles.peboVideo}
+              shouldPlay={true}
+              isLooping={true}
+              isMuted={true}
+              resizeMode="contain"
+              useNativeControls={false}
+              progressUpdateIntervalMillis={100}
+              positionMillis={0}
+            />
+
+            {/* Greeting bubble */}
+            {robotGreeting && (
+              <Animated.View
+                style={[
+                  styles.greetingBubble,
+                  {
+                    opacity: pulse2,
+                    transform: [
+                      {
+                        translateY: pulse2.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [10, -10],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Text style={styles.greetingText}>Hi {userName}!</Text>
+              </Animated.View>
+            )}
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Main rotating ring - STILL ROTATES */}
+        {/* <Animated.View
           style={[
             styles.rotatingRing,
             {
               transform: [{ rotate: rotateInterpolate }],
             },
           ]}
-        />
+        /> */}
 
-        {/* Pulsing orbs */}
+        {/* Rest of your existing background elements... */}
         <Animated.View
           style={[
             styles.pulseOrb1,
@@ -344,7 +446,6 @@ useFocusEffect(
           ]}
         />
 
-        {/* Floating particles */}
         <Animated.View
           style={[
             styles.floatingParticle1,
@@ -389,7 +490,6 @@ useFocusEffect(
           ]}
         />
 
-        {/* Glowing grid lines */}
         <Animated.View
           style={[
             styles.gridLines,
@@ -430,7 +530,9 @@ useFocusEffect(
             >
               <Text style={styles.greeting}>{getGreeting()},</Text>
               <Text style={styles.userName}>{userName}!</Text>
-              <Text style={styles.welcomeSubtext}>Welcome to the World of PEBO</Text>
+              <Text style={styles.welcomeSubtext}>
+                Welcome to the World of PEBO
+              </Text>
             </Animated.View>
 
             {/* Futuristic Stats Grid */}
@@ -464,18 +566,21 @@ useFocusEffect(
               </LinearGradient>
 
               <LinearGradient
-                colors={["rgba(76, 175, 80, 0.2)", "rgba(76, 175, 80, 0.05)"]}
+                colors={isWifiConfigured 
+                  ? ["rgba(76, 175, 80, 0.2)", "rgba(76, 175, 80, 0.05)"]
+                  : ["rgba(255, 82, 82, 0.2)", "rgba(255, 82, 82, 0.05)"]
+                }
                 style={styles.statCard}
               >
                 <View style={styles.statIcon}>
-                  <MaterialIcons name="wifi" size={24} color="#4CAF50" />
+                  <MaterialIcons name="wifi" size={24} color={isWifiConfigured ? "#4CAF50" : "#FF5252"} />
                 </View>
-                <Text style={[styles.statNumber, { color: "#4CAF50" }]}>
-                  {networkCount}
+                <Text style={[styles.stat1Number, { color: isWifiConfigured ? "#4CAF50" : "#FF5252" }]}>
+                  {isWifiConfigured ? "Configured" : "Not Configured"}
                 </Text>
                 <Text style={styles.statLabel}>NETWORKS</Text>
                 <View
-                  style={[styles.statGlow, { backgroundColor: "#4CAF50" }]}
+                  style={[styles.statGlow, { backgroundColor: isWifiConfigured ? "#4CAF50" : "#FF5252" }]}
                 />
               </LinearGradient>
             </View>
@@ -484,8 +589,7 @@ useFocusEffect(
             {userPebos.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
-                  <Ionicons name="radio" size={16} color="#1DE9B6" /> ACTIVE
-                  NODES
+                  <Ionicons name="radio" size={16} color="#1DE9B6" /> My Devices
                 </Text>
                 {userPebos.map((pebo, index) => (
                   <LinearGradient
@@ -528,8 +632,7 @@ useFocusEffect(
             {/* Network Matrix */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                <Ionicons name="globe" size={16} color="#1DE9B6" /> NETWORK
-                MATRIX
+                <Ionicons name="globe" size={16} color="#1DE9B6" /> NETWORK STATUS
               </Text>
               <LinearGradient
                 colors={["rgba(26, 26, 26, 0.8)", "rgba(26, 26, 26, 0.4)"]}
@@ -538,36 +641,38 @@ useFocusEffect(
                 <View style={styles.networkRow}>
                   <Text style={styles.networkLabel}>WiFi Signal</Text>
                   <Text style={styles.networkValue}>
-                    {wifiDetails.wifiSSID || "Disconnected"}
+                    {isWifiConfigured ? wifiDetails.wifiSSID : "Not Connected"}
                   </Text>
                 </View>
-                <View style={styles.networkRow}>
-                  <Text style={styles.networkLabel}>Access Key</Text>
-                  <View style={styles.passwordContainer}>
-                    <Text style={styles.networkValue}>
-                      {maskPassword(wifiDetails.wifiPassword)}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={styles.eyeButton}
-                    >
-                      <Ionicons
-                        name={showPassword ? "eye-off" : "eye"}
-                        size={16}
-                        color="#1DE9B6"
-                      />
-                    </TouchableOpacity>
+                {isWifiConfigured && (
+                  <View style={styles.networkRow}>
+                    <Text style={styles.networkLabel}>Access Key</Text>
+                    <View style={styles.passwordContainer}>
+                      <Text style={styles.networkValue}>
+                        {maskPassword(wifiDetails.wifiPassword)}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={styles.eyeButton}
+                      >
+                        <Ionicons
+                          name={showPassword ? "eye-off" : "eye"}
+                          size={16}
+                          color="#1DE9B6"
+                        />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
+                )}
               </LinearGradient>
             </View>
 
-            {/* Mission Queue */}
+            {/* Task Queue */}
             {upcomingTasks.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
-                  <Ionicons name="flash" size={16} color="#1DE9B6" /> MISSION
-                  QUEUE
+                  <Ionicons name="flash" size={16} color="#1DE9B6" /> Tasks Due
+                  Soon
                 </Text>
                 {upcomingTasks.slice(0, 3).map((task, index) => (
                   <LinearGradient
@@ -581,9 +686,14 @@ useFocusEffect(
                         <View style={styles.priorityDot} />
                       </View>
                     </View>
-                    <Text style={styles.taskDate}>
-                      {new Date(task.deadline).toLocaleDateString()}
-                    </Text>
+                    <View style={styles.taskDateRow}>
+                      <Text style={styles.taskDate}>
+                        {new Date(task.deadline).toLocaleDateString()}
+                      </Text>
+                      <Text style={styles.taskTimeFromNow}>
+                        Due in {getTimeFromNow(task.deadline)}
+                      </Text>
+                    </View>
                   </LinearGradient>
                 ))}
               </View>
@@ -595,7 +705,7 @@ useFocusEffect(
               onPress={() => navigation.navigate("Settings")}
             >
               <LinearGradient
-                colors={["#1DE9B6", "#00BFA5"]}
+                colors={["#00926eff", "#007263ff"]}
                 style={styles.controlGradient}
               >
                 <Ionicons name="settings" size={20} color="#000000" />
@@ -624,6 +734,49 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 0,
   },
+  // PEBO Robot Styles
+  peboRobotContainer: {
+    position: "absolute",
+    top: height * 0.15,
+    right: width * 0.1,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "rgba(29, 233, 182, 0.4)",
+    shadowColor: "#1DE9B6",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 20,
+    shadowOpacity: 0.6,
+  },
+  robotTouchArea: {
+    width: "100%",
+    height: "100%",
+    position: "relative",
+  },
+  peboVideo: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "transparent",
+  },
+  greetingBubble: {
+    position: "absolute",
+    top: -40,
+    left: -20,
+    backgroundColor: "rgba(29, 233, 182, 0.9)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    borderTopLeftRadius: 3,
+  },
+  greetingText: {
+    color: "#000000",
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  // Rest of your existing styles...
   rotatingRing: {
     position: "absolute",
     top: 100,
@@ -761,8 +914,17 @@ const styles = StyleSheet.create({
   statIcon: {
     marginBottom: 12,
   },
+
   statNumber: {
     fontSize: 28,
+    fontWeight: "900",
+    color: "#1DE9B6",
+    textShadowColor: "#1DE9B6",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  stat1Number: {
+    fontSize: 18,
     fontWeight: "900",
     color: "#1DE9B6",
     textShadowColor: "#1DE9B6",

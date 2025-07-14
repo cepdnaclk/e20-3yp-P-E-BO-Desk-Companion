@@ -15,9 +15,11 @@ import {
   Pressable,
   Alert,
   Switch,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Menu, Provider as PaperProvider } from "react-native-paper";
+import { LinearGradient } from "expo-linear-gradient";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import PopupModal from "../components/PopupModal";
 import {
@@ -29,6 +31,8 @@ import {
   deleteTask,
 } from "../services/firebase";
 import moment from "moment";
+
+const { width, height } = Dimensions.get("window");
 
 const TaskManagementScreen = () => {
   // State Management
@@ -55,16 +59,55 @@ const TaskManagementScreen = () => {
   const [showAddTask, setShowAddTask] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [reminderTime1, setReminderTime1] = useState(30); // minutes before
-  const [reminderTime2, setReminderTime2] = useState(5); // minutes before
+  const [reminderTime1, setReminderTime1] = useState(30);
+  const [reminderTime2, setReminderTime2] = useState(5);
   const [showReminderMenu1, setShowReminderMenu1] = useState(false);
   const [showReminderMenu2, setShowReminderMenu2] = useState(false);
-
-  // Add state for delete confirmation
   const [deletePopupVisible, setDeletePopupVisible] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
+  const [customCategories, setCustomCategories] = useState([]);
+  const [newCategoryInput, setNewCategoryInput] = useState("");
+  const [showAddCategoryInput, setShowAddCategoryInput] = useState(false);
 
+  // Animation refs for futuristic effects
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
+  const glow = useRef(new Animated.Value(0)).current;
+
+  // Futuristic animations
+  useEffect(() => {
+    // Pulsing animation for interactive elements
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Glowing effect
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glow, {
+          toValue: 1,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glow, {
+          toValue: 0,
+          duration: 2500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   // Check if required fields are filled for FAB icon
   const isFormComplete = task.trim() && deadline;
@@ -98,6 +141,17 @@ const TaskManagementScreen = () => {
       );
     }
     return () => unsubscribeUsername && unsubscribeUsername();
+  }, [currentUser]);
+
+  // Fetch custom categories
+  useEffect(() => {
+    if (currentUser?.uid) {
+      const categoriesRef = db.ref(`users/${currentUser.uid}/customCategories`);
+      categoriesRef.on("value", (snapshot) => {
+        const categories = snapshot.val() || [];
+        setCustomCategories(Array.isArray(categories) ? categories : []);
+      });
+    }
   }, [currentUser]);
 
   // Fetch and Sort Tasks
@@ -196,6 +250,32 @@ const TaskManagementScreen = () => {
     setReminderTime2(5);
     setEditingTask(null);
     setShowAddTask(false);
+    setShowAddCategoryInput(false);
+    setNewCategoryInput("");
+  };
+
+  const addCustomCategory = async () => {
+    if (!newCategoryInput.trim()) return;
+
+    const newCategory = newCategoryInput.trim();
+    if (getAllCategories().includes(newCategory)) {
+      showPopup("Error", "Category already exists", "alert-circle");
+      return;
+    }
+
+    try {
+      const updatedCategories = [...customCategories, newCategory];
+      await db
+        .ref(`users/${currentUser.uid}/customCategories`)
+        .set(updatedCategories);
+      setCustomCategories(updatedCategories);
+      setCategory(newCategory);
+      setNewCategoryInput("");
+      setShowAddCategoryInput(false);
+      showPopup("Success", "Category added successfully", "checkmark-circle");
+    } catch (error) {
+      showPopup("Error", "Failed to add category", "alert-circle");
+    }
   };
 
   const addNew = async () => {
@@ -258,6 +338,12 @@ const TaskManagementScreen = () => {
     }
   };
 
+  // Get all categories (default + custom)
+  const getAllCategories = () => {
+    const defaultCategories = ["Work", "Personal", "Study"];
+    return [...defaultCategories, ...customCategories];
+  };
+
   // Get priority color
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -272,7 +358,7 @@ const TaskManagementScreen = () => {
     }
   };
 
-  // Get category icon
+  // Get category icon with emojis for custom categories
   const getCategoryIcon = (category) => {
     switch (category) {
       case "Work":
@@ -282,7 +368,36 @@ const TaskManagementScreen = () => {
       case "Study":
         return "book-outline";
       default:
+        // For custom categories, return a generic icon
         return "folder-outline";
+    }
+  };
+
+  // Get category emoji for display
+  const getCategoryEmoji = (category) => {
+    switch (category) {
+      case "Work":
+        return "💼";
+      case "Personal":
+        return "👤";
+      case "Study":
+        return "📚";
+      case "Health":
+        return "🏥";
+      case "Finance":
+        return "💰";
+      case "Travel":
+        return "✈️";
+      case "Shopping":
+        return "🛒";
+      case "Home":
+        return "🏠";
+      case "Fitness":
+        return "💪";
+      case "Entertainment":
+        return "🎬";
+      default:
+        return "📁";
     }
   };
 
@@ -352,6 +467,57 @@ const TaskManagementScreen = () => {
     </Menu>
   );
 
+  // Enhanced Category Menu with Add New Option
+  const renderCategoryMenu = () => (
+    <Menu
+      visible={showCatMenu}
+      onDismiss={() => setShowCatMenu(false)}
+      anchor={
+        <Pressable
+          onPress={() => setShowCatMenu(true)}
+          style={styles.menuButtonWithLabel}
+          accessibilityLabel="Select Category"
+          accessibilityRole="button"
+        >
+          <Ionicons name="folder-outline" size={16} color="#1DE9B6" />
+          <View style={styles.menuLabelContainer}>
+            <Text style={styles.menuLabelText}>Category</Text>
+            <Text style={styles.menuValueText}>
+              {getCategoryEmoji(category)} {category}
+            </Text>
+          </View>
+          <Ionicons name="chevron-down" size={16} color="#1DE9B6" />
+        </Pressable>
+      }
+      contentStyle={styles.menu}
+    >
+      {getAllCategories().map((cat) => (
+        <Menu.Item
+          key={cat}
+          onPress={() => {
+            setCategory(cat);
+            setShowCatMenu(false);
+          }}
+          title={`${getCategoryEmoji(cat)} ${cat}`}
+          titleStyle={
+            cat === category ? styles.menuItemTextSelected : styles.menuItemText
+          }
+          style={cat === category ? styles.menuItemSelected : styles.menuItem}
+        />
+      ))}
+      <Menu.Item
+        onPress={() => {
+          setShowCatMenu(false);
+          setShowAddCategoryInput(true);
+        }}
+        title="➕ Add New Category"
+        titleStyle={styles.menuItemText}
+        style={styles.menuItem}
+      />
+    </Menu>
+  );
+
+  // Fixed Reminder Menu Function
   const renderReminderMenu = (label, val, vis, setVis, onSelect, icon) => (
     <Menu
       visible={vis}
@@ -359,134 +525,224 @@ const TaskManagementScreen = () => {
       anchor={
         <Pressable
           onPress={() => setVis(true)}
-          style={styles.reminderButton}
+          style={styles.reminderMenuButton}
           accessibilityLabel={`Select ${label}`}
           accessibilityRole="button"
         >
           <Ionicons name={icon} size={16} color="#1DE9B6" />
-          <Text style={styles.reminderLabel}>{formatReminderTime(val)}</Text>
+          <View style={styles.reminderLabelContainer}>
+            <Text style={styles.reminderLabelText}>{label}</Text>
+            <View style={styles.reminderValueContainer}>
+              <Ionicons
+                name={val >= 1440 ? "calendar" : val >= 60 ? "time" : "flash"}
+                size={12}
+                color="#1DE9B6"
+                style={styles.reminderValueIcon}
+              />
+              <Text style={styles.reminderValueText}>
+                {formatReminderTime(val)}
+              </Text>
+            </View>
+          </View>
           <Ionicons name="chevron-down" size={16} color="#1DE9B6" />
         </Pressable>
       }
       contentStyle={styles.menu}
     >
-      {reminderOptions.map((o) => (
+      {reminderOptions.map((option) => (
         <Menu.Item
-          key={o.value}
+          key={option.value}
           onPress={() => {
-            onSelect(o.value);
+            onSelect(option.value);
             setVis(false);
           }}
-          title={o.label}
+          title={option.label}
           titleStyle={
-            o.value === val ? styles.menuItemTextSelected : styles.menuItemText
+            option.value === val
+              ? styles.menuItemTextSelected
+              : styles.menuItemText
           }
-          style={o.value === val ? styles.menuItemSelected : styles.menuItem}
+          style={
+            option.value === val ? styles.menuItemSelected : styles.menuItem
+          }
         />
       ))}
     </Menu>
   );
 
   const renderTask = ({ item }) => (
-    <View style={[styles.taskItem, item.completed && styles.completedItem]}>
-      <View style={styles.taskHeader}>
-        <View style={styles.taskContent}>
-          <Text
-            style={[styles.taskTitle, item.completed && styles.completedText]}
-          >
-            {item.description}
-          </Text>
-          <Text style={styles.taskSubtitle}>
-            By: {item.createdBy || "Unknown User"}
-          </Text>
-        </View>
-        <View style={styles.taskActions}>
-          <Pressable
-            onPress={() => editTaskHandler(item)}
-            style={styles.actionButton}
-            accessibilityLabel="Edit task"
-            accessibilityRole="button"
-          >
-            <Ionicons name="create-outline" size={20} color="#1DE9B6" />
-          </Pressable>
-          <Pressable
-            onPress={() => deleteTaskHandler(item.id)}
-            style={styles.actionButton}
-            accessibilityLabel="Delete task"
-            accessibilityRole="button"
-          >
-            <Ionicons name="trash-outline" size={20} color="#FF5252" />
-          </Pressable>
-          <Pressable
-            onPress={() => toggleCompleted(item)}
-            style={[
-              styles.checkButton,
-              item.completed && styles.checkButtonCompleted,
-            ]}
-            accessibilityLabel={
-              item.completed ? "Mark task incomplete" : "Mark task complete"
-            }
-            accessibilityRole="button"
-          >
-            <Ionicons
-              name={item.completed ? "checkmark" : "ellipse-outline"}
-              size={20}
-              color={item.completed ? "#0A0A0A" : "#1DE9B6"}
-            />
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.taskInfo}>
-        <View style={styles.infoItem}>
-          <Ionicons name="time-outline" size={14} color="#888" />
-          <Text style={styles.infoText}>
-            {moment(item.deadline).format("DD MMM, hh:mm A")}
-          </Text>
-        </View>
-        <View style={[styles.infoItem, styles.priorityItem]}>
-          <View
-            style={[
-              styles.priorityDot,
-              { backgroundColor: getPriorityColor(item.priority) },
-            ]}
-          />
-          <Text style={styles.infoText}>{item.priority || "N/A"}</Text>
-        </View>
-        <View style={styles.infoItem}>
-          <Ionicons
-            name={getCategoryIcon(item.category)}
-            size={14}
-            color="#888"
-          />
-          <Text style={styles.infoText}>{item.category || "N/A"}</Text>
-        </View>
-        {item.reminderEnabled && (
-          <View style={styles.infoItem}>
-            <Ionicons name="notifications-outline" size={14} color="#1DE9B6" />
-            <Text style={styles.infoText}>
-              {formatReminderTime(item.reminderTime1)},{" "}
-              {formatReminderTime(item.reminderTime2)}
+    <Animated.View
+      style={[
+        styles.taskItem,
+        item.completed && styles.completedItem,
+        {
+          shadowOpacity: pulse.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0.1, 0.3],
+          }),
+        },
+      ]}
+    >
+      <LinearGradient
+        colors={
+          item.completed
+            ? ["rgba(26, 26, 26, 0.8)", "rgba(26, 26, 26, 0.4)"]
+            : ["rgba(26, 26, 26, 0.8)", "rgba(26, 26, 26, 0.4)"]
+        }
+        style={styles.taskGradient}
+      >
+        <View style={styles.taskHeader}>
+          <View style={styles.taskContent}>
+            <Text
+              style={[styles.taskTitle, item.completed && styles.completedText]}
+            >
+              {item.description}
+            </Text>
+            <Text style={styles.taskSubtitle}>
+              By: {item.createdBy || "Unknown User"}
             </Text>
           </View>
-        )}
-      </View>
-    </View>
+          <View style={styles.taskActions}>
+            <Pressable
+              onPress={() => editTaskHandler(item)}
+              style={styles.actionButton}
+              accessibilityLabel="Edit task"
+              accessibilityRole="button"
+            >
+              <Ionicons name="create-outline" size={20} color="#1DE9B6" />
+            </Pressable>
+            <Pressable
+              onPress={() => deleteTaskHandler(item.id)}
+              style={styles.actionButton}
+              accessibilityLabel="Delete task"
+              accessibilityRole="button"
+            >
+              <Ionicons name="trash-outline" size={20} color="#FF5252" />
+            </Pressable>
+            <Pressable
+              onPress={() => toggleCompleted(item)}
+              style={[
+                styles.checkButton,
+                item.completed && styles.checkButtonCompleted,
+              ]}
+              accessibilityLabel={
+                item.completed ? "Mark task incomplete" : "Mark task complete"
+              }
+              accessibilityRole="button"
+            >
+              <Ionicons
+                name={item.completed ? "checkmark" : "ellipse-outline"}
+                size={20}
+                color={item.completed ? "#000000" : "#1DE9B6"}
+              />
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.taskInfo}>
+          <View style={styles.infoItem}>
+            <Ionicons name="time-outline" size={14} color="#888" />
+            <Text style={styles.infoText}>
+              {moment(item.deadline).format("DD MMM, hh:mm A")}
+            </Text>
+          </View>
+          <View style={[styles.infoItem, styles.priorityItem]}>
+            <Animated.View
+              style={[
+                styles.priorityDot,
+                {
+                  backgroundColor: getPriorityColor(item.priority),
+                  opacity: pulse.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.7, 1],
+                  }),
+                },
+              ]}
+            />
+            <Text style={styles.infoText}>{item.priority || "N/A"}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.categoryEmoji}>
+              {getCategoryEmoji(item.category)}
+            </Text>
+            <Text style={styles.infoText}>{item.category || "N/A"}</Text>
+          </View>
+          {item.reminderEnabled && (
+            <View style={styles.infoItem}>
+              <Ionicons
+                name="notifications-outline"
+                size={14}
+                color="#1DE9B6"
+              />
+              <Text style={styles.infoText}>
+                {formatReminderTime(item.reminderTime1)},{" "}
+                {formatReminderTime(item.reminderTime2)}
+              </Text>
+            </View>
+          )}
+        </View>
+      </LinearGradient>
+    </Animated.View>
   );
 
   return (
     <PaperProvider>
-      <StatusBar barStyle="light-content" backgroundColor="#0A0A0A" />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
       <SafeAreaView style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>My Tasks</Text>
-          <View style={styles.headerStats}>
-            <Text style={styles.statsText}>
-              {tasks.filter((t) => !t.completed).length} pending
+        {/* Futuristic Background Effects */}
+        <View style={styles.backgroundContainer}>
+          <Animated.View
+            style={[
+              styles.backgroundOrb1,
+              {
+                opacity: glow.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.1, 0.3],
+                }),
+              },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.backgroundOrb2,
+              {
+                opacity: pulse.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.05, 0.2],
+                }),
+              },
+            ]}
+          />
+        </View>
+
+        {/* Header with Gradient */}
+        <LinearGradient
+          colors={["rgba(29, 233, 182, 0.2)", "transparent"]}
+          style={styles.header}
+        >
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>TASK MANAGER</Text>
+            <Text style={styles.headerSubtitle}>
+              Task and Reminders Control Center
             </Text>
           </View>
-        </View>
+          <Animated.View
+            style={[
+              styles.headerStats,
+              {
+                shadowOpacity: glow.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 0.8],
+                }),
+              },
+            ]}
+          >
+            <Text style={styles.statsText}>
+              {tasks.filter((t) => !t.completed).length} ACTIVE
+            </Text>
+            <Text style={styles.statsSubtext}>TASKS</Text>
+          </Animated.View>
+        </LinearGradient>
 
         <KeyboardAvoidingView
           style={styles.content}
@@ -510,109 +766,143 @@ const TaskManagementScreen = () => {
                 },
               ]}
             >
-              <View style={styles.addTaskHeader}>
-                <Text style={styles.addTaskTitle}>
-                  {editingTask ? "Edit Task" : "Add New Task"}
-                </Text>
-                <Pressable onPress={resetForm} style={styles.closeButton}>
-                  <Ionicons name="close" size={20} color="#888" />
-                </Pressable>
-              </View>
-
-              <View style={styles.inputWrapper}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={20}
-                  color="#1DE9B6"
-                />
-                <TextInput
-                  placeholder="Enter task description..."
-                  value={task}
-                  onChangeText={setTask}
-                  style={styles.input}
-                  placeholderTextColor="#888"
-                  multiline
-                />
-              </View>
-
-              <Pressable
-                onPress={() => setPickerVisible(true)}
-                style={styles.inputWrapper}
+              <LinearGradient
+                colors={["rgba(26, 26, 26, 0.8)", "rgba(26, 26, 26, 0.4)"]}
+                style={styles.addTaskGradient}
               >
-                <Ionicons name="calendar-outline" size={20} color="#1DE9B6" />
-                <Text style={[styles.input, !deadline && styles.placeholder]}>
-                  {deadline
-                    ? moment(deadline).format("DD MMM YYYY, hh:mm A")
-                    : "Select deadline & time"}
-                </Text>
-              </Pressable>
+                <View style={styles.addTaskHeader}>
+                  <Text style={styles.addTaskTitle}>
+                    <Ionicons
+                      name="add-circle-outline"
+                      size={20}
+                      color="#1DE9B6"
+                    />
+                    {editingTask ? " EDIT TASK" : " NEW TASK"}
+                  </Text>
+                  <Pressable onPress={resetForm} style={styles.closeButton}>
+                    <Ionicons name="close" size={20} color="#888" />
+                  </Pressable>
+                </View>
 
-              <View style={styles.menuRow}>
-                {renderMenuWithLabel(
-                  "Priority",
-                  priority,
-                  ["High", "Medium", "Low"],
-                  showPriMenu,
-                  setShowPriMenu,
-                  setPriority,
-                  "alert-circle-outline"
-                )}
-                {renderMenuWithLabel(
-                  "Category",
-                  category,
-                  ["Work", "Personal", "Study"],
-                  showCatMenu,
-                  setShowCatMenu,
-                  setCategory,
-                  "folder-outline"
-                )}
-              </View>
-
-              {/* Reminder Section */}
-              <View style={styles.reminderSection}>
-                <View style={styles.reminderToggle}>
+                <View style={styles.inputWrapper}>
                   <Ionicons
-                    name="notifications-outline"
+                    name="document-text-outline"
                     size={20}
                     color="#1DE9B6"
                   />
-                  <Text style={styles.reminderToggleText}>
-                    Enable Reminders
-                  </Text>
-                  <Switch
-                    value={reminderEnabled}
-                    onValueChange={setReminderEnabled}
-                    trackColor={{ false: "#333", true: "#1DE9B6" }}
-                    thumbColor={reminderEnabled ? "#0A0A0A" : "#888"}
+                  <TextInput
+                    placeholder="Enter task description..."
+                    value={task}
+                    onChangeText={setTask}
+                    style={styles.input}
+                    placeholderTextColor="#888"
+                    multiline
                   />
                 </View>
 
-                {reminderEnabled && (
-                  <View style={styles.reminderTimesContainer}>
-                    <Text style={styles.reminderTimesLabel}>
-                      Remind me before:
-                    </Text>
-                    <View style={styles.reminderTimesRow}>
-                      {renderReminderMenu(
-                        "First Reminder",
-                        reminderTime1,
-                        showReminderMenu1,
-                        setShowReminderMenu1,
-                        setReminderTime1,
-                        "time-outline"
-                      )}
-                      {renderReminderMenu(
-                        "Second Reminder",
-                        reminderTime2,
-                        showReminderMenu2,
-                        setShowReminderMenu2,
-                        setReminderTime2,
-                        "time-outline"
-                      )}
+                <Pressable
+                  onPress={() => setPickerVisible(true)}
+                  style={styles.inputWrapper}
+                >
+                  <Ionicons name="calendar-outline" size={20} color="#1DE9B6" />
+                  <Text style={[styles.input, !deadline && styles.placeholder]}>
+                    {deadline
+                      ? moment(deadline).format("DD MMM YYYY, hh:mm A")
+                      : "Select deadline & time"}
+                  </Text>
+                </Pressable>
+
+                {/* Add New Category Input */}
+                {showAddCategoryInput && (
+                  <View style={styles.addCategoryContainer}>
+                    <View style={styles.inputWrapper}>
+                      <Ionicons name="add-outline" size={20} color="#1DE9B6" />
+                      <TextInput
+                        placeholder="Enter new category name..."
+                        value={newCategoryInput}
+                        onChangeText={setNewCategoryInput}
+                        style={styles.input}
+                        placeholderTextColor="#888"
+                        onSubmitEditing={addCustomCategory}
+                      />
+                    </View>
+                    <View style={styles.addCategoryButtons}>
+                      <Pressable
+                        onPress={addCustomCategory}
+                        style={styles.addCategoryButton}
+                      >
+                        <Text style={styles.addCategoryButtonText}>Add</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          setShowAddCategoryInput(false);
+                          setNewCategoryInput("");
+                        }}
+                        style={[styles.addCategoryButton, styles.cancelButton]}
+                      >
+                        <Text style={styles.addCategoryButtonText}>Cancel</Text>
+                      </Pressable>
                     </View>
                   </View>
                 )}
-              </View>
+
+                <View style={styles.menuRow}>
+                  {renderMenuWithLabel(
+                    "Priority",
+                    priority,
+                    ["High", "Medium", "Low"],
+                    showPriMenu,
+                    setShowPriMenu,
+                    setPriority,
+                    "alert-circle-outline"
+                  )}
+                  {renderCategoryMenu()}
+                </View>
+
+                {/* Reminder Section */}
+                <View style={styles.reminderSection}>
+                  <View style={styles.reminderToggle}>
+                    <Ionicons
+                      name="notifications-outline"
+                      size={20}
+                      color="#1DE9B6"
+                    />
+                    <Text style={styles.reminderToggleText}>ENABLE ALERTS</Text>
+                    <Switch
+                      value={reminderEnabled}
+                      onValueChange={setReminderEnabled}
+                      trackColor={{ false: "#333", true: "#1DE9B6" }}
+                      thumbColor={reminderEnabled ? "#000000" : "#888"}
+                    />
+                  </View>
+
+                  {reminderEnabled && (
+                    <View style={styles.reminderTimesContainer}>
+                      <Text style={styles.reminderTimesLabel}>
+                        ALERT SCHEDULE:
+                      </Text>
+                      <View style={styles.reminderTimesRow}>
+                        {renderReminderMenu(
+                          "Primary Alert",
+                          reminderTime1,
+                          showReminderMenu1,
+                          setShowReminderMenu1,
+                          setReminderTime1,
+                          "alarm-outline"
+                        )}
+                        {renderReminderMenu(
+                          "Secondary Alert",
+                          reminderTime2,
+                          showReminderMenu2,
+                          setShowReminderMenu2,
+                          setReminderTime2,
+                          "notifications-outline"
+                        )}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </LinearGradient>
             </Animated.View>
           )}
 
@@ -630,10 +920,13 @@ const TaskManagementScreen = () => {
           />
 
           {/* Filter Bar */}
-          <View style={styles.filterBar}>
+          <LinearGradient
+            colors={["rgba(26, 26, 26, 0.8)", "rgba(26, 26, 26, 0.4)"]}
+            style={styles.filterBar}
+          >
             <View style={styles.filterLeft}>
               <Ionicons name="filter-outline" size={20} color="#1DE9B6" />
-              <Text style={styles.filterTitle}>Sort By:</Text>
+              <Text style={styles.filterTitle}>SORT TASKS:</Text>
             </View>
             {renderMenuWithLabel(
               "Sort",
@@ -648,21 +941,33 @@ const TaskManagementScreen = () => {
               (v) => setSortPref(v.toLowerCase()),
               "swap-vertical"
             )}
-          </View>
+          </LinearGradient>
 
           {/* Task List */}
           <View style={styles.taskListContainer}>
             {loading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#1DE9B6" />
-                <Text style={styles.loadingText}>Loading tasks...</Text>
+                <Animated.View
+                  style={[
+                    styles.loadingSpinner,
+                    {
+                      opacity: pulse.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.5, 1],
+                      }),
+                    },
+                  ]}
+                >
+                  <ActivityIndicator size="large" color="#1DE9B6" />
+                </Animated.View>
+                <Text style={styles.loadingText}>LOADING TASKS...</Text>
               </View>
             ) : tasks.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Ionicons name="clipboard-outline" size={48} color="#555" />
-                <Text style={styles.emptyText}>No tasks yet</Text>
+                <Text style={styles.emptyText}>NO ACTIVE TASKS</Text>
                 <Text style={styles.emptySubtext}>
-                  Tap the "+" button to add your first task!
+                  Tap the "+" button to create your first task!
                 </Text>
               </View>
             ) : (
@@ -678,26 +983,48 @@ const TaskManagementScreen = () => {
           </View>
 
           {/* Floating Action Button */}
-          <Pressable
+          <Animated.View
             style={[
               styles.fab,
               showAddTask && !isFormComplete && styles.fabClose,
               showAddTask && isFormComplete && styles.fabSave,
+              {
+                shadowOpacity: glow.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 0.8],
+                }),
+              },
             ]}
-            onPress={handleFabPress}
           >
-            {adding ? (
-              <ActivityIndicator size="small" color="#0A0A0A" />
-            ) : (
-              <Ionicons
-                name={
-                  showAddTask ? (isFormComplete ? "checkmark" : "close") : "add"
+            <Pressable style={styles.fabButton} onPress={handleFabPress}>
+              <LinearGradient
+                colors={
+                  showAddTask
+                    ? isFormComplete
+                      ? ["#4CAF50", "#45A049"]
+                      : ["#FF5252", "#F44336"]
+                    : ["#1DE9B6", "#00BFA5"]
                 }
-                size={24}
-                color="#0A0A0A"
-              />
-            )}
-          </Pressable>
+                style={styles.fabGradient}
+              >
+                {adding ? (
+                  <ActivityIndicator size="small" color="#000000" />
+                ) : (
+                  <Ionicons
+                    name={
+                      showAddTask
+                        ? isFormComplete
+                          ? "checkmark"
+                          : "close"
+                        : "add"
+                    }
+                    size={24}
+                    color="#000000"
+                  />
+                )}
+              </LinearGradient>
+            </Pressable>
+          </Animated.View>
 
           {/* Regular Success/Error Popup */}
           <PopupModal
@@ -736,7 +1063,33 @@ const TaskManagementScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0A0A0A",
+    backgroundColor: "#000000",
+  },
+  backgroundContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  backgroundOrb1: {
+    position: "absolute",
+    top: 100,
+    left: 50,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(29, 233, 182, 0.1)",
+  },
+  backgroundOrb2: {
+    position: "absolute",
+    top: 300,
+    right: 30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(255, 82, 82, 0.1)",
   },
   header: {
     flexDirection: "row",
@@ -745,44 +1098,78 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 60,
     paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(29, 233, 182, 0.1)",
+    zIndex: 1,
+  },
+  headerContent: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: "bold",
+    fontWeight: "900",
     color: "#FFFFFF",
+    letterSpacing: 2,
+    textShadowColor: "#1DE9B6",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: "#1DE9B6",
+    marginTop: 4,
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   headerStats: {
     alignItems: "flex-end",
+    backgroundColor: "rgba(26, 26, 26, 0.3)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(29, 233, 182, 0.2)",
+    shadowColor: "#1DE9B6",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 10,
   },
   statsText: {
-    fontSize: 14,
+    fontSize: 16,
+    color: "#1DE9B6",
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+  statsSubtext: {
+    fontSize: 10,
     color: "#888",
-    fontWeight: "500",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   content: {
     flex: 1,
     padding: 24,
+    zIndex: 1,
   },
   addTaskContainer: {
-    backgroundColor: "#1A1A1A",
-    borderRadius: 16,
-    padding: 20,
     marginBottom: 20,
+    borderRadius: 16,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(29, 233, 182, 0.2)"
+    borderColor: "rgba(29, 233, 182, 0.2)",
+  },
+  addTaskGradient: {
+    padding: 20,
   },
   addTaskHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16
+    marginBottom: 16,
   },
   addTaskTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
     color: "#FFFFFF",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   closeButton: {
     padding: 4,
@@ -790,7 +1177,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0A0A0A",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -803,9 +1190,34 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     marginLeft: 12,
+    fontWeight: "500",
   },
   placeholder: {
     color: "#888",
+  },
+  addCategoryContainer: {
+    marginBottom: 12,
+  },
+  addCategoryButtons: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8,
+  },
+  addCategoryButton: {
+    backgroundColor: "#1DE9B6",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#FF5252",
+  },
+  addCategoryButtonText: {
+    color: "#000000",
+    fontWeight: "600",
+    fontSize: 14,
   },
   menuRow: {
     flexDirection: "row",
@@ -815,7 +1227,7 @@ const styles = StyleSheet.create({
   menuButtonWithLabel: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0A0A0A",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -823,31 +1235,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(29, 233, 182, 0.2)",
     minHeight: 56,
+    minWidth: 150,
   },
   menuLabelContainer: {
     flex: 1,
-    marginLeft: 8,
-    marginRight: 8,
-    justifyContent: "center", // Add this
+    marginLeft: 7,
+    marginRight: 7,
+    justifyContent: "center",
   },
   menuLabelText: {
     fontSize: 12,
     color: "#888",
     marginBottom: 2,
-    lineHeight: 14, // Add this
+    lineHeight: 14,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   menuValueText: {
-    fontSize: 14,
+    fontSize: 17,
     color: "#FFFFFF",
-    fontWeight: "500",
-    lineHeight: 16, // Add this
+    fontWeight: "600",
+    lineHeight: 16,
   },
-
   reminderSection: {
-    backgroundColor: "#0A0A0A",
+    minHeight: 160,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 12,
     padding: 16,
-    marginTop: 20,
+    marginTop: 28,
     borderWidth: 1,
     borderColor: "rgba(29, 233, 182, 0.2)",
   },
@@ -857,47 +1272,72 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   reminderToggleText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#FFFFFF",
     marginLeft: 8,
     flex: 1,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   reminderTimesContainer: {
     marginTop: 16,
   },
   reminderTimesLabel: {
-    fontSize: 14,
+    fontSize: 12,
+    // height: 16,
     color: "#888",
-    marginBottom: 8,
+    marginBottom: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   reminderTimesRow: {
     flexDirection: "row",
     gap: 12,
   },
-  reminderButton: {
+  reminderMenuButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1A1A1A",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: "rgba(26, 26, 26, 0.8)",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     flex: 1,
-    width: 100,
     borderWidth: 1,
     borderColor: "rgba(29, 233, 182, 0.2)",
+    minHeight: 50,
+    minWidth: 140,
   },
-  reminderLabel: {
-    fontSize: 12,
-    height: 17,
-    justifyContent: "center",
-    alignItems: "center",
-    color: "#FFFFFF",
-    marginLeft: 6,
-    marginRight: 6,
+  reminderLabelContainer: {
     flex: 1,
+    marginLeft: 8,
+    // minHeight: 196,
+    marginRight: 8,
+    justifyContent: "center",
+  },
+  reminderLabelText: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 2,
+    lineHeight: 14,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  reminderValueContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  reminderValueIcon: {
+    marginRight: 6,
+  },
+  reminderValueText: {
+    fontSize: 14,
+    color: "#FFFFFF",
+    fontWeight: "600",
+    lineHeight: 16,
   },
   menu: {
-    backgroundColor: "#1A1A1A",
+    backgroundColor: "rgba(26, 26, 26, 0.95)",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "rgba(29, 233, 182, 0.2)",
@@ -911,17 +1351,17 @@ const styles = StyleSheet.create({
   menuItemText: {
     color: "#FFFFFF",
     fontSize: 14,
+    fontWeight: "500",
   },
   menuItemTextSelected: {
     color: "#1DE9B6",
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   filterBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#1A1A1A",
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -933,10 +1373,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   filterTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     color: "#FFFFFF",
     marginLeft: 8,
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   taskListContainer: {
     flex: 1,
@@ -945,15 +1387,19 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   taskItem: {
-    backgroundColor: "#1A1A1A",
-    borderRadius: 16,
-    padding: 16,
     marginBottom: 12,
+    borderRadius: 16,
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(29, 233, 182, 0.2)",
+    shadowColor: "#1DE9B6",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 10,
+  },
+  taskGradient: {
+    padding: 16,
   },
   completedItem: {
-    backgroundColor: "#0F0F0F",
     borderColor: "rgba(255, 255, 255, 0.1)",
   },
   taskHeader: {
@@ -980,6 +1426,8 @@ const styles = StyleSheet.create({
   taskSubtitle: {
     fontSize: 12,
     color: "#888",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   taskActions: {
     flexDirection: "row",
@@ -1018,10 +1466,12 @@ const styles = StyleSheet.create({
   infoItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0A0A0A",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "rgba(29, 233, 182, 0.1)",
   },
   priorityItem: {
     paddingLeft: 6,
@@ -1032,10 +1482,15 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 6,
   },
+  categoryEmoji: {
+    fontSize: 14,
+    marginRight: 4,
+  },
   infoText: {
     fontSize: 12,
     color: "#888",
     marginLeft: 4,
+    fontWeight: "500",
   },
   loadingContainer: {
     flex: 1,
@@ -1043,10 +1498,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 40,
   },
+  loadingSpinner: {
+    marginBottom: 12,
+  },
   loadingText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#888",
-    marginTop: 12,
+    fontWeight: "600",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   emptyContainer: {
     flex: 1,
@@ -1059,11 +1519,15 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     marginTop: 16,
     marginBottom: 8,
+    fontWeight: "700",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   emptySubtext: {
     fontSize: 14,
     color: "#888",
     textAlign: "center",
+    fontWeight: "500",
   },
   fab: {
     position: "absolute",
@@ -1072,20 +1536,28 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#1DE9B6",
+    elevation: 8,
+    shadowColor: "#1DE9B6",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 20,
+  },
+  fabButton: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 28,
+    overflow: "hidden",
+  },
+  fabGradient: {
+    width: "100%",
+    height: "100%",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
   },
   fabClose: {
-    backgroundColor: "#FF5252",
+    shadowColor: "#FF5252",
   },
   fabSave: {
-    backgroundColor: "#4CAF50",
+    shadowColor: "#4CAF50",
   },
 });
 
