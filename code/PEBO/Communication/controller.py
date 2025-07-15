@@ -8,7 +8,7 @@ import os
 process = None
 
 # Path to the audio node script (either sender or receiver, both now handle full duplex)
-AUDIO_NODE_SCRIPT =  "code/PEBO/Communication/pi_audio_node.py"  # Or use "receiver.py" depending on the device
+AUDIO_NODE_SCRIPT =  "code/PEBO/Communication/audio_node.py"  # Or use "receiver.py" depending on the device
 
 def listen_command():
     r = sr.Recognizer()
