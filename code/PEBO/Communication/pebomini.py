@@ -1,279 +1,119 @@
+#!/usr/bin/env python3
+import firebase_admin
+from firebase_admin import credentials, db
+import json
 import socket
-import threading
-import speech_recognition as sr
-import pyaudio
-import time
+import fcntl
+import struct
 import subprocess
+import logging
+import asyncio
+import speech_recognition as sr
+import time
 import os
 
-CHUNK = 2048
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
-PORT = 5001
-SIGNAL_PORT = 6001
+# Paths and constants
+SERVICE_ACCOUNT_PATH = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/ipconfig/firebase_config.json'
+DATABASE_URL = 'https://pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app'
+JSON_CONFIG_PATH = "/home/pi/pebo_config.json"
 
-PEER_IP = '192.168.124.182'
-audio = pyaudio.PyAudio()
-is_communicating = False
-stop_threads = False
+# Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def check_audio_setup():
+# Speech setup
+recognizer = sr.Recognizer()
+mic = sr.Microphone()
+
+def listen(prompt="Listening...", timeout=8, phrase_time_limit=6):
+    print(prompt)
     try:
-        subprocess.run(['flac', '--version'], capture_output=True, text=True)
-    except FileNotFoundError:
-        os.system('sudo apt-get update && sudo apt-get install -y flac')
-    
+        with mic as source:
+            recognizer.adjust_for_ambient_noise(source, duration=0.5)
+            audio = recognizer.listen(source, timeout=timeout, phrase_time_limit=phrase_time_limit)
+        text = recognizer.recognize_google(audio).lower().strip()
+        print(f"✅ Recognized: {text}")
+        return text
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return None
+
+def get_ip_address(ifname='wlan0'):
     try:
-        os.system('pulseaudio --start --verbose 2>/dev/null')
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', bytes(ifname[:15], 'utf-8')))[20:24])
     except:
-        pass
+        return None
 
-def get_best_audio_device(input_device=True):
-    best_device = None
-    for i in range(audio.get_device_count()):
-        info = audio.get_device_info_by_index(i)
-        if input_device:
-            if info['maxInputChannels'] > 0:
-                if 'pcm2902' in info['name'].lower() or 'usb' in info['name'].lower():
-                    return i
-                if best_device is None:
-                    best_device = i
-        else:
-            if info['maxOutputChannels'] > 0:
-                if 'pcm2902' in info['name'].lower() or 'usb' in info['name'].lower():
-                    return i
-                if best_device is None:
-                    best_device = i
-    return best_device
-
-def listen_for_command():
-    r = sr.Recognizer()
+def get_wifi_ssid():
     try:
-        input_device = get_best_audio_device(input_device=True)
-        with sr.Microphone(device_index=input_device) as source:
-            r.adjust_for_ambient_noise(source, duration=0.5)
-            r.energy_threshold = 300
-            r.dynamic_energy_threshold = True
-            r.pause_threshold = 0.8
-            
-            audio_input = r.listen(source, timeout=5, phrase_time_limit=10)
-            
-            try:
-                command = r.recognize_google(audio_input, language="en-US").lower()
-                print("Heard:", command)
-                return command
-            except sr.RequestError:
-                try:
-                    command = r.recognize_sphinx(audio_input).lower()
-                    print("Heard (offline):", command)
-                    return command
-                except:
-                    return ""
+        result = subprocess.run(['iwgetid', '-r'], capture_output=True, text=True)
+        return result.stdout.strip()
     except:
-        return ""
+        return None
 
-def ring_loop():
-    for i in range(5):
-        print(f"Ringing... {i+1}/5")
-        time.sleep(1)
-
-def handle_signaling():
-    server = None
+async def inter_device_communicator():
     try:
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
-        for attempt in range(3):
-            try:
-                server.bind(('0.0.0.0', SIGNAL_PORT))
-                break
-            except OSError:
-                if attempt < 2:
-                    time.sleep(2)
-                else:
-                    return False
-        
-        server.listen(1)
-        server.settimeout(1)
-        
-        try:
-            conn, addr = server.accept()
-            conn.settimeout(5)
-            signal = conn.recv(1024).decode()
-            
-            if signal == "CALL":
-                ring_loop()
-                start_time = time.time()
-                while time.time() - start_time < 30:
-                    cmd = listen_for_command()
-                    if "answer" in cmd:
-                        conn.send(b"ANSWER")
-                        return True
-                    elif "reject" in cmd or "decline" in cmd:
-                        conn.send(b"REJECT")
-                        return False
-                
-                conn.send(b"TIMEOUT")
-                return False
-        except:
-            return False
-    except:
-        return False
-    finally:
-        if server:
-            server.close()
+        with open(JSON_CONFIG_PATH, 'r') as f:
+            config = json.load(f)
+        current_ssid = config.get('ssid')
+        current_device_id = config.get('deviceId')
+    except Exception as e:
+        print("⚠️ Config load error:", e)
+        return
 
-def send_call_signal():
-    for attempt in range(3):
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(10)
-            s.connect((PEER_IP, SIGNAL_PORT))
-            s.send(b"CALL")
-            
-            response = s.recv(1024).decode()
-            s.close()
-            
-            if response == "ANSWER":
-                return True
-            else:
-                return False
-        except:
-            if attempt < 2:
-                time.sleep(2)
-    return False
+    ip = get_ip_address()
+    if not ip:
+        print("⚠️ Not connected to Wi-Fi.")
+        return
 
-def send_audio():
-    global is_communicating, stop_threads
-    stream = None
-    s = None
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(5)
-        s.connect((PEER_IP, PORT))
-        
-        input_device = get_best_audio_device(input_device=True)
-        if input_device is None:
-            return
-        
-        stream = audio.open(
-            format=FORMAT,
-            channels=CHANNELS,
-            rate=RATE,
-            input=True,
-            frames_per_buffer=CHUNK,
-            input_device_index=input_device
-        )
-        
-        while is_communicating and not stop_threads:
-            try:
-                data = stream.read(CHUNK, exception_on_overflow=False)
-                s.sendall(data)
-            except:
-                break
-    except:
-        pass
-    finally:
-        if stream:
-            stream.stop_stream()
-            stream.close()
-        if s:
-            s.close()
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+            firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
+    except Exception as e:
+        print("⚠️ Firebase init error:", e)
+        return
 
-def receive_audio():
-    global is_communicating, stop_threads
-    server = None
-    conn = None
-    stream = None
+    users = db.reference('users').get()
+    if not users:
+        print("⚠️ No users found in Firebase.")
+        return
+
+    # Find other devices
+    candidates = []
+    for uid, user in users.items():
+        for dev_id, dev in user.get("peboDevices", {}).items():
+            if dev.get('ssid') == current_ssid and dev_id != current_device_id:
+                candidates.append({
+                    'ip': dev['ipAddress'],
+                    'location': dev.get('location', 'Unknown'),
+                    'device_id': dev_id
+                })
+
+    if not candidates:
+        print(f"⚠️ No other devices found on SSID: {current_ssid}")
+        return
+
+    # Ask user which device to connect to
+    locs = [c['location'] for c in candidates]
+    print(f"🎙️ Ask: Which device to connect to? Options: {', '.join(locs)}")
+    location_input = listen(prompt="🎤 Which device would you like to connect to?")
+
+    if not location_input:
+        print("❌ No location input received.")
+        return
+
+    selected = next((c for c in candidates if location_input.lower() in c['location'].lower()), None)
+
+    if selected:
+        print(f"✅ Connecting to device in {selected['location']} at IP: {selected['ip']}")
+        subprocess.Popen(["python3", "/home/pi/pi_audio_node.py", selected['ip']])
+    else:
+        print("❌ No matching device found.")
+
+if __name__ == "__main__":
     try:
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind(('0.0.0.0', PORT))
-        server.listen(1)
-        server.settimeout(5)
-        
-        conn, addr = server.accept()
-        
-        output_device = get_best_audio_device(input_device=False)
-        if output_device is None:
-            return
-        
-        stream = audio.open(
-            format=FORMAT,
-            channels=CHANNELS,
-            rate=RATE,
-            output=True,
-            frames_per_buffer=CHUNK,
-            output_device_index=output_device
-        )
-        
-        while is_communicating and not stop_threads:
-            try:
-                data = conn.recv(CHUNK)
-                if not data:
-                    break
-                stream.write(data)
-            except:
-                break
-    except:
-        pass
-    finally:
-        if stream:
-            stream.stop_stream()
-            stream.close()
-        if conn:
-            conn.close()
-        if server:
-            server.close()
-
-print("Voice Communication System Started")
-print("Commands: 'send message', 'answer', 'message end'")
-
-check_audio_setup()
-
-while True:
-    try:
-        command = listen_for_command()
-        
-        if command == "":
-            if not is_communicating:
-                if handle_signaling():
-                    is_communicating = True
-                    stop_threads = False
-            continue
-        
-        elif "send message" in command:
-            if not is_communicating:
-                is_communicating = send_call_signal()
-                stop_threads = False
-        
-        elif "quit" in command or "exit" in command:
-            break
-        
-        if is_communicating:
-            t_send = threading.Thread(target=send_audio)
-            t_recv = threading.Thread(target=receive_audio)
-            t_send.daemon = True
-            t_recv.daemon = True
-            t_send.start()
-            t_recv.start()
-            
-            while is_communicating:
-                end_cmd = listen_for_command()
-                if "message end" in end_cmd or "end communication" in end_cmd:
-                    is_communicating = False
-                    stop_threads = True
-                    break
-            
-            t_send.join(timeout=3)
-            t_recv.join(timeout=3)
-            
+        asyncio.run(inter_device_communicator())
     except KeyboardInterrupt:
-        is_communicating = False
-        stop_threads = True
-        break
-    except:
-        time.sleep(1)
-
-audio.terminate()
+        print("🛑 Interrupted by user.")

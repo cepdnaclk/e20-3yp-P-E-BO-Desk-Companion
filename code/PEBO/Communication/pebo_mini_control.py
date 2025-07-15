@@ -10,6 +10,7 @@ import speech_recognition as sr
 import asyncio
 import edge_tts
 import pygame
+import os
 
 # Firebase & config paths
 SERVICE_ACCOUNT_PATH = '/home/pi/PEBO/ipconfig/firebase_config.json'
@@ -25,7 +26,7 @@ pygame.mixer.init()
 recognizer = sr.Recognizer()
 mic = sr.Microphone()
 
-# 🔊 Speak using Edge TTS
+# Speak using Edge TTS
 async def speak_text(text):
     voice = "en-GB-SoniaNeural"
     filename = "say.mp3"
@@ -36,7 +37,7 @@ async def speak_text(text):
         await asyncio.sleep(0.2)
     pygame.mixer.music.unload()
 
-# 🎤 Listen using Google STT
+# Listen using Google STT
 def listen(timeout=8, phrase_time_limit=5):
     try:
         with mic as source:
@@ -48,7 +49,7 @@ def listen(timeout=8, phrase_time_limit=5):
         print(f"❌ Listening error: {e}")
         return None
 
-# 📡 Get IP address
+# Get IP address of the Pi
 def get_ip_address(ifname='wlan0'):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -56,7 +57,7 @@ def get_ip_address(ifname='wlan0'):
     except:
         return None
 
-# 📶 Get current SSID
+# Get current SSID
 def get_wifi_ssid():
     try:
         result = subprocess.run(['iwgetid', '-r'], capture_output=True, text=True)
@@ -64,32 +65,32 @@ def get_wifi_ssid():
     except:
         return None
 
-# 🔁 Main interaction loop
+# Main interaction logic
 async def inter_device_communicator():
-    # Load local config
+    # Load config
     try:
         with open(JSON_CONFIG_PATH, 'r') as f:
             config = json.load(f)
         current_ssid = config.get('ssid')
         current_device_id = config.get('deviceId')
         user_id = config.get('userId')
-    except:
+    except Exception as e:
         await speak_text("Cannot load device configuration.")
+        print("Config load error:", e)
         return
 
-    # Get current IP
     ip = get_ip_address()
     if not ip:
         await speak_text("I am not connected to Wi-Fi.")
         return
 
-    # 🔥 Init Firebase
     try:
         if not firebase_admin._apps:
             cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
             firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
     except Exception as e:
         await speak_text("Failed to connect to Firebase.")
+        print("Firebase init error:", e)
         return
 
     users = db.reference('users').get()
@@ -97,7 +98,7 @@ async def inter_device_communicator():
         await speak_text("No users found in database.")
         return
 
-    # Find other devices on same SSID
+    # Find other devices
     candidates = []
     for uid, user in users.items():
         for dev_id, dev in user.get("peboDevices", {}).items():
@@ -113,7 +114,7 @@ async def inter_device_communicator():
         await speak_text(f"No other devices found on {current_ssid}")
         return
 
-    # Ask user to select one
+    # Ask user for device location
     locs = [c['location'] for c in candidates]
     await speak_text(f"Which device would you like to contact in: {', '.join(locs)}?")
     location_input = listen()
@@ -124,11 +125,12 @@ async def inter_device_communicator():
 
     match = next((c for c in candidates if location_input.lower() in c['location'].lower()), None)
     if match:
-        await speak_text(f"Selected device in {match['location']} at IP {match['ip']}")
-        # 👉 You can now connect to match['ip'] via socket
+        await speak_text(f"Connecting to device in {match['location']}")
+        # Launch sender with dynamic IP
+        subprocess.Popen(["python3", "/home/pi/pi_audio_node.py", match['ip']])
     else:
         await speak_text("No matching device found.")
 
-# 🚀 Run
+# Run
 if __name__ == "__main__":
-    asyncio.run(inter_device_communicator()) 
+    asyncio.run(inter_device_communicator())
