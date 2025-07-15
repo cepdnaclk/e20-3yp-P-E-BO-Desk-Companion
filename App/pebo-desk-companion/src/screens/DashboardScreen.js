@@ -37,6 +37,16 @@ const DashboardScreen = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [networkCount, setNetworkCount] = useState(0);
   const [robotGreeting, setRobotGreeting] = useState(false);
+  const [showSetupWarning, setShowSetupWarning] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataRefreshKey, setDataRefreshKey] = useState(0);
+  const [userProfileImage, setUserProfileImage] = useState("");
+  const [setupStatus, setSetupStatus] = useState({
+    hasWifi: false,
+    hasPebos: false,
+    hasProfileImage: false,
+    hasUserName: false,
+  });
   const navigation = useNavigation();
 
   // Animation refs
@@ -48,28 +58,11 @@ const DashboardScreen = () => {
   const glow = useRef(new Animated.Value(0)).current;
   const videoRef = useRef(null);
 
-  // Helper function to get time difference from now
-  const getTimeFromNow = (deadline) => {
-    const now = new Date();
-    const due = new Date(deadline);
-    const diffMs = due - now;
-    
-    if (diffMs < 0) return "Overdue";
-    
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (diffDays > 0) {
-      return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
-    } else if (diffHours > 0) {
-      return `${diffHours} hour${diffHours > 1 ? 's' : ''}`;
-    } else if (diffMinutes > 0) {
-      return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''}`;
-    } else {
-      return "Due now";
-    }
-  };
+  // Firebase listeners refs
+  const wifiListenerRef = useRef(null);
+  const tasksListenerRef = useRef(null);
+  const pebosListenerRef = useRef(null);
+  const userListenerRef = useRef(null);
 
   useEffect(() => {
     // Energetic pulsing animation
@@ -167,140 +160,348 @@ const DashboardScreen = () => {
       setCurrentUser(user);
       if (user) {
         console.log("User authenticated:", user.uid);
+        setDataRefreshKey((prev) => prev + 1);
+      } else {
+        cleanupListeners();
       }
     });
     return unsubscribe;
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchData = async () => {
+  const cleanupListeners = useCallback(() => {
+    try {
+      if (wifiListenerRef.current && currentUser) {
+        const wifiRef = db.ref(`users/${currentUser.uid}/settings`);
+        wifiRef.off("value", wifiListenerRef.current);
+        wifiListenerRef.current = null;
+      }
+      if (tasksListenerRef.current && currentUser) {
+        const tasksRef = db.ref(`users/${currentUser.uid}/tasks`);
+        tasksRef.off("value", tasksListenerRef.current);
+        tasksListenerRef.current = null;
+      }
+      if (pebosListenerRef.current && currentUser) {
+        // ✅ FIXED: Use correct path for cleanup
+        const pebosRef = db.ref(`users/${currentUser.uid}/peboDevices`);
+        pebosRef.off("value", pebosListenerRef.current);
+        pebosListenerRef.current = null;
+      }
+      if (userListenerRef.current && currentUser) {
+        const userRef = db.ref(`users/${currentUser.uid}`);
+        userRef.off("value", userListenerRef.current);
+        userListenerRef.current = null;
+      }
+      console.log("All Firebase listeners cleaned up properly");
+    } catch (error) {
+      console.error("Error cleaning up listeners:", error);
+    }
+  }, [currentUser]);
+
+  // Helper function to get time from now
+  const getTimeFromNow = (deadline) => {
+    const now = new Date();
+    const due = new Date(deadline);
+    const diffMs = due - now;
+
+    if (diffMs < 0) return "Overdue";
+
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(
+      (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    );
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (diffDays > 0) {
+      return `${diffDays}d ${diffHours}h`;
+    } else if (diffHours > 0) {
+      return `${diffHours}h ${diffMinutes}m`;
+    } else {
+      return `${diffMinutes}m`;
+    }
+  };
+
+  // Enhanced setup checking with all requirements
+  const checkUserSetup = useCallback((wifi, pebos, profileImage, userName) => {
+    const hasWifi = wifi && wifi.wifiSSID && wifi.wifiSSID.trim();
+    const hasPebos = pebos && pebos.length > 0;
+    const hasProfileImage = profileImage && profileImage.trim();
+    const hasUserName =
+      userName &&
+      userName.trim() &&
+      userName !== "Guest" &&
+      userName !== "User";
+
+    const newSetupStatus = {
+      hasWifi,
+      hasPebos,
+      hasProfileImage,
+      hasUserName,
+    };
+
+    setSetupStatus(newSetupStatus);
+
+    // Show warning if any requirement is missing
+    const isFullySetup = hasWifi && hasPebos && hasProfileImage && hasUserName;
+    setShowSetupWarning(!isFullySetup);
+
+    console.log("Setup status:", newSetupStatus, "Fully setup:", isFullySetup);
+  }, []);
+
+  // Get missing setup items
+  const getMissingSetupItems = () => {
+    const missing = [];
+    if (!setupStatus.hasWifi) missing.push("WiFi Configuration");
+    if (!setupStatus.hasPebos) missing.push("PEBO Device");
+    if (!setupStatus.hasProfileImage) missing.push("Profile Image");
+    if (!setupStatus.hasUserName) missing.push("User Name");
+    return missing;
+  };
+
+  // Setup Firebase listeners
+  const setupFirebaseListeners = useCallback(async () => {
+    if (!currentUser) {
+      console.log("No authenticated user for listeners");
+      return;
+    }
+
+    const userId = currentUser.uid;
+    console.log("Setting up Firebase listeners for user:", userId);
+
+    try {
+      cleanupListeners();
+
+      // 1. Setup WiFi listener
+      const wifiRef = db.ref(`users/${userId}/settings`);
+      wifiListenerRef.current = wifiRef.on("value", (snapshot) => {
         try {
-          if (!currentUser) {
-            console.log("No authenticated user");
-            setUserName("Guest");
-            return;
-          }
+          const data = snapshot && snapshot.exists() ? snapshot.val() : null;
+          console.log("WiFi data updated:", data);
 
-          // Enhanced username fetching with profile image priority
-          let fetchedUsername = "";
-          try {
-            // Priority 0 - Extract username from profile image URL
-            try {
-              const userId = auth.currentUser?.uid;
-              if (userId) {
-                // Get profile image URL from Firebase
-                const profileImageRef = db.ref(`users/${userId}/profileImage`);
+          const wifiData = {
+            wifiSSID: data?.wifiSSID || "",
+            wifiPassword: data?.wifiPassword || "",
+          };
+          setWifiDetails(wifiData);
 
-                // Use once() for a single read instead of continuous listener
-                const snapshot = await profileImageRef.once("value");
-                const imageUrl = snapshot.exists() ? snapshot.val() : null;
+          let count = 0;
+          if (wifiData.wifiSSID && wifiData.wifiSSID.trim()) count++;
+          setNetworkCount(count);
+        } catch (error) {
+          console.error("WiFi listener error:", error);
+          setWifiDetails({ wifiSSID: "", wifiPassword: "" });
+          setNetworkCount(0);
+        }
+      });
 
-                console.log(
-                  "Firebase profileImage for username extraction:",
-                  imageUrl
-                );
+      // 2. Setup Tasks listener
+      const tasksRef = db.ref(`users/${userId}/tasks`);
+      tasksListenerRef.current = tasksRef.on("value", (snapshot) => {
+        try {
+          const data = snapshot && snapshot.exists() ? snapshot.val() : null;
+          console.log("Tasks data updated:", data);
 
-                if (imageUrl) {
-                  // Extract username from URL like: https://pebo-user-images.s3.amazonaws.com/user_yohan.jpg
-                  const urlMatch = imageUrl.match(/user_([^.]+)\.jpg$/);
-                  if (urlMatch && urlMatch[1]) {
-                    const extractedUsername = urlMatch[1].replace(/_/g, " ");
-                    // Capitalize first letter of each word
-                    const formattedUsername = extractedUsername
-                      .split(" ")
-                      .map(
-                        (word) => word.charAt(0).toUpperCase() + word.slice(1)
-                      )
-                      .join(" ");
+          const tasks = data
+            ? Object.keys(data).map((key) => ({
+                id: key,
+                ...data[key],
+              }))
+            : [];
 
-                    console.log(
-                      "Username extracted from profile image:",
-                      formattedUsername
-                    );
-                    setUserName(formattedUsername);
-                    fetchedUsername = formattedUsername;
-
-                    if (formattedUsername && formattedUsername !== "Guest") {
-                      console.log("Using username from profile image URL");
-                    } else {
-                      throw new Error("Invalid username from image URL");
-                    }
-                  } else {
-                    throw new Error(
-                      "Could not extract username from image URL pattern"
-                    );
-                  }
-                } else {
-                  throw new Error("No profile image URL found in Firebase");
-                }
-              } else {
-                throw new Error("No userId available");
-              }
-            } catch (imageError) {
-              console.log(
-                "Profile image username extraction failed:",
-                imageError.message
-              );
-
-              // Priority 1 - getUserName() from Firebase database
-              const name = await getUserName();
-              console.log("Fetched username from database:", name);
-              if (name && name.trim() && name !== "Guest") {
-                setUserName(name);
-                fetchedUsername = name;
-              } else {
-                // Priority 2 - currentUser.displayName from Firebase Auth
-                const fallbackName =
-                  currentUser.displayName ||
-                  currentUser.email?.split("@")[0] ||
-                  "User";
-                setUserName(fallbackName);
-                fetchedUsername = fallbackName;
-              }
-            }
-          } catch (error) {
-            console.error("Error in username fetching:", error);
-            // Priority 3 - Final fallback
-            const finalFallback =
-              currentUser.displayName ||
-              currentUser.email?.split("@")[0] ||
-              "User";
-            setUserName(finalFallback);
-            fetchedUsername = finalFallback;
-          }
-
-          // Rest of your existing code...
-          const tasks = await getTaskOverview();
           const today = new Date();
           const upcoming = tasks.filter((task) => {
             if (task.completed || !task.deadline) return false;
-            const due = new Date(task.deadline);
-            const diffDays = (due - today) / (1000 * 60 * 60 * 24);
-            return diffDays >= 0 && diffDays <= 5;
+            try {
+              const due = new Date(task.deadline);
+              if (isNaN(due.getTime())) return false;
+              const diffDays = (due - today) / (1000 * 60 * 60 * 24);
+              return diffDays >= 0 && diffDays <= 5;
+            } catch (error) {
+              console.error("Error processing task deadline:", error);
+              return false;
+            }
           });
+
           setUpcomingTasks(upcoming);
-
-          const wifi = await getWifiName();
-          setWifiDetails(wifi);
-
-          let count = 0;
-          if (wifi.wifiSSID && wifi.wifiSSID.trim()) count++;
-          setNetworkCount(count);
-
-          const pebos = await getPeboDevices();
-          setUserPebos(pebos);
-
-          console.log("Dashboard data loaded for user:", fetchedUsername);
         } catch (error) {
-          console.error("Dashboard Error - fetchData:", error);
-          setUserName("Guest");
+          console.error("Tasks listener error:", error);
+          setUpcomingTasks([]);
+        }
+      });
+
+      // 3. ✅ FIXED: Setup PEBOs listener with correct path
+      const pebosRef = db.ref(`users/${userId}/peboDevices`); // Changed from 'pebos' to 'peboDevices'
+      pebosListenerRef.current = pebosRef.on("value", (snapshot) => {
+        try {
+          const data = snapshot && snapshot.exists() ? snapshot.val() : null;
+          console.log("PEBOs data updated:", data);
+
+          const pebos = data
+            ? Object.keys(data).map((key) => ({
+                id: key,
+                name: data[key].name || `Device ${key}`,
+                location: data[key].location || "Unknown Location",
+                online: data[key].online || false,
+                createdAt: data[key].createdAt || null,
+                ...data[key],
+              }))
+            : [];
+
+          setUserPebos(pebos);
+          console.log("PEBO devices set:", pebos);
+        } catch (error) {
+          console.error("PEBOs listener error:", error);
+          setUserPebos([]);
+        }
+      });
+
+      // 4. Setup User profile listener
+      const userRef = db.ref(`users/${userId}`);
+      userListenerRef.current = userRef.on("value", async (snapshot) => {
+        try {
+          const userData =
+            snapshot && snapshot.exists() ? snapshot.val() : null;
+          console.log("User data updated:", userData);
+
+          let fetchedUsername = "";
+          let profileImage = "";
+
+          // Get profile image
+          if (userData?.profileImage) {
+            profileImage = userData.profileImage;
+            setUserProfileImage(profileImage);
+
+            try {
+              const imageUrl = userData.profileImage;
+              const urlMatch = imageUrl.match(/user_([^.]+)\.jpg$/);
+              if (urlMatch && urlMatch[1]) {
+                const extractedUsername = urlMatch[1].replace(/_/g, " ");
+                const formattedUsername = extractedUsername
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ");
+
+                console.log(
+                  "Username extracted from profile image:",
+                  formattedUsername
+                );
+                setUserName(formattedUsername);
+                fetchedUsername = formattedUsername;
+              }
+            } catch (imageError) {
+              console.log("Error extracting username from image:", imageError);
+            }
+          } else {
+            setUserProfileImage("");
+          }
+
+          // Get username from stored data
+          if (!fetchedUsername && userData?.username) {
+            setUserName(userData.username);
+            fetchedUsername = userData.username;
+          }
+
+          // Fallback to auth data
+          if (!fetchedUsername) {
+            const fallbackName =
+              currentUser.displayName ||
+              currentUser.email?.split("@")[0] ||
+              "User";
+            setUserName(fallbackName);
+            fetchedUsername = fallbackName;
+          }
+
+          console.log("Final username set:", fetchedUsername);
+          console.log("Profile image set:", profileImage);
+        } catch (error) {
+          console.error("User listener error:", error);
+          const finalFallback =
+            currentUser.displayName ||
+            currentUser.email?.split("@")[0] ||
+            "User";
+          setUserName(finalFallback);
+          setUserProfileImage("");
+        }
+      });
+
+      console.log("All Firebase listeners setup successfully");
+    } catch (error) {
+      console.error("Error setting up Firebase listeners:", error);
+    }
+  }, [currentUser, cleanupListeners]);
+
+  // Navigation cleanup
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      try {
+        cleanupListeners();
+      } catch (error) {
+        console.error("Error during navigation cleanup:", error);
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, cleanupListeners]);
+
+  // Setup listeners when user changes or component focuses
+  useFocusEffect(
+    useCallback(() => {
+      if (currentUser) {
+        setIsLoading(true);
+        setupFirebaseListeners()
+          .then(() => {
+            console.log("Firebase listeners setup completed");
+          })
+          .catch((error) => {
+            console.error("Error setting up Firebase listeners:", error);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else {
+        setIsLoading(false);
+        setUserName("Guest");
+        setWifiDetails({ wifiSSID: "", wifiPassword: "" });
+        setUpcomingTasks([]);
+        setUserPebos([]);
+        setUserProfileImage("");
+        setShowSetupWarning(false);
+        setNetworkCount(0);
+        setSetupStatus({
+          hasWifi: false,
+          hasPebos: false,
+          hasProfileImage: false,
+          hasUserName: false,
+        });
+      }
+
+      return () => {
+        try {
+          cleanupListeners();
+        } catch (error) {
+          console.error("Error during unmount cleanup:", error);
         }
       };
-
-      fetchData();
-    }, [currentUser])
+    }, [currentUser, setupFirebaseListeners, cleanupListeners])
   );
+
+  // Check setup status whenever data changes
+  useEffect(() => {
+    if (currentUser && !isLoading) {
+      const timeoutId = setTimeout(() => {
+        checkUserSetup(wifiDetails, userPebos, userProfileImage, userName);
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [
+    wifiDetails,
+    userPebos,
+    userProfileImage,
+    userName,
+    currentUser,
+    isLoading,
+    checkUserSetup,
+  ]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -311,8 +512,15 @@ const DashboardScreen = () => {
   };
 
   const maskPassword = (password) => {
-    if (!password) return "Not set";
+    if (!password) return "Not configured";
     return showPassword ? password : "••••••••";
+  };
+
+  const getWifiStatus = () => {
+    if (wifiDetails.wifiSSID && wifiDetails.wifiSSID.trim()) {
+      return "Configured";
+    }
+    return "Not configured";
   };
 
   const triggerRobotGreeting = () => {
@@ -325,21 +533,19 @@ const DashboardScreen = () => {
     outputRange: ["0deg", "360deg"],
   });
 
-  // Check if WiFi is configured
-  const isWifiConfigured = wifiDetails.wifiSSID && wifiDetails.wifiSSID.trim();
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
       {/* Enhanced Futuristic Animated Background with PEBO Robot */}
       <View style={styles.backgroundContainer}>
-        {/* PEBO Robot Video Animation - NO ROTATION */}
+        {/* PEBO Robot Video Animation - Bigger when setup warning is shown */}
         <Animated.View
           style={[
-            styles.peboRobotContainer,
+            showSetupWarning
+              ? styles.peboRobotContainerSetupBig
+              : styles.peboRobotContainer,
             {
-              // ✅ Removed rotation transform, kept only scaling
               transform: [
                 {
                   scale: robotGreeting
@@ -366,7 +572,7 @@ const DashboardScreen = () => {
           >
             <Video
               ref={videoRef}
-              source={require("../../assets/peb-video.mp4")} // Update with your video path
+              source={require("../../assets/peb-video.mp4")}
               style={styles.peboVideo}
               shouldPlay={true}
               isLooping={true}
@@ -401,106 +607,100 @@ const DashboardScreen = () => {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Main rotating ring - STILL ROTATES */}
-        {/* <Animated.View
-          style={[
-            styles.rotatingRing,
-            {
-              transform: [{ rotate: rotateInterpolate }],
-            },
-          ]}
-        /> */}
+        {/* Background elements - Only show when not in setup mode */}
+        {!showSetupWarning && (
+          <>
+            <Animated.View
+              style={[
+                styles.pulseOrb1,
+                {
+                  opacity: pulse1,
+                  transform: [
+                    {
+                      scale: pulse1.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.5, 1.2],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
 
-        {/* Rest of your existing background elements... */}
-        <Animated.View
-          style={[
-            styles.pulseOrb1,
-            {
-              opacity: pulse1,
-              transform: [
+            <Animated.View
+              style={[
+                styles.pulseOrb2,
                 {
-                  scale: pulse1.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.5, 1.2],
-                  }),
+                  opacity: pulse2,
+                  transform: [
+                    {
+                      scale: pulse2.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.3, 1],
+                      }),
+                    },
+                  ],
                 },
-              ],
-            },
-          ]}
-        />
+              ]}
+            />
 
-        <Animated.View
-          style={[
-            styles.pulseOrb2,
-            {
-              opacity: pulse2,
-              transform: [
+            <Animated.View
+              style={[
+                styles.floatingParticle1,
                 {
-                  scale: pulse2.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.3, 1],
-                  }),
+                  transform: [
+                    {
+                      translateY: float1.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, -30],
+                      }),
+                    },
+                    {
+                      translateX: float1.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 20],
+                      }),
+                    },
+                  ],
                 },
-              ],
-            },
-          ]}
-        />
+              ]}
+            />
 
-        <Animated.View
-          style={[
-            styles.floatingParticle1,
-            {
-              transform: [
+            <Animated.View
+              style={[
+                styles.floatingParticle2,
                 {
-                  translateY: float1.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, -30],
-                  }),
+                  transform: [
+                    {
+                      translateY: float2.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 25],
+                      }),
+                    },
+                    {
+                      translateX: float2.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, -15],
+                      }),
+                    },
+                  ],
                 },
-                {
-                  translateX: float1.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 20],
-                  }),
-                },
-              ],
-            },
-          ]}
-        />
+              ]}
+            />
 
-        <Animated.View
-          style={[
-            styles.floatingParticle2,
-            {
-              transform: [
+            <Animated.View
+              style={[
+                styles.gridLines,
                 {
-                  translateY: float2.interpolate({
+                  opacity: glow.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0, 25],
+                    outputRange: [0.1, 0.4],
                   }),
                 },
-                {
-                  translateX: float2.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, -15],
-                  }),
-                },
-              ],
-            },
-          ]}
-        />
-
-        <Animated.View
-          style={[
-            styles.gridLines,
-            {
-              opacity: glow.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.1, 0.4],
-              }),
-            },
-          ]}
-        />
+              ]}
+            />
+          </>
+        )}
       </View>
 
       {/* Header with Gradient */}
@@ -516,47 +716,209 @@ const DashboardScreen = () => {
         data={[1]}
         renderItem={() => (
           <View style={styles.content}>
-            {/* Welcome Message with Glow Effect */}
-            <Animated.View
-              style={[
-                styles.welcomeContainer,
-                {
-                  shadowOpacity: glow.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.3, 0.8],
-                  }),
-                },
-              ]}
-            >
-              <Text style={styles.greeting}>{getGreeting()},</Text>
-              <Text style={styles.userName}>{userName}!</Text>
-              <Text style={styles.welcomeSubtext}>
-                Welcome to the World of PEBO
-              </Text>
-            </Animated.View>
+            {/* Enhanced Setup Warning for New Users */}
+            {showSetupWarning && currentUser && (
+              <Animated.View
+                style={[
+                  styles.warningContainer,
+                  {
+                    opacity: pulse1,
+                  },
+                ]}
+              >
+                <View style={styles.warningHeader}>
+                  <Ionicons name="warning" size={20} color="#FF5252" />
+                  <Text style={styles.warningTitle}>Setup Required</Text>
+                </View>
+                <Text style={styles.warningText}>
+                  Complete your PEBO setup to unlock the full dashboard
+                  experience.
+                </Text>
 
-            {/* Futuristic Stats Grid */}
-            <View style={styles.statsGrid}>
+                {/* Setup Progress */}
+                <View style={styles.setupProgress}>
+                  <Text style={styles.setupProgressTitle}>Setup Progress:</Text>
+                  <View style={styles.setupItems}>
+                    <View style={styles.setupItem}>
+                      <Ionicons
+                        name={
+                          setupStatus.hasWifi
+                            ? "checkmark-circle"
+                            : "ellipse-outline"
+                        }
+                        size={16}
+                        color={setupStatus.hasWifi ? "#4CAF50" : "#FF5252"}
+                      />
+                      <Text
+                        style={[
+                          styles.setupItemText,
+                          {
+                            color: setupStatus.hasWifi ? "#4CAF50" : "#FF5252",
+                          },
+                        ]}
+                      >
+                        WiFi Configuration
+                      </Text>
+                    </View>
+                    <View style={styles.setupItem}>
+                      <Ionicons
+                        name={
+                          setupStatus.hasPebos
+                            ? "checkmark-circle"
+                            : "ellipse-outline"
+                        }
+                        size={16}
+                        color={setupStatus.hasPebos ? "#4CAF50" : "#FF5252"}
+                      />
+                      <Text
+                        style={[
+                          styles.setupItemText,
+                          {
+                            color: setupStatus.hasPebos ? "#4CAF50" : "#FF5252",
+                          },
+                        ]}
+                      >
+                        Add PEBO Device
+                      </Text>
+                    </View>
+                    <View style={styles.setupItem}>
+                      <Ionicons
+                        name={
+                          setupStatus.hasProfileImage
+                            ? "checkmark-circle"
+                            : "ellipse-outline"
+                        }
+                        size={16}
+                        color={
+                          setupStatus.hasProfileImage ? "#4CAF50" : "#FF5252"
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.setupItemText,
+                          {
+                            color: setupStatus.hasProfileImage
+                              ? "#4CAF50"
+                              : "#FF5252",
+                          },
+                        ]}
+                      >
+                        Profile Image
+                      </Text>
+                    </View>
+                    <View style={styles.setupItem}>
+                      <Ionicons
+                        name={
+                          setupStatus.hasUserName
+                            ? "checkmark-circle"
+                            : "ellipse-outline"
+                        }
+                        size={16}
+                        color={setupStatus.hasUserName ? "#4CAF50" : "#FF5252"}
+                      />
+                      <Text
+                        style={[
+                          styles.setupItemText,
+                          {
+                            color: setupStatus.hasUserName
+                              ? "#4CAF50"
+                              : "#FF5252",
+                          },
+                        ]}
+                      >
+                        User Name
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.warningButton}
+                  onPress={() => navigation.navigate("Settings")}
+                >
+                  <LinearGradient
+                    colors={["#FF5252", "#FF1744"]}
+                    style={styles.warningButtonGradient}
+                  >
+                    <Ionicons name="settings" size={16} color="#FFFFFF" />
+                    <Text style={styles.warningButtonText}>Complete Setup</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+
+            {/* Welcome Message - Hidden during setup warning */}
+            {!showSetupWarning && (
+              <Animated.View
+                style={[
+                  styles.welcomeContainer,
+                  {
+                    shadowOpacity: glow.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.8],
+                    }),
+                  },
+                ]}
+              >
+                <Text style={styles.greeting}>{getGreeting()},</Text>
+                <Text style={styles.userName}>{userName}!</Text>
+                <Text style={styles.welcomeSubtext}>
+                  Welcome to the World of PEBO
+                </Text>
+              </Animated.View>
+            )}
+
+            {/* Conditional Stats Grid - Moved up when setup warning is shown */}
+            <View
+              style={
+                showSetupWarning ? styles.statsGridSetup : styles.statsGrid
+              }
+            >
               <LinearGradient
                 colors={["rgba(29, 233, 182, 0.2)", "rgba(29, 233, 182, 0.05)"]}
-                style={styles.statCard}
+                style={
+                  showSetupWarning ? styles.statCardSmall : styles.statCard
+                }
               >
                 <View style={styles.statIcon}>
-                  <Ionicons name="hardware-chip" size={24} color="#1DE9B6" />
+                  <Ionicons
+                    name="hardware-chip"
+                    size={showSetupWarning ? 16 : 24}
+                    color="#1DE9B6"
+                  />
                 </View>
-                <Text style={styles.statNumber}>{userPebos.length}</Text>
+                <Text
+                  style={[
+                    styles.statNumber,
+                    showSetupWarning && styles.statNumberSmall,
+                  ]}
+                >
+                  {userPebos.length}
+                </Text>
                 <Text style={styles.statLabel}>DEVICES</Text>
                 <View style={styles.statGlow} />
               </LinearGradient>
 
               <LinearGradient
                 colors={["rgba(255, 82, 82, 0.2)", "rgba(255, 82, 82, 0.05)"]}
-                style={styles.statCard}
+                style={
+                  showSetupWarning ? styles.statCardSmall : styles.statCard
+                }
               >
                 <View style={styles.statIcon}>
-                  <FontAwesome5 name="tasks" size={20} color="#FF5252" />
+                  <FontAwesome5
+                    name="tasks"
+                    size={showSetupWarning ? 14 : 20}
+                    color="#FF5252"
+                  />
                 </View>
-                <Text style={[styles.statNumber, { color: "#FF5252" }]}>
+                <Text
+                  style={[
+                    styles.statNumber,
+                    { color: "#FF5252" },
+                    showSetupWarning && styles.statNumberSmall,
+                  ]}
+                >
                   {upcomingTasks.length}
                 </Text>
                 <Text style={styles.statLabel}>TASKS</Text>
@@ -566,153 +928,189 @@ const DashboardScreen = () => {
               </LinearGradient>
 
               <LinearGradient
-                colors={isWifiConfigured 
-                  ? ["rgba(76, 175, 80, 0.2)", "rgba(76, 175, 80, 0.05)"]
-                  : ["rgba(255, 82, 82, 0.2)", "rgba(255, 82, 82, 0.05)"]
+                colors={["rgba(76, 175, 80, 0.2)", "rgba(76, 175, 80, 0.05)"]}
+                style={
+                  showSetupWarning ? styles.statCardSmall : styles.statCard
                 }
-                style={styles.statCard}
               >
                 <View style={styles.statIcon}>
-                  <MaterialIcons name="wifi" size={24} color={isWifiConfigured ? "#4CAF50" : "#FF5252"} />
+                  <MaterialIcons
+                    name="wifi"
+                    size={showSetupWarning ? 16 : 24}
+                    color="#4CAF50"
+                  />
                 </View>
-                <Text style={[styles.stat1Number, { color: isWifiConfigured ? "#4CAF50" : "#FF5252" }]}>
-                  {isWifiConfigured ? "Configured" : "Not Configured"}
+                <Text
+                  style={[
+                    styles.stat1Number,
+                    { color: "#4CAF50" },
+                    showSetupWarning && styles.stat1NumberSmall,
+                  ]}
+                >
+                  {getWifiStatus()}
                 </Text>
                 <Text style={styles.statLabel}>NETWORKS</Text>
                 <View
-                  style={[styles.statGlow, { backgroundColor: isWifiConfigured ? "#4CAF50" : "#FF5252" }]}
+                  style={[styles.statGlow, { backgroundColor: "#4CAF50" }]}
                 />
               </LinearGradient>
             </View>
 
-            {/* Active Devices */}
-            {userPebos.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  <Ionicons name="radio" size={16} color="#1DE9B6" /> My Devices
-                </Text>
-                {userPebos.map((pebo, index) => (
-                  <LinearGradient
-                    key={index}
-                    colors={["rgba(26, 26, 26, 0.8)", "rgba(26, 26, 26, 0.4)"]}
-                    style={styles.deviceCard}
-                  >
-                    <View style={styles.deviceInfo}>
-                      <Text style={styles.deviceName}>{pebo.name}</Text>
-                      <Text style={styles.deviceLocation}>{pebo.location}</Text>
-                    </View>
-                    <View style={styles.deviceStatus}>
-                      <Animated.View
-                        style={[
-                          styles.statusPulse,
-                          {
-                            backgroundColor: pebo.online
-                              ? "#4CAF50"
-                              : "#FF5252",
-                            opacity: pulse1,
-                          },
+            {/* Conditional Content - Only show when setup is complete */}
+            {!showSetupWarning && (
+              <>
+                {/* Active Devices */}
+                {userPebos.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>
+                      <Ionicons name="radio" size={16} color="#1DE9B6" /> My
+                      Devices
+                    </Text>
+                    {userPebos.map((pebo, index) => (
+                      <LinearGradient
+                        key={pebo.id || index}
+                        colors={[
+                          "rgba(26, 26, 26, 0.8)",
+                          "rgba(26, 26, 26, 0.4)",
                         ]}
-                      />
-                      <View
-                        style={[
-                          styles.statusDot,
-                          {
-                            backgroundColor: pebo.online
-                              ? "#4CAF50"
-                              : "#FF5252",
-                          },
-                        ]}
-                      />
-                    </View>
-                  </LinearGradient>
-                ))}
-              </View>
-            )}
-
-            {/* Network Matrix */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                <Ionicons name="globe" size={16} color="#1DE9B6" /> NETWORK STATUS
-              </Text>
-              <LinearGradient
-                colors={["rgba(26, 26, 26, 0.8)", "rgba(26, 26, 26, 0.4)"]}
-                style={styles.networkCard}
-              >
-                <View style={styles.networkRow}>
-                  <Text style={styles.networkLabel}>WiFi Signal</Text>
-                  <Text style={styles.networkValue}>
-                    {isWifiConfigured ? wifiDetails.wifiSSID : "Not Connected"}
-                  </Text>
-                </View>
-                {isWifiConfigured && (
-                  <View style={styles.networkRow}>
-                    <Text style={styles.networkLabel}>Access Key</Text>
-                    <View style={styles.passwordContainer}>
-                      <Text style={styles.networkValue}>
-                        {maskPassword(wifiDetails.wifiPassword)}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => setShowPassword(!showPassword)}
-                        style={styles.eyeButton}
+                        style={styles.deviceCard}
                       >
-                        <Ionicons
-                          name={showPassword ? "eye-off" : "eye"}
-                          size={16}
-                          color="#1DE9B6"
-                        />
-                      </TouchableOpacity>
-                    </View>
+                        <View style={styles.deviceInfo}>
+                          <Text style={styles.deviceName}>
+                            {pebo.name || `Device ${index + 1}`}
+                          </Text>
+                          <Text style={styles.deviceLocation}>
+                            {pebo.location || "Unknown Location"}
+                          </Text>
+                        </View>
+                        <View style={styles.deviceStatus}>
+                          <Animated.View
+                            style={[
+                              styles.statusPulse,
+                              {
+                                backgroundColor: pebo.online
+                                  ? "#4CAF50"
+                                  : "#FF5252",
+                                opacity: pulse1,
+                              },
+                            ]}
+                          />
+                          <View
+                            style={[
+                              styles.statusDot,
+                              {
+                                backgroundColor: pebo.online
+                                  ? "#4CAF50"
+                                  : "#FF5252",
+                              },
+                            ]}
+                          />
+                        </View>
+                      </LinearGradient>
+                    ))}
                   </View>
                 )}
-              </LinearGradient>
-            </View>
 
-            {/* Task Queue */}
-            {upcomingTasks.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  <Ionicons name="flash" size={16} color="#1DE9B6" /> Tasks Due
-                  Soon
-                </Text>
-                {upcomingTasks.slice(0, 3).map((task, index) => (
+                {/* Network Matrix */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    <Ionicons name="globe" size={16} color="#1DE9B6" /> NETWORK
+                    STATUS
+                  </Text>
                   <LinearGradient
-                    key={task.id}
                     colors={["rgba(26, 26, 26, 0.8)", "rgba(26, 26, 26, 0.4)"]}
-                    style={styles.taskCard}
+                    style={styles.networkCard}
                   >
-                    <View style={styles.taskHeader}>
-                      <Text style={styles.taskTitle}>{task.description}</Text>
-                      <View style={styles.taskPriority}>
-                        <View style={styles.priorityDot} />
+                    <View style={styles.networkRow}>
+                      <Text style={styles.networkLabel}>WiFi Signal</Text>
+                      <Text style={styles.networkValue}>
+                        {wifiDetails.wifiSSID || "Not configured"}
+                      </Text>
+                    </View>
+                    <View style={styles.networkRow}>
+                      <Text style={styles.networkLabel}>Access Key</Text>
+                      <View style={styles.passwordContainer}>
+                        <Text style={styles.networkValue}>
+                          {maskPassword(wifiDetails.wifiPassword)}
+                        </Text>
+                        {wifiDetails.wifiPassword && (
+                          <TouchableOpacity
+                            onPress={() => setShowPassword(!showPassword)}
+                            style={styles.eyeButton}
+                          >
+                            <Ionicons
+                              name={showPassword ? "eye-off" : "eye"}
+                              size={16}
+                              color="#1DE9B6"
+                            />
+                          </TouchableOpacity>
+                        )}
                       </View>
                     </View>
-                    <View style={styles.taskDateRow}>
-                      <Text style={styles.taskDate}>
-                        {new Date(task.deadline).toLocaleDateString()}
-                      </Text>
-                      <Text style={styles.taskTimeFromNow}>
-                        Due in {getTimeFromNow(task.deadline)}
-                      </Text>
-                    </View>
                   </LinearGradient>
-                ))}
-              </View>
-            )}
+                </View>
 
-            {/* Control Panel */}
-            <TouchableOpacity
-              style={styles.controlPanel}
-              onPress={() => navigation.navigate("Settings")}
-            >
-              <LinearGradient
-                colors={["#00926eff", "#007263ff"]}
-                style={styles.controlGradient}
-              >
-                <Ionicons name="settings" size={20} color="#000000" />
-                <Text style={styles.controlText}>CONTROL PANEL</Text>
-                <Ionicons name="chevron-forward" size={20} color="#000000" />
-              </LinearGradient>
-            </TouchableOpacity>
+                {/* Task Queue */}
+                {upcomingTasks.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>
+                      <Ionicons name="flash" size={16} color="#1DE9B6" /> Tasks
+                      Due Soon
+                    </Text>
+                    {upcomingTasks.slice(0, 3).map((task, index) => (
+                      <LinearGradient
+                        key={task.id || index}
+                        colors={[
+                          "rgba(26, 26, 26, 0.8)",
+                          "rgba(26, 26, 26, 0.4)",
+                        ]}
+                        style={styles.taskCard}
+                      >
+                        <View style={styles.taskHeader}>
+                          <Text style={styles.taskTitle}>
+                            {task.description || task.title || "Untitled Task"}
+                          </Text>
+                          <View style={styles.taskPriority}>
+                            <View style={styles.priorityDot} />
+                          </View>
+                        </View>
+                        <View style={styles.taskTimeContainer}>
+                          <Text style={styles.taskDate}>
+                            {task.deadline
+                              ? new Date(task.deadline).toLocaleDateString()
+                              : "No deadline"}
+                          </Text>
+                          {task.deadline && (
+                            <Text style={styles.taskTimeFromNow}>
+                              Due in {getTimeFromNow(task.deadline)}
+                            </Text>
+                          )}
+                        </View>
+                      </LinearGradient>
+                    ))}
+                  </View>
+                )}
+
+                {/* Control Panel - Only show when setup is complete */}
+                <TouchableOpacity
+                  style={styles.controlPanel}
+                  onPress={() => navigation.navigate("Settings")}
+                >
+                  <LinearGradient
+                    colors={["#00926eff", "#007263ff"]}
+                    style={styles.controlGradient}
+                  >
+                    <Ionicons name="settings" size={20} color="#000000" />
+                    <Text style={styles.controlText}>CONTROL PANEL</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color="#000000"
+                    />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
         showsVerticalScrollIndicator={false}
@@ -734,7 +1132,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 0,
   },
-  // PEBO Robot Styles
+  // PEBO Robot Styles - Normal Position
   peboRobotContainer: {
     position: "absolute",
     top: height * 0.15,
@@ -749,6 +1147,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 20,
     shadowOpacity: 0.6,
+  },
+  // PEBO Robot Styles - Setup Position (bigger and centered)
+  peboRobotContainerSetupBig: {
+    position: "absolute",
+    top: height * 0.45,
+    left: (width - 280) / 2,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    overflow: "hidden",
+    borderWidth: 4,
+    borderColor: "rgba(29, 233, 182, 0.8)",
+    shadowColor: "#1DE9B6",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 40,
+    shadowOpacity: 1,
   },
   robotTouchArea: {
     width: "100%",
@@ -776,18 +1190,71 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
-  // Rest of your existing styles...
-  rotatingRing: {
-    position: "absolute",
-    top: 100,
-    right: 50,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 2,
-    borderColor: "rgba(29, 233, 182, 0.3)",
-    borderStyle: "dashed",
+  // Warning styles
+  warningContainer: {
+    marginBottom: 20,
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 82, 82, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 82, 82, 0.3)",
   },
+  warningHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  warningTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FF5252",
+    marginLeft: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    color: "#FFFFFF",
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  setupProgress: {
+    marginBottom: 20,
+  },
+  setupProgressTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginBottom: 12,
+  },
+  setupItems: {
+    gap: 8,
+  },
+  setupItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  setupItemText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  warningButton: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  warningButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  warningButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+    marginLeft: 8,
+  },
+  // Background elements
   pulseOrb1: {
     position: "absolute",
     top: 150,
@@ -895,11 +1362,20 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+  // Normal Stats Grid
   statsGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 32,
   },
+  // Setup Stats Grid - Moved up and more compact
+  statsGridSetup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+    marginTop: 5,
+  },
+  // Normal Stat Card
   statCard: {
     borderRadius: 16,
     padding: 20,
@@ -911,10 +1387,21 @@ const styles = StyleSheet.create({
     position: "relative",
     overflow: "hidden",
   },
-  statIcon: {
-    marginBottom: 12,
+  // Small Stat Card for Setup Warning
+  statCardSmall: {
+    borderRadius: 12,
+    padding: 10,
+    alignItems: "center",
+    flex: 1,
+    marginHorizontal: 2,
+    borderWidth: 1,
+    borderColor: "rgba(29, 233, 182, 0.3)",
+    position: "relative",
+    overflow: "hidden",
   },
-
+  statIcon: {
+    marginBottom: 8,
+  },
   statNumber: {
     fontSize: 28,
     fontWeight: "900",
@@ -923,18 +1410,29 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
   },
+  // Small stat number for setup warning
+  statNumberSmall: {
+    fontSize: 16,
+    marginBottom: 2,
+  },
   stat1Number: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "900",
     color: "#1DE9B6",
     textShadowColor: "#1DE9B6",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
+    textAlign: "center",
+  },
+  // Small stat1 number for setup warning
+  stat1NumberSmall: {
+    fontSize: 9,
+    marginBottom: 1,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#888",
-    marginTop: 8,
+    marginTop: 6,
     letterSpacing: 1,
     textTransform: "uppercase",
   },
@@ -1057,9 +1555,20 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#1DE9B6",
   },
+  taskTimeContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   taskDate: {
     fontSize: 11,
     color: "#888",
+    textTransform: "uppercase",
+  },
+  taskTimeFromNow: {
+    fontSize: 11,
+    color: "#1DE9B6",
+    fontWeight: "600",
     textTransform: "uppercase",
   },
   controlPanel: {
