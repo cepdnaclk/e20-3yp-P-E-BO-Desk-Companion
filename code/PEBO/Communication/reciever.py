@@ -5,7 +5,7 @@ import time
 import queue
 
 class AudioNode:
-    def __init__(self, listen_port=8889, target_host='192.168.124.182', target_port=8888):
+    def __init__(self, listen_port=8889, target_host='192.168.124.94', target_port=8888):
         self.CHUNK = 2048
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
@@ -128,7 +128,7 @@ class AudioNode:
         self.speaker_stream.close()
         self.audio.terminate()
 
-def start_audio_node(listen_port=8889, target_host=' 192.168.124.182', target_port=8888):
+def start_audio_node(listen_port=8889, target_host=' 192.168.124.94', target_port=8888):
     """
     Start the audio node for laptop communication.
     
