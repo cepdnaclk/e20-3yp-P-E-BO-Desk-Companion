@@ -1,58 +1,70 @@
-# controller.py
+import subprocess
 import speech_recognition as sr
-from audio_node import AudioNode
+import signal
 import time
+import os
 
-# Modify these IPs depending on the device
-MY_IP = "192.168.124.182"         # This device's IP
-OTHER_PEBO_IP = "192.168.124.94"  # The other device's IP
+# Keep reference to subprocess
+process = None
 
-MY_LISTEN_PORT = 8889
-OTHER_PEBO_PORT = 8888
-
-audio_node = None
+# Path to sender and receiver scripts
+SENDER_SCRIPT = "sender.py"
+RECEIVER_SCRIPT = "receiver.py"
 
 def listen_command():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        print("[COMMAND] Listening...")
-        audio = r.listen(source, timeout=5, phrase_time_limit=5)
+        print("[LISTENING] Speak a command...")
+        try:
+            audio = r.listen(source, timeout=5, phrase_time_limit=5)
+        except sr.WaitTimeoutError:
+            print("[TIMEOUT] No speech detected.")
+            return ""
     try:
         command = r.recognize_google(audio).lower()
-        print("[COMMAND] Recognized:", command)
+        print(f"[RECOGNIZED] Command: {command}")
         return command
     except sr.UnknownValueError:
-        print("[COMMAND] Could not understand")
+        print("[ERROR] Could not understand audio.")
         return ""
-    except sr.RequestError:
-        print("[COMMAND] API unavailable")
+    except sr.RequestError as e:
+        print(f"[ERROR] Speech Recognition service error: {e}")
         return ""
 
+def start_script(script_name):
+    global process
+    if process is None or process.poll() is not None:
+        print(f"[STARTING] {script_name}")
+        process = subprocess.Popen(["python3", script_name])
+    else:
+        print("[INFO] A communication process is already running.")
+
+def stop_script():
+    global process
+    if process and process.poll() is None:
+        print("[STOPPING] Communication process...")
+        process.send_signal(signal.SIGINT)
+        time.sleep(1)
+        if process.poll() is None:
+            process.terminate()
+        process = None
+    else:
+        print("[INFO] No communication process is currently running.")
+
 def main():
-    global audio_node
-    print("[SYSTEM] Say 'send message', 'answer', or 'end communication'")
+    print("[SYSTEM READY] Say 'send message', 'answer', or 'end communication'")
     while True:
         try:
             cmd = listen_command()
-            if "send message" in cmd or "answer" in cmd:
-                if not audio_node:
-                    audio_node = AudioNode(
-                        listen_port=MY_LISTEN_PORT,
-                        target_host=OTHER_PEBO_IP,
-                        target_port=OTHER_PEBO_PORT
-                    )
-                    audio_node.start()
-                else:
-                    print("[INFO] Already in communication")
+            if "send message" in cmd:
+                start_script(SENDER_SCRIPT)
+            elif "answer" in cmd:
+                start_script(RECEIVER_SCRIPT)
             elif "end communication" in cmd:
-                if audio_node:
-                    audio_node.stop()
-                    audio_node = None
-                else:
-                    print("[INFO] No active communication to stop")
+                stop_script()
         except KeyboardInterrupt:
-            if audio_node:
-                audio_node.stop()
+            stop_script()
+            print("[EXIT] Controller stopped.")
             break
 
 if __name__ == "__main__":
