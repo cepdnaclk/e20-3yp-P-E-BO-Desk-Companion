@@ -4,8 +4,8 @@ from audio_node import AudioNode
 import time
 
 # Modify these IPs depending on the device
-MY_IP = "192.168.124.182"         # This device's IP
-OTHER_PEBO_IP = "192.168.124.94"  # The other device's IP
+MY_IP = "192.168.124.94"         # This device's IP
+OTHER_PEBO_IP = "192.168.124.182"  # The other device's IP
 
 MY_LISTEN_PORT = 8889
 OTHER_PEBO_PORT = 8888
