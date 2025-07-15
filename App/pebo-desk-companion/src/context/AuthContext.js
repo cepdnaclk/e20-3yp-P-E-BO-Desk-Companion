@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       console.warn(
-        "⚠️ Auth fallback triggered — onAuthStateChanged may have failed."
+        "âš ï¸ Auth fallback triggered â€” onAuthStateChanged may have failed."
       );
       setLoading(false);
     }, 5000);
@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
       const handleUser = async () => {
         clearTimeout(timeout);
         try {
-          if (__DEV__) console.log("🔔 Auth state changed:", currentUser);
+          if (__DEV__) console.log("ðŸ”” Auth state changed:", currentUser);
 
           if (currentUser) {
             setUser(currentUser);
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
             await AsyncStorage.removeItem("user");
           }
         } catch (err) {
-          console.error("❌ Auth state handling error:", err);
+          console.error("âŒ Auth state handling error:", err);
         } finally {
           setLoading(false);
         }

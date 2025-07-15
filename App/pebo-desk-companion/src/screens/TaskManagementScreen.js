@@ -208,20 +208,26 @@ const TaskManagementScreen = () => {
     setDeletePopupVisible(true);
   };
 
-  const confirmDeleteTask = async () => {
-    if (!taskToDelete) return;
+const confirmDeleteTask = async () => {
+  if (!taskToDelete) return;
 
-    try {
-      await deleteTask(taskToDelete);
+  try {
+    const success = await deleteTask(taskToDelete);
+    if (success) {
       setTasks((ts) => ts.filter((t) => t.id !== taskToDelete));
       showPopup("Success", "Task deleted successfully", "checkmark-circle");
-    } catch {
+    } else {
       showPopup("Error", "Failed to delete task", "alert-circle");
-    } finally {
-      setDeletePopupVisible(false);
-      setTaskToDelete(null);
     }
-  };
+  } catch (error) {
+    console.error("Delete task error:", error);
+    showPopup("Error", "Failed to delete task", "alert-circle");
+  } finally {
+    setDeletePopupVisible(false);
+    setTaskToDelete(null);
+  }
+};
+
 
   const editTaskHandler = (item) => {
     setEditingTask(item);

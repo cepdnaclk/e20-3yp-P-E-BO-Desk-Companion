@@ -13,6 +13,7 @@
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/datetimepicker": "8.4.1",
+    "@react-native-community/netinfo": "^11.4.1",
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/bottom-tabs": "^7.3.12",
     "@react-navigation/native": "^7.1.8",
@@ -21,6 +22,7 @@
     "axios": "^1.9.0",
     "dayjs": "^1.11.13",
     "expo": "53.0.19",
+    "expo-av": "~15.1.7",
     "expo-blur": "~14.1.5",
     "expo-dev-client": "~5.2.4",
     "expo-font": "~13.3.2",
@@ -53,8 +55,7 @@
     "react-native-svg": "15.11.2",
     "react-native-ui-datepicker": "^3.1.2",
     "react-native-vector-icons": "^10.2.0",
-    "text-encoding": "^0.7.0",
-    "expo-av": "~15.1.7"
+    "text-encoding": "^0.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
