@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P-E-BO - Your Ultimate Futuristic Desk Companion</title>
+    <title>P-E-BO - Your Desk Companion</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -20,86 +20,18 @@
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap"
         rel="stylesheet">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
-        /* Modern CSS Variables */
-        :root {
-            --primary-color: #2A9D8F;
-            --secondary-color: #264653;
-            --accent-color: #E9C46A;
-            --dark-bg: #121212;
-            --dark-card: #1a1a1a;
-            --text-light: #f1f1f1;
-            --text-secondary: #bbb;
-            --neon-cyan: #00ffcc;
-            --neon-pink: #ff00ff;
-            --neon-red: #ff0000;
-            --gradient-primary: linear-gradient(135deg, #2A9D8F 0%, #E9C46A 100%);
-            --gradient-secondary: linear-gradient(135deg, #264653 0%, #2A9D8F 100%);
-            --shadow-neon: 0 0 20px rgba(0, 255, 204, 0.5);
-            --shadow-pink: 0 0 20px rgba(255, 0, 255, 0.5);
-            --mouse-x: 0;
-            --mouse-y: 0;
-        }
+        /* Importing Modern and Futuristic Fonts */
+        @import url("https://fonts.googleapis.com/css2?family=Orbitron&family=Russo+One&display=swap");
 
-        /* General Styles */
+        /* General Reset */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--text-light);
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            cursor: none;
-        }
-
-        /* Custom Cursor */
-        .cursor {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--neon-cyan);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            transition: all 0.1s ease;
-            mix-blend-mode: difference;
-        }
-
-        .cursor::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 6px;
-            height: 6px;
-            background: var(--neon-cyan);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .cursor.hover {
-            width: 40px;
-            height: 40px;
-            border-color: var(--neon-pink);
-            background: rgba(255, 0, 255, 0.1);
-        }
-
-        .cursor.click {
-            width: 60px;
-            height: 60px;
-            border-color: var(--neon-red);
-            background: rgba(255, 0, 0, 0.2);
-        }
-
-        /* Typography */
+        /* Headings - Orbitron */
         h1,
         h2,
         h3,
@@ -108,270 +40,128 @@
         h6 {
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
+        }
+
+        /* Body text - Roboto */
+        body,
+        p,
+        span,
+        li,
+        div {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 550;
+        }
+
+        /* Navbar, Hero Section, and Specific Elements - Orbitron */
+        nav,
+        .hero-section,
+        .member-name,
+        .numbers,
+        a,
+        button {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
             text-transform: uppercase;
         }
 
-        /* Advanced Animated Background */
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(45deg, #121212, #1a1a1a, #0f0f0f);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+        /* Ensure buttons and links stand out */
+        button,
+        a {
+            font-size: 1rem;
+            letter-spacing: 1px;
         }
 
-        @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
+        /* Adjustments for readability */
+        h1 {
+            font-size: 2.5rem;
         }
 
-        /* Interactive Grid Background */
-        .grid-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-image:
-                linear-gradient(rgba(42, 157, 143, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(42, 157, 143, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridMove 20s linear infinite;
+        h2 {
+            font-size: 2rem;
         }
 
-        @keyframes gridMove {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            100% {
-                transform: translate(50px, 50px);
-            }
+        h3 {
+            font-size: 1.75rem;
         }
 
-        /* Mouse Parallax Elements */
-        .parallax-element {
-            position: fixed;
-            border-radius: 50%;
-            opacity: 0.7;
-            pointer-events: none;
-            z-index: -1;
-            transition: transform 0.1s ease-out;
+        p {
+            font-size: 1rem;
+            line-height: 1.6;
         }
 
-        .parallax-element.sphere1 {
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, var(--neon-cyan), transparent);
-            top: 20%;
-            left: 10%;
-            transform: translate(calc(var(--mouse-x) * 0.02), calc(var(--mouse-y) * 0.02));
+        /* Body and General Styles */
+        body {
+            background-color: #121212;
+            color: #f1f1f1;
+            margin: 0;
+            padding: 0;
         }
 
-        .parallax-element.sphere2 {
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, var(--neon-pink), transparent);
-            top: 60%;
-            right: 10%;
-            transform: translate(calc(var(--mouse-x) * -0.015), calc(var(--mouse-y) * -0.015));
-        }
-
-        .parallax-element.sphere3 {
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle, var(--accent-color), transparent);
-            top: 40%;
-            left: 70%;
-            transform: translate(calc(var(--mouse-x) * 0.025), calc(var(--mouse-y) * 0.025));
-        }
-
-        /* Floating particles with mouse interaction */
-        .particle {
-            position: fixed;
-            width: 4px;
-            height: 4px;
-            background: var(--neon-cyan);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-            z-index: -1;
-            opacity: 0.6;
-            transition: transform 0.3s ease;
-        }
-
-        .particle:nth-child(2n) {
-            background: var(--neon-pink);
-            animation-delay: -2s;
-        }
-
-        .particle:nth-child(3n) {
-            background: var(--accent-color);
-            animation-delay: -4s;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-20px) rotate(180deg);
-            }
-        }
-
-        /* Interactive Geometric Shapes */
-        .geometric-shape {
-            position: fixed;
-            z-index: -1;
-            opacity: 0.3;
-            transition: all 0.3s ease;
-        }
-
-        .geometric-shape.triangle {
-            width: 0;
-            height: 0;
-            border-left: 25px solid transparent;
-            border-right: 25px solid transparent;
-            border-bottom: 50px solid var(--primary-color);
-            top: 30%;
-            left: 20%;
-            animation: rotate 20s linear infinite;
-        }
-
-        .geometric-shape.square {
-            width: 40px;
-            height: 40px;
-            background: var(--secondary-color);
-            top: 70%;
-            right: 20%;
-            animation: rotate 15s linear infinite reverse;
-        }
-
-        .geometric-shape.hexagon {
-            width: 60px;
-            height: 34.64px;
-            background: var(--accent-color);
-            position: relative;
-            top: 50%;
-            left: 50%;
-            animation: rotate 25s linear infinite;
-        }
-
-        .geometric-shape.hexagon:before,
-        .geometric-shape.hexagon:after {
-            content: "";
-            position: absolute;
-            width: 0;
-            border-left: 30px solid transparent;
-            border-right: 30px solid transparent;
-        }
-
-        .geometric-shape.hexagon:before {
-            bottom: 100%;
-            border-bottom: 17.32px solid var(--accent-color);
-        }
-
-        .geometric-shape.hexagon:after {
-            top: 100%;
-            border-top: 17.32px solid var(--accent-color);
-        }
-
-        @keyframes rotate {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Enhanced Navbar */
+        /* Navbar */
+        /* Navbar */
         .navbar {
-            background: rgba(26, 26, 26, 0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(42, 157, 143, 0.3);
-            padding: 15px 0;
-            transition: all 0.3s ease;
-        }
-
-        .navbar.scrolled {
-            background: rgba(26, 26, 26, 0.98) !important;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .navbar-brand {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #fff !important;
-            text-shadow: 0 0 15px var(--neon-cyan);
-            transition: all 0.3s ease;
-        }
-
-        .navbar-brand:hover {
-            text-shadow: 0 0 25px var(--neon-cyan);
-            transform: scale(1.05);
-        }
-
-        .nav-link {
-            font-size: 0.9rem;
-            color: var(--text-secondary) !important;
-            text-shadow: 0 0 8px var(--neon-pink);
-            transition: all 0.3s ease;
-            position: relative;
-            margin: 0 10px;
-        }
-
-        .nav-link:hover {
-            color: #ffffff !important;
-            text-shadow: 0 0 15px var(--neon-red);
-            transform: translateY(-2px);
-        }
-
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--gradient-primary);
-            transition: width 0.3s ease;
-        }
-
-        .nav-link:hover::after {
+            background-color: #1a1a1a;
+            border-bottom: 1px solid #444;
+            padding: 15px 20px;
+            position: fixed;
+            top: 0;
             width: 100%;
+            z-index: 1000;
         }
 
-        /* Enhanced Hero Section */
+        .navbar .navbar-brand {
+            font-size: 1.8rem;
+            color: #fff;
+            text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
+            justify-content: left;
+        }
+
+        .navbar .nav-link {
+            font-size: 0.9rem;
+            color: #bbb !important;
+            text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+            text-decoration: none;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+            justify-content: right;
+        }
+
+        .navbar .nav-link:hover {
+            color: #ffffff !important;
+            text-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                text-align: center;
+                gap: 13px;
+            }
+        }
+
+        /* Hero Section */
         .hero-section {
             position: relative;
             height: 100vh;
-            background: linear-gradient(135deg,
-                    rgba(18, 18, 18, 0.9) 0%,
-                    rgba(26, 26, 26, 0.8) 50%,
-                    rgba(15, 15, 15, 0.9) 100%),
-                url("bot.png") no-repeat center center/cover;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: url("bot.png") no-repeat center center/cover;
+            padding: 120px 0;
+            color: #fff;
+            transition: height 0.3s ease-in-out;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-section.shrink {
+            height: 70vh;
+            filter: blur(2px);
+            background-color: rgba(0, 0, 0, 0.8);
         }
 
         .hero-section::before {
@@ -381,487 +171,965 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 30% 40%, rgba(42, 157, 143, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 70% 80%, rgba(233, 196, 106, 0.2) 0%, transparent 50%);
-            animation: heroGlow 8s ease-in-out infinite alternate;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1;
         }
 
-        @keyframes heroGlow {
-            0% {
-                opacity: 0.3;
-            }
-
-            100% {
-                opacity: 0.7;
-            }
+        .hero-section.shrink::before {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(7px);
         }
 
-        /* Mouse Trail Effect */
-        .mouse-trail {
-            position: fixed;
-            width: 6px;
-            height: 6px;
-            background: var(--neon-cyan);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9998;
-            opacity: 0.8;
-            animation: trailFade 0.5s ease-out forwards;
+        .hero-section .container {
+            position: absolute;
+            top: 48%;
+            left: 48%;
+            transform: translate(-50%, -50%);
+            text-align: center !important;
+            color: #fff;
+            z-index: 2;
         }
 
-        @keyframes trailFade {
-            0% {
-                opacity: 0.8;
-                transform: scale(1);
-            }
-
-            100% {
-                opacity: 0;
-                transform: scale(0.5);
-            }
+        .hero-section h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #4caf50;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 0, 0.5);
         }
 
-        /* Interactive Ripple Effect */
-        .ripple {
-            position: fixed;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(42, 157, 143, 0.4), transparent);
-            animation: rippleEffect 1s ease-out forwards;
-            pointer-events: none;
-            z-index: 9997;
-        }
-
-        @keyframes rippleEffect {
-            0% {
-                width: 0;
-                height: 0;
-                opacity: 0.8;
-            }
-
-            100% {
-                width: 200px;
-                height: 200px;
-                opacity: 0;
-            }
-        }
-
-        .hero-content {
-            text-align: center;
+        .hero-section p,
+        .hero-section a.btn {
             z-index: 2;
             position: relative;
         }
 
-        .hero-title {
-            font-size: 4rem;
-            font-weight: 900;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(42, 157, 143, 0.5);
-            margin-bottom: 1.5rem;
-            animation: titlePulse 3s ease-in-out infinite;
-            transition: transform 0.1s ease;
+        /* Section Backgrounds */
+        #solution-architecture,
+        #hardware,
+        #testing,
+        #security,
+        .bg-dark,
+        #team,
+        #features,
+        #links,
+        #timeline {
+            background-color: #121212 !important;
+            color: #f1f1f1;
         }
 
-        @keyframes titlePulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
+        #solution-architecture ul,
+        #hardware ul,
+        #testing ul,
+        #security ul {
+            list-style-type: none;
+            padding-left: 0;
         }
 
-        .hero-subtitle {
-            font-size: 1.5rem;
-            color: var(--text-light);
-            margin-bottom: 2rem;
-            opacity: 0.9;
-            animation: subtitleFade 2s ease-in-out;
+        #solution-architecture ul li,
+        #hardware ul li,
+        #testing ul li,
+        #security ul li {
+            margin-bottom: 10px;
         }
 
-        @keyframes subtitleFade {
-            0% {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            100% {
-                opacity: 0.9;
-                transform: translateY(0);
-            }
+        /* Budget and Useful Links Section */
+        #budget,
+        #useful-links {
+            background-color: #1a1a1a;
+            padding: 40px 0;
         }
 
-        .hero-btn {
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-transform: uppercase;
+        #budget h2,
+        #useful-links h2 {
+            color: #f5b1ab;
+            text-shadow: 0 0 10px #ff6f61, 0 0 15px #ff6f61;
+        }
+
+        /* Team Section */
+        .team-img {
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border: 3px solid #ff6f61;
+        }
+
+        #team .col-md-3 {
+            margin-bottom: 30px;
+        }
+
+        #team h5 {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+        }
+
+        /* Links Section */
+        #links .list-inline-item {
+            margin-right: 10px;
+        }
+
+        #links .btn-outline-dark {
+            border-color: #fff;
+            color: #fff;
+            border-radius: 25px;
+            padding: 12px 24px;
+            margin: 10px 0;
+            text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
+        }
+
+        #links .btn-outline-dark:hover {
+            background-color: #fff;
+            color: #121212;
+            text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #1a1a1a;
+            color: #bbb;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Feature Section */
+        .feature-card {
+            background-color: #1a1a1a;
+            border-radius: 10px;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(42, 157, 143, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 2px solid #ff6f61;
+            padding: 20px;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card i {
+            color: #ff6f61;
+            text-shadow: 0 0 10px #ff6f61, 0 0 18px #ff6f61;
+        }
+
+        .feature-card i:hover {
+            color: #f1f1f1;
+            text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .col-md-4 {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+            height: 100%;
+        }
+
+        @media (max-width: 767px) {
+            .col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        /* Custom Table Styling */
+        table {
+            background-color: #1a1a1a;
+            color: #f1f1f1;
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            text-align: center;
+            padding: 15px;
+        }
+
+        table th {
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        table td {
+            color: #f1f1f1;
+        }
+
+        table td strong {
+            color: #ff6f61;
+        }
+
+        /* General Section Padding */
+        section {
+            padding: 60px 0;
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #f5b1ab;
+            text-shadow: 0 0 10px #ff6f61, 0 0 15px #ff6f61;
+        }
+
+        section p {
+            font-size: 1.1rem;
+        }
+
+        /* Solution Architecture Section */
+        #solution-architecture ul,
+        #hardware ul {
+            list-style-type: none;
+            padding-left: 0;
+            text-align: left;
+        }
+
+        #solution-architecture ul li,
+        #hardware ul li {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
             position: relative;
-            overflow: hidden;
+            padding-left: 30px;
         }
 
-        .hero-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(42, 157, 143, 0.5);
-            color: white;
-        }
-
-        .hero-btn::before {
-            content: '';
+        #solution-architecture ul li::before,
+        #hardware ul li::before {
+            content: "•";
+            font-size: 2rem;
+            color: #ff6f61;
             position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #solution-architecture ul li:hover,
+        #hardware ul li:hover {
+            color: #29b6f6;
+            transition: color 0.3s ease;
+        }
+
+        #solution-architecture img,
+        #hardware img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 0 auto;
+            border: 5px solid #ff6f61;
+        }
+
+        #solution-architecture img:hover,
+        #hardware img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            padding-top: 100px;
+            left: 0;
             top: 0;
-            left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            display: flex;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
 
-        .hero-btn:hover::before {
-            left: 100%;
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
         }
 
-        /* Enhanced Sections */
-        .section {
-            padding: 80px 0;
-            position: relative;
+        .modal-content {
+            max-width: 80%;
+            max-height: 80%;
+            margin: auto;
+            transition: transform 0.3s ease;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #2A9D8F;
         }
 
-        .section::before {
-            content: '';
+        .modal-content:hover {
+            transform: scale(1.05);
+        }
+
+        .close {
+            color: #fff;
+            font-size: 30px;
+            font-weight: bold;
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: var(--gradient-primary);
-            opacity: 0.5;
+            top: 10px;
+            right: 35px;
+            transition: 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #f1f1f1;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Button Style for Portfolio Links */
+        #team .btn-outline-light {
+            text-decoration: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            transition: background-color 0.3s, color 0.3s;
+            border: 1px solid orange;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #team .btn-outline-light:hover {
+            background-color: #ff6f61;
+            color: #121212;
+        }
+
+        /* AOS Animation */
+        [data-aos="fade-up"] {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-in-out;
+        }
+
+        [data-aos="fade-up"]:not([data-aos="fade-up"][data-aos-delay]) {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        [data-aos="fade-up"]:not([data-aos="fade-up"][data-aos-delay]) {
+            transition-delay: 0.2s;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 767px) {
+
+            #solution-architecture h2,
+            #hardware h2 {
+                font-size: 2rem;
+            }
+
+            #solution-architecture p,
+            #hardware p {
+                font-size: 1rem;
+            }
+
+            #solution-architecture ul li,
+            #hardware ul li {
+                font-size: 1rem;
+            }
+
+            #solution-architecture img,
+            #hardware img {
+                width: 100%;
+                height: auto;
+                border-radius: 10px;
+            }
+
+            .navbar-toggler {
+                border-color: #fff;
+            }
+
+            .navbar-toggler-icon {
+                background-color: #fff;
+            }
+
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+
+            .feature-card {
+                padding: 20px;
+            }
+
+            .team-img {
+                width: 120px;
+                height: 120px;
+                border: 5px solid orange;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                transition: transform 0.3s ease;
+            }
+
+            .btn-outline-dark {
+                padding: 10px 20px;
+            }
+
+            .hero-section {
+                background-position: top;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+                padding: 10px;
+            }
+
+            .container {
+                display: flex;
+                flex-direction: column;
+                padding: 5px;
+            }
+
+            img {
+                width: 100%;
+                height: auto;
+            }
+
+            nav {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .bot-image {
+                width: 70%;
+            }
+        }
+
+        /* Scroll Animation */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-in-out;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+        }
+
+        /* Description Fonts Styling */
+        .description {
+            font-family: "Roboto", sans-serif;
+            font-size: 28px;
+            line-height: 1.3;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+            text-align: center;
+        }
+
+        .description em {
+            font-style: italic;
+        }
+
+        .description strong {
+            font-weight: bold;
+        }
+
+        .tech-card {
+            background: var(--bs-dark);
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .clickable-img {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .clickable-img:hover {
+            transform: scale(1.03);
+        }
+
+        :root {
+            --primary: #2A9D8F;
+            --secondary: #264653;
+            --accent: #E9C46A;
+            --dark: #2B2D42;
+        }
+
+        .bg-dark2 {
+            background: #1a1a1a;
         }
 
         .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             position: relative;
-            color: var(--text-light);
-            text-shadow: 0 0 10px rgba(42, 157, 143, 0.5);
+            padding-bottom: 1rem;
         }
 
         .section-title::after {
             content: '';
             position: absolute;
-            bottom: -10px;
+            bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 60px;
             height: 3px;
-            background: var(--gradient-primary);
-            border-radius: 2px;
+            background: var(--primary);
         }
 
-        /* Enhanced Cards with Mouse Interaction */
-        .feature-card {
-            background: rgba(26, 26, 26, 0.8);
-            border: 1px solid rgba(42, 157, 143, 0.3);
+        .tech-card {
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             padding: 2rem;
-            height: 100%;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            cursor: pointer;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(42, 157, 143, 0.1), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
-        }
-
-        .feature-card:hover::before {
-            transform: translateX(100%);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(42, 157, 143, 0.2);
-            border-color: var(--primary-color);
-        }
-
-        .feature-card i {
-            font-size: 3rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .feature-card:hover i {
-            color: var(--accent-color);
-            transform: scale(1.1) rotate(15deg);
-        }
-
-        .feature-card h5 {
-            color: var(--text-light);
-            margin-bottom: 1rem;
-            font-size: 1.25rem;
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        /* Enhanced Images with Depth Effect */
-        .arch-image,
-        .mobile-app-image {
-            width: 100%;
-            max-width: 350px;
-            height: auto;
-            border-radius: 15px;
-            border: 2px solid rgba(42, 157, 143, 0.3);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .arch-image:hover,
-        .mobile-app-image:hover {
-            transform: scale(1.05) rotateY(10deg);
-            border-color: var(--primary-color);
-            box-shadow: 0 15px 30px rgba(42, 157, 143, 0.3);
-        }
-
-        /* Enhanced Technology Stack */
-        .stack-tabs .nav-link {
-            background: rgba(26, 26, 26, 0.5);
-            border: 1px solid rgba(42, 157, 143, 0.3);
-            border-radius: 10px;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .stack-tabs .nav-link.active {
-            background: var(--gradient-primary);
-            color: white;
-            border-color: var(--primary-color);
-            box-shadow: 0 5px 15px rgba(42, 157, 143, 0.3);
-        }
-
-        .stack-item {
-            background: rgba(26, 26, 26, 0.6);
-            border: 1px solid rgba(42, 157, 143, 0.3);
-            border-radius: 10px;
-            padding: 1.5rem;
-            height: 100%;
-            transition: all 0.3s ease;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .stack-item:hover {
-            transform: translateY(-5px) rotateX(5deg);
-            border-color: var(--primary-color);
-            box-shadow: 0 10px 20px rgba(42, 157, 143, 0.2);
+        .tech-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .tech-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 1rem;
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .arch-image {
             border-radius: 10px;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .arch-image:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+
+        .achievement-card {
+            position: relative;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .achievement-number {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            background: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--gradient-primary);
+            font-weight: 700;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--dark) 100%);
+        }
+
+        .styled-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .styled-list li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .styled-list li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        /* Technology Stack */
+        .stack-tabs .nav-link {
+            border-left: 4px solid transparent;
             transition: all 0.3s ease;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
         }
 
-        .tech-icon:hover {
-            transform: rotate(360deg) scale(1.1);
+        .stack-tabs .nav-link.active {
+            border-left-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        /* Enhanced Budget Table */
-        .budget-table {
-            background: rgba(26, 26, 26, 0.8);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
         }
 
-        .budget-table th {
-            background: var(--gradient-primary);
-            color: white;
+        .stack-item {
+            background: rgba(255, 255, 255, 0.03);
             padding: 1.5rem;
-            font-weight: 600;
+            border-radius: 10px;
             text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 100%;
         }
 
-        .budget-table td {
-            padding: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(42, 157, 143, 0.3);
-            color: var(--text-light);
-            transition: all 0.3s ease;
+        .stack-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .budget-table tbody tr:hover {
-            background: rgba(42, 157, 143, 0.1);
-            transform: scale(1.02);
+        /* Achievements Timeline */
+        .achievement-timeline {
+            position: relative;
+            padding-left: 40px;
         }
 
-        .budget-table .total-row {
-            background: rgba(42, 157, 143, 0.2);
-            font-weight: 600;
-        }
-
-        /* Enhanced Timeline */
         .timeline-item {
             position: relative;
             padding: 2rem 0;
-            border-left: 3px solid var(--primary-color);
-            margin-left: 30px;
+            border-left: 2px solid var(--primary);
         }
 
         .timeline-badge {
             position: absolute;
-            left: -15px;
+            left: -21px;
             top: 2rem;
-            width: 30px;
-            height: 30px;
-            background: var(--gradient-primary);
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 700;
-            box-shadow: 0 0 0 5px var(--dark-bg);
-            transition: all 0.3s ease;
-        }
-
-        .timeline-badge:hover {
-            transform: scale(1.2);
-            box-shadow: 0 0 20px rgba(42, 157, 143, 0.5);
+            font-size: 1.2rem;
         }
 
         .timeline-content {
-            background: rgba(26, 26, 26, 0.8);
-            padding: 2rem;
-            border-radius: 15px;
-            margin-left: 2rem;
-            border: 1px solid rgba(42, 157, 143, 0.3);
-            transition: all 0.3s ease;
+            background: rgb(0, 0, 0);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-left: 3rem;
+        }
+
+        .progress-wrapper {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            height: 30px;
+        }
+
+        .achievement-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .achievement-meta li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Frontend Specific Styles */
+        .bg-flutter {
+            background: #02569B;
+            background: linear-gradient(135deg, #02569B 0%, #13B9FD 100%);
+        }
+
+        .bg-robot {
+            background: #FF6F61;
+            background: linear-gradient(135deg, #FF6F61 0%, #FFA500 100%);
+        }
+
+        .bg-web {
+            background: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+        }
+
+        .stack-item .row {
+            margin-top: 1rem;
+        }
+
+        .stack-item img {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stack-item img:hover {
+            transform: scale(1.03);
+            border-color: var(--primary);
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list i {
+            width: 24px;
+            margin-right: 0.75rem;
+            color: var(--primary);
+        }
+
+        .stack-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .tech-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .stack-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline-content {
+                margin-left: 1rem;
+            }
+
+            .stack-item {
+                padding: 1rem;
+            }
+
+            .stack-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .feature-list li {
+                font-size: 0.9rem;
+            }
+
+            .stack-item h5 {
+                font-size: 1.1rem;
+            }
+
+            .stack-item .row>div {
+                margin-bottom: 1rem;
+            }
+
+            .stack-item img {
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stack-item .row>div {
+                margin-bottom: 1rem;
+            }
+
+            .stack-item img {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Mobile App Grid for 3+2 Image Layout */
+        .mobile-app-grid {
+            margin-top: 2rem;
+        }
+
+        .mobile-app-grid .row {
+            margin-bottom: 1.5rem;
+            /* Reduced space between rows */
+        }
+
+        .mobile-app-grid .mobile-app-image {
+            width: 350px;
+            /* Fixed width for uniform size */
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            /* Ensures images fit without stretching */
+            border-radius: 10px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
             cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .timeline-content:hover {
-            transform: translateX(10px) scale(1.02);
-            border-color: var(--primary-color);
-            box-shadow: 0 10px 20px rgba(42, 157, 143, 0.2);
+        .mobile-app-grid .mobile-app-image:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            /* #2A9D8F */
         }
 
-        /* Enhanced Team Section */
-        .team-img {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 3px solid var(--primary-color);
-            transition: all 0.3s ease;
-            object-fit: cover;
-            margin-bottom: 1rem;
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 767px) {
+            .mobile-app-grid .row {
+                margin-bottom: 0;
+                /* Remove extra margin on mobile */
+            }
+
+            .mobile-app-grid .mobile-app-image {
+                width: 180px;
+                /* Slightly smaller on mobile */
+                margin-bottom: 1rem;
+                /* Space between stacked images */
+            }
         }
 
-        .team-img:hover {
-            transform: scale(1.1) rotate(5deg);
-            border-color: var(--accent-color);
-            box-shadow: 0 0 20px rgba(42, 157, 143, 0.5);
+        /* Stacked Images for Mobile App Section */
+        .stacked-images {
+            display: flex;
+            flex-direction: ROW;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
         }
 
-        .team-card {
-            text-align: center;
-            padding: 2rem;
-            background: rgba(26, 26, 26, 0.6);
-            border-radius: 15px;
-            border: 1px solid rgba(42, 157, 143, 0.3);
-            transition: all 0.3s ease;
+        .stacked-images .arch-image {
+            max-width: 100%;
+            width: 300px;
+            /* Fixed width for consistency */
+            height: auto;
+            border-radius: 10px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
             cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .team-card:hover {
-            transform: translateY(-10px) rotateY(5deg);
-            border-color: var(--primary-color);
-            box-shadow: 0 15px 30px rgba(42, 157, 143, 0.2);
+        .stacked-images .arch-image:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            /* #2A9D8F */
         }
 
-        .team-name {
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
-            text-shadow: 0 0 5px rgba(42, 157, 143, 0.3);
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 576px) {
+            .stacked-images .arch-image {
+                width: 100%;
+                max-width: 280px;
+                /* Slightly smaller on mobile */
+            }
         }
 
-        .team-id {
-            color: var(--text-secondary);
-            font-family: 'Orbitron', monospace;
-            margin-bottom: 1rem;
-        }
-
-        .team-btn {
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .team-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 10px 20px rgba(42, 157, 143, 0.3);
-            color: white;
-        }
-
-        /* Enhanced Modal */
-        .modal {
-            display: none;
+        .modal-custom {
             position: fixed;
             z-index: 9999;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-custom.show {
+            display: flex;
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(5px);
         }
 
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: modalFadeIn 0.3s ease;
+        .modal-inner {
+            position: relative;
+            z-index: 10000;
+            max-width: 90%;
+            max-height: 90%;
+            text-align: center;
+            animation: zoomIn 0.3s ease-in-out forwards;
         }
 
-        @keyframes modalFadeIn {
+        .modal-img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .caption-text {
+            color: #fff;
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.8rem;
+            color: white;
+            background: #222;
+            border-radius: 50%;
+            padding: 6px 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes fadeIn {
             from {
                 opacity: 0;
             }
@@ -871,365 +1139,143 @@
             }
         }
 
-        .modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 10px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            border: 2px solid var(--primary-color);
-            animation: modalSlideIn 0.3s ease;
-        }
-
-        @keyframes modalSlideIn {
+        @keyframes zoomIn {
             from {
                 transform: scale(0.8);
+                opacity: 0;
             }
 
             to {
                 transform: scale(1);
+                opacity: 1;
             }
-        }
-
-        .close {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #fff;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .close:hover {
-            color: var(--primary-color);
-            transform: scale(1.2) rotate(90deg);
-        }
-
-        /* Enhanced Links Section */
-        .links-section .btn {
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            margin: 10px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .links-section .btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 10px 20px rgba(42, 157, 143, 0.3);
-            color: white;
-        }
-
-        .links-section .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .links-section .btn:hover::before {
-            left: 100%;
-        }
-
-        /* Interactive Elements */
-        .interactive-icon {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .interactive-icon:hover {
-            transform: scale(1.2) rotate(20deg);
-            color: var(--accent-color);
-            filter: drop-shadow(0 0 10px currentColor);
-        }
-
-        /* Loading Animation */
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(42, 157, 143, 0.3);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Mouse Magnet Effect */
-        .magnet {
-            transition: transform 0.3s ease;
-        }
-
-        .magnet.active {
-            transform: translate(var(--mouse-x), var(--mouse-y)) scale(1.1);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2.5rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1.2rem;
-            }
-
-            .section-title {
-                font-size: 2rem;
-            }
-
-            .feature-card {
-                margin-bottom: 2rem;
-            }
-
-            .mobile-app-image {
-                width: 200px;
-                margin-bottom: 1rem;
-            }
-
-            .timeline-item {
-                margin-left: 20px;
-            }
-
-            .timeline-content {
-                margin-left: 1rem;
-            }
-
-            .parallax-element {
-                display: none;
-            }
-
-            .geometric-shape {
-                display: none;
-            }
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--dark-bg);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--gradient-primary);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-color);
-        }
-
-        /* Additional Enhancements */
-        .floating-element {
-            animation: floatUpDown 4s ease-in-out infinite;
-        }
-
-        @keyframes floatUpDown {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .glow-effect {
-            box-shadow: 0 0 20px rgba(42, 157, 143, 0.3);
-            transition: box-shadow 0.3s ease;
-        }
-
-        .glow-effect:hover {
-            box-shadow: 0 0 30px rgba(42, 157, 143, 0.6);
-        }
-
-        /* 3D Tilt Effect */
-        .tilt-element {
-            transform-style: preserve-3d;
-            transition: transform 0.3s ease;
-        }
-
-        .tilt-element:hover {
-            transform: perspective(1000px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
         }
     </style>
 </head>
 
-<body>
-    <!-- Custom Cursor -->
-    <div class="cursor"></div>
-
-    <!-- Animated Background -->
-    <div class="animated-bg"></div>
-    <div class="grid-bg"></div>
-
-    <!-- Parallax Elements -->
-    <div class="parallax-element sphere1"></div>
-    <div class="parallax-element sphere2"></div>
-    <div class="parallax-element sphere3"></div>
-
-    <!-- Geometric Shapes -->
-    <div class="geometric-shape triangle"></div>
-    <div class="geometric-shape square"></div>
-    <div class="geometric-shape hexagon"></div>
-
+<body class="dark-mode">
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand magnet" href="#hero">P-E-BO</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <a class="navbar-brand" href="#">P-E-BO</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link magnet" href="#introduction">Introduction</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#features">Features</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#solution-architecture">Architecture</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#hardware">Hardware</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#mobile-app">Mobile App</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#technology-stack">Technology</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#testing">Testing</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#security">Security</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#budget">Budget</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#timeline">Timeline</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#team">Team</a></li>
-                    <li class="nav-item"><a class="nav-link magnet" href="#links">Links</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#introduction">Introduction</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <!-- <li class="nav-item"><a class="nav-link" href="#solution-architecture">Solution Architecture</a> -->
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#hardware">Hardware</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#mobile-app">Mobile App</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#technology-stack">Technology Stack</a></li>
+                    <!-- <li class="nav-item"><a class="nav-link" href="#testing">Testing</a></li> -->
+                    <li class="nav-item"><a class="nav-link" href="#security">Security</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#budget">Budget</a></li>
+                    <!-- <li class="nav-item"><a class="nav-link" href="#timeline">Timeline</a></li> -->
+                    <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#links">Links</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section id="hero" class="hero-section">
+    <section id="hero" class="hero-section text-center">
         <div class="container">
-            <div class="hero-content">
-                <h1 class="hero-title tilt-element" data-aos="fade-up">Welcome to P-E-BO</h1>
-                <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="200">
-                    Your Ultimate Futuristic Desk Companion
-                </p>
-                <a href="#features" class="hero-btn magnet" data-aos="fade-up" data-aos-delay="400">
-                    <i class="fas fa-rocket me-2"></i>Explore Features
-                </a>
-            </div>
+            <h1 class="display-3 fw-bold mb-3 hero-title" data-aos="fade-up">
+                Welcome to P-E-BO
+            </h1>
+            <p class="lead mb-4" data-aos="fade-up" data-aos-delay="100">
+                Your Ultimate Futuristic Desk Companion
+            </p>
+            <a href="#features" class="btn btn-outline-light btn-lg" data-aos="fade-up" data-aos-delay="200">
+                Explore Features
+            </a>
         </div>
     </section>
 
     <!-- Introduction Section -->
-    <section id="introduction" class="section">
+    <section id="introduction" class="py-5">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Introduction</h2>
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="feature-card tilt-element" data-aos="fade-up" data-aos-delay="100">
-                        <p class="lead text-center mb-4">
-                            Urban residents often struggle with loneliness, stress, and poor device interconnectivity
-                            due to
-                            limited companionship and space constraints.
-                        </p>
-                        <p class="text-center">
-                            <strong>PEBO</strong> is an interactive desk assistant robot designed to enhance well-being
-                            and
-                            productivity by offering emotional support, entertainment, task management, and two-way
-                            voice
-                            communication.
-                        </p>
-                    </div>
-                </div>
+            <h2 class="text-center mb-4">Introduction</h2>
+            <div class="description strong em" data-aos="fade-up">
+                <p>Urban residents often struggle with loneliness, stress, and poor device interconnectivity due to
+                    limited companionship and space constraints.</p>
+                <p><strong>PEBO</strong> is an interactive desk assistant robot designed to enhance well-being and
+                    productivity by offering emotional support, entertainment, task management, and two-way voice
+                    communication.</p>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="section">
+    <!-- Feature Section -->
+    <section id="features" class="py-5">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Features</h2>
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-person-badge interactive-icon"></i>
-                        <h5>User Identification</h5>
+            <h2 class="text-center mb-4">Features</h2>
+            <div class="row">
+                <div class="col-md-4" data-aos="fade-up">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-person-badge fs-1"></i>
+                        <h5 class="mt-3">User Identification</h5>
                         <p>Recognizes individual users via biometric data for personalized interactions.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-cpu interactive-icon"></i>
-                        <h5>AI Voice Response</h5>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-cpu fs-1"></i>
+                        <h5 class="mt-3">AI Voice Response</h5>
                         <p>Advanced natural language processing for contextual command understanding and execution.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-camera-reels interactive-icon"></i>
-                        <h5>Movement Tracking</h5>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-camera-reels fs-1"></i>
+                        <h5 class="mt-3">Movement Tracking</h5>
                         <p>Spatial awareness with automatic face-tracking for perfect positioning.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-emoji-heart-eyes interactive-icon"></i>
-                        <h5>Emotion Recognition</h5>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-emoji-heart-eyes fs-1"></i>
+                        <h5 class="mt-3">Emotion Recognition</h5>
                         <p>Real-time mood analysis through voice tone and facial expression detection.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-telephone interactive-icon"></i>
-                        <h5>Two-Way Voice Communication</h5>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-telephone fs-1"></i>
+                        <h5 class="mt-3">Two-Way Voice Communication</h5>
                         <p>Enables real-time audio communication between PEBO devices for seamless connectivity.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-hand-index interactive-icon"></i>
-                        <h5>Touch Interaction</h5>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-hand-index fs-1"></i>
+                        <h5 class="mt-3">Touch Interaction</h5>
                         <p>Responsive touch sensors with haptic feedback for precise gesture controls.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="700">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-heart-fill interactive-icon text-danger"></i>
-                        <h5>Affection Response</h5>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-heart-fill fs-1 text-danger"></i>
+                        <h5 class="mt-3">Affection Response</h5>
                         <p>Responds to petting and gentle touches with happy lights, vibrations, and emotive sounds.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="800">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-music-note-beamed interactive-icon"></i>
-                        <h5>Music Playback</h5>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="700">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-music-note-beamed fs-1"></i>
+                        <h5 class="mt-3">Music Playback</h5>
                         <p>Plays songs on voice command for entertainment and relaxation.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="900">
-                    <div class="feature-card floating-element tilt-element">
-                        <i class="bi bi-list-check interactive-icon"></i>
-                        <h5>Task Management</h5>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="800">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-list-check fs-1"></i>
+                        <h5 class="mt-3">Task Management</h5>
                         <p>Organizes and reminds users of tasks and schedules through voice-activated commands.</p>
                     </div>
                 </div>
@@ -1238,139 +1284,109 @@
     </section>
 
     <!-- Solution Architecture Section -->
-    <section id="solution-architecture" class="section">
+    <section id="solution-architecture" class="py-5 bg-light">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Solution Architecture</h2>
-            <div class="row align-items-center">
-                <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card tilt-element">
-                        <p class="lead mb-4">
-                            P-E-BO's architecture integrates hardware and software for optimal performance, addressing
-                            urban
-                            challenges through advanced technology.
-                        </p>
-                        <ul class="list-unstyled">
-                            <li class="mb-3"><i class="bi bi-check-circle me-2 text-success"></i>Modular hardware design
-                                for easy upgrades and maintenance</li>
-                            <li class="mb-3"><i class="bi bi-check-circle me-2 text-success"></i>AI-powered software for
-                                voice recognition and emotion detection</li>
-                            <li class="mb-3"><i class="bi bi-check-circle me-2 text-success"></i>Cloud-based data
-                                storage with Amazon S3</li>
-                            <li class="mb-3"><i class="bi bi-check-circle me-2 text-success"></i>Real-time inter-device
-                                communication via Firebase</li>
-                            <li class="mb-3"><i class="bi bi-check-circle me-2 text-success"></i>Threaded architecture
-                                for efficient processing</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <img src="./images/High_Level_Architecture.jpg" alt="High-Level Architecture"
-                                class="arch-image glow-effect tilt-element" onclick="openModal(this)">
-                        </div>
-                        <div class="col-md-6">
-                            <img src="./images/Data_Control_Flow.jpg" alt="Data Control Flow"
-                                class="arch-image glow-effect tilt-element" onclick="openModal(this)">
-                        </div>
-                    </div>
-                </div>
+            <h2 class="text-center mb-4">Solution Architecture</h2>
+            <p data-aos="fade-up">
+                P-E-BO's architecture integrates hardware and software for optimal performance, addressing urban
+                challenges through advanced technology.
+            </p>
+            <ul data-aos="fade-up" data-aos-delay="100">
+                <li>Modular hardware design for easy upgrades and maintenance.</li>
+                <li>AI-powered software for voice recognition, emotion detection, and task automation.</li>
+                <li>Cloud-based data storage with Amazon S3 for secure, scalable personalized settings.</li>
+                <li>Real-time inter-device communication via Firebase for seamless connectivity.</li>
+                <li>Threaded architecture for efficient processing of multiple tasks.</li>
+            </ul>
+            <div class="architecture-grid">
+                <img src="./images/High_Level_Architecture.jpg" alt="High-Level Architecture Diagram" class="arch-image"
+                    data-aos="fade-up" data-aos-delay="200" onclick="openModal(this);">
+                <img src="./images/Data_Control_Flow.jpg" alt="Data and Control Flow Diagram" class="arch-image"
+                    data-aos="fade-up" data-aos-delay="300" onclick="openModal(this);">
             </div>
         </div>
     </section>
 
     <!-- Hardware Section -->
-    <section id="hardware" class="section">
+    <section id="hardware" class="py-5 bg-dark">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Hardware</h2>
-            <div class="row align-items-center">
-                <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card tilt-element">
-                        <p class="lead mb-4">
-                            P-E-BO's hardware is designed for modularity and efficiency, utilizing a range of components
-                            to deliver advanced functionality in a compact form.
-                        </p>
-                        <ul class="list-unstyled">
-                            <li class="mb-3"><i class="bi bi-cpu me-2 text-info"></i>Raspberry Pi 4 B: Powers the core
-                                processing and connectivity</li>
-                            <li class="mb-3"><i class="bi bi-camera me-2 text-info"></i>Servo Motors & Camera: Enable
-                                precise movement tracking</li>
-                            <li class="mb-3"><i class="bi bi-mic me-2 text-info"></i>Microphone & Speaker: Facilitate
-                                voice interaction</li>
-                            <li class="mb-3"><i class="bi bi-display me-2 text-info"></i>Touch Sensors & Display:
-                                Provide intuitive interaction</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <img src="./images/PEBO_Inside_View.jpg" alt="PEBO Inside View"
-                                class="arch-image glow-effect tilt-element" onclick="openModal(this)">
-                        </div>
-                        <div class="col-md-6">
-                            <img src="./images/3D_Design_Model.jpg" alt="3D Design Model"
-                                class="arch-image glow-effect tilt-element" onclick="openModal(this)">
-                        </div>
-                    </div>
-                </div>
+            <h2 class="text-center mb-4">Hardware</h2>
+            <p data-aos="fade-up">
+                P-E-BO's hardware is designed for modularity and efficiency, utilizing a range of components to deliver
+                advanced functionality in a compact form.
+            </p>
+            <ul data-aos="fade-up" data-aos-delay="100">
+                <li>Raspberry Pi 4 B: Powers the core processing and connectivity.</li>
+                <li>Servo Motors & Camera: Enable precise movement tracking and user identification.</li>
+                <li>Microphone & Speaker: Facilitate voice interaction and audio playback.</li>
+                <li>Touch Sensors & Display: Provide intuitive user interaction and feedback.</li>
+            </ul>
+            <div class="architecture-grid">
+                <img src="./images/PEBO_Inside_View.jpg" alt="Complete PEBO Inside View" class="arch-image"
+                    data-aos="fade-up" data-aos-delay="200" onclick="openModal(this);">
+                <img src="./images/3D_Design_Model.jpg" alt="3D Design Model" class="arch-image" data-aos="fade-up"
+                    data-aos-delay="300" onclick="openModal(this);">
             </div>
         </div>
     </section>
 
     <!-- Mobile App Section -->
-    <section id="mobile-app" class="section">
+    <section id="mobile-app" class="py-5 bg-dark">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Mobile App</h2>
-            <div class="row">
-                <div class="col-lg-12" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card text-center mb-4 tilt-element">
-                        <p class="lead">
-                            The P-E-BO mobile app provides a user-friendly interface to control and interact with your
-                            desk companion, offering real-time monitoring, configuration, and personalized settings.
-                        </p>
+            <h2 class="text-center mb-4">Mobile App</h2>
+            <p data-aos="fade-up">
+                The P-E-BO mobile app provides a user-friendly interface to control and interact with your desk
+                companion,
+                offering real-time monitoring, configuration, and personalized settings.
+            </p>
+            <div class="mobile-app-grid">
+                <div class="row g-3">
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-1.jpg" alt="Mobile App Screen 1"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="200"
+                            onclick="openModal(this);">
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-2.jpg" alt="Mobile App Screen 2"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="300"
+                            onclick="openModal(this);">
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-3.jpg" alt="Mobile App Screen 3"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="400"
+                            onclick="openModal(this);">
                     </div>
                 </div>
-            </div>
-            <div class="row g-4 justify-content-center">
-                <div class="col-lg-2 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="200">
-                    <img src="./images/mobile-screen-1.jpg" alt="Mobile App Screen 1"
-                        class="mobile-app-image glow-effect tilt-element" onclick="openModal(this)">
-                </div>
-                <div class="col-lg-2 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="300">
-                    <img src="./images/mobile-screen-2.jpg" alt="Mobile App Screen 2"
-                        class="mobile-app-image glow-effect tilt-element" onclick="openModal(this)">
-                </div>
-                <div class="col-lg-2 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="400">
-                    <img src="./images/mobile-screen-3.jpg" alt="Mobile App Screen 3"
-                        class="mobile-app-image glow-effect tilt-element" onclick="openModal(this)">
-                </div>
-                <div class="col-lg-2 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="500">
-                    <img src="./images/mobile-screen-4.jpg" alt="Mobile App Screen 4"
-                        class="mobile-app-image glow-effect tilt-element" onclick="openModal(this)">
-                </div>
-                <div class="col-lg-2 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="600">
-                    <img src="./images/mobile-screen-5.jpg" alt="Mobile App Screen 5"
-                        class="mobile-app-image glow-effect tilt-element" onclick="openModal(this)">
+                <div class="row g-3 justify-content-center">
+                    <div class="col-md-6 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-4.jpg" alt="Mobile App Screen 4"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="500"
+                            onclick="openModal(this);">
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-center">
+                        <img src="./images/mobile-screen-5.jpg" alt="Mobile App Screen 5"
+                            class="arch-image mobile-app-image" data-aos="fade-up" data-aos-delay="600"
+                            onclick="openModal(this);">
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Technology Stack Section -->
-    <section id="technology-stack" class="section">
+    <section id="technology-stack" class="py-5 bg-dark">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Technology Stack</h2>
-            <div class="row">
+            <h2 class="text-center mb-5 section-title">Technology Stack</h2>
+            <div class="row g-4">
                 <div class="col-lg-3" data-aos="fade-right">
                     <div class="nav flex-column nav-pills stack-tabs">
-                        <button class="nav-link active magnet" data-bs-toggle="pill" data-bs-target="#cloud-ai">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#cloud-ai">
                             <i class="bi bi-cloud-arrow-up me-2"></i>Cloud & AI
                         </button>
-                        <button class="nav-link magnet" data-bs-toggle="pill" data-bs-target="#frontend">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#frontend">
                             <i class="bi bi-display me-2"></i>Frontend
                         </button>
-                        <button class="nav-link magnet" data-bs-toggle="pill" data-bs-target="#iot">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#iot">
                             <i class="bi bi-cpu me-2"></i>IoT & Hardware
                         </button>
                     </div>
@@ -1378,108 +1394,103 @@
                 <div class="col-lg-9" data-aos="fade-left">
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="cloud-ai">
-                            <div class="row g-4">
-                                <div class="col-md-6">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <img src="./images/aws-rekognition-icon.png" alt="AWS Rekognition"
-                                                class="img-fluid">
-                                        </div>
-                                        <h5>AWS Rekognition</h5>
-                                        <ul class="list-unstyled">
-                                            <li>Real-time facial analysis</li>
-                                            <li>Emotion detection (7 emotions)</li>
-                                            <li>95% accuracy in varied lighting</li>
-                                            <li>Age range estimation</li>
-                                        </ul>
+                            <div class="stack-grid">
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-aws">
+                                        <img src="./images/aws-rekognition-icon.png" alt="AWS Rekognition"
+                                            class="tech-icon">
                                     </div>
+                                    <h5>AWS Rekognition</h5>
+                                    <ul>
+                                        <li>Real-time facial analysis</li>
+                                        <li>Emotion detection (7 emotions)</li>
+                                        <li>95% accuracy in varied lighting</li>
+                                        <li>Age range estimation</li>
+                                    </ul>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <img src="./images/gemini-icon.png" alt="Gemini AI" class="img-fluid">
-                                        </div>
-                                        <h5>Gemini API</h5>
-                                        <ul class="list-unstyled">
-                                            <li>Natural language processing</li>
-                                            <li>Context-aware responses</li>
-                                            <li>Multi-turn conversations</li>
-                                            <li>Knowledge graph integration</li>
-                                        </ul>
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-gemini">
+                                        <img src="./images/gemini-icon.png" alt="Gemini AI" class="tech-icon">
                                     </div>
+                                    <h5>Gemini API</h5>
+                                    <ul>
+                                        <li>Natural language processing</li>
+                                        <li>Context-aware responses</li>
+                                        <li>Multi-turn conversations</li>
+                                        <li>Knowledge graph integration</li>
+                                    </ul>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <img src="./images/amazon-s3-icon.jpg" alt="Amazon S3" class="img-fluid">
-                                        </div>
-                                        <h5>Amazon S3</h5>
-                                        <ul class="list-unstyled">
-                                            <li>Secure data storage</li>
-                                            <li>Scalable cloud infrastructure</li>
-                                            <li>Real-time data syncing</li>
-                                            <li>99.9% uptime SLA</li>
-                                        </ul>
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-s3">
+                                        <img src="./images/amazon-s3-icon.jpg" alt="Amazon S3" class="tech-icon">
                                     </div>
+                                    <h5>Amazon S3</h5>
+                                    <ul>
+                                        <li>Secure data storage</li>
+                                        <li>Scalable cloud infrastructure</li>
+                                        <li>Real-time data syncing</li>
+                                        <li>99.9% uptime SLA</li>
+                                    </ul>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <img src="./images/firebase-icon.png" alt="Firebase" class="img-fluid">
-                                        </div>
-                                        <h5>Firebase</h5>
-                                        <ul class="list-unstyled">
-                                            <li>Real-time database</li>
-                                            <li>Inter-device communication</li>
-                                            <li>Push notifications</li>
-                                            <li>Authentication services</li>
-                                        </ul>
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-firebase">
+                                        <img src="./images/firebase-icon.png" alt="Firebase" class="tech-icon">
                                     </div>
+                                    <h5>Firebase</h5>
+                                    <ul>
+                                        <li>Real-time database</li>
+                                        <li>Inter-device communication</li>
+                                        <li>Push notifications</li>
+                                        <li>Authentication services</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="frontend">
                             <div class="row g-4">
                                 <div class="col-md-6">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <i class="bi bi-phone"></i>
+                                    <div class="stack-item h-100">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="stack-icon bg-flutter me-3"></div>
+                                            <h5 class="mb-0">Mobile Application</h5>
                                         </div>
-                                        <h5>Mobile Application</h5>
                                         <div class="row g-3">
                                             <div class="col-md-6">
-                                                <img src="./images/mobile-app-screens.jpg" class="img-fluid rounded"
-                                                    alt="Mobile App Screens">
+                                                <img src="./images/mobile-app-screens.jpg"
+                                                    class="img-fluid rounded clickable-img" alt="Mobile App Screens"
+                                                    onclick="openModal(this)">
                                             </div>
                                             <div class="col-md-6">
-                                                <ul class="list-unstyled">
-                                                    <li><i class="bi bi-phone me-2"></i>Cross-platform (iOS/Android)
-                                                    </li>
-                                                    <li><i class="bi bi-bell me-2"></i>Real-time notifications</li>
-                                                    <li><i class="bi bi-gear me-2"></i>Device configuration</li>
-                                                    <li><i class="bi bi-graph-up me-2"></i>Usage analytics</li>
+                                                <ul class="feature-list">
+                                                    <li><i class="bi bi-phone"></i> Cross-platform (iOS/Android)</li>
+                                                    <li><i class="bi bi-bell"></i> Real-time notifications</li>
+                                                    <li><i class="bi bi-gear"></i> Device configuration</li>
+                                                    <li><i class="bi bi-graph-up"></i> Usage analytics</li>
                                                 </ul>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <i class="bi bi-robot"></i>
+                                    <div class="stack-item h-100">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="stack-icon bg-robot me-3">
+                                                <i class="bi bi-robot"></i>
+                                            </div>
+                                            <h5 class="mb-0">Robot Face Interface</h5>
                                         </div>
-                                        <h5>Robot Face Interface</h5>
                                         <div class="row g-3">
                                             <div class="col-md-6">
-                                                <img src="./images/robot-face-ui.jpg" class="img-fluid rounded"
-                                                    alt="Robot Face UI">
+                                                <img src="./images/robot-face-ui.jpg"
+                                                    class="img-fluid rounded clickable-img" alt="Robot Face UI"
+                                                    onclick="openModal(this)">
                                             </div>
                                             <div class="col-md-6">
-                                                <ul class="list-unstyled">
-                                                    <li><i class="bi bi-eye me-2"></i>Dynamic eye movements</li>
-                                                    <li><i class="bi bi-emoji-smile me-2"></i>Emotion expressions</li>
-                                                    <li><i class="bi bi-lightning me-2"></i>Adaptive animation</li>
-                                                    <li><i class="bi bi-cpu me-2"></i>OLED display powered</li>
+                                                <ul class="feature-list">
+                                                    <li><i class="bi bi-eye"></i> Dynamic eye movements</li>
+                                                    <li><i class="bi bi-emoji-smile"></i> Emotion expressions</li>
+                                                    <li><i class="bi bi-lightning"></i> Adaptive animation</li>
+                                                    <li><i class="bi bi-cpu"></i> OLED display powered</li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -1488,46 +1499,39 @@
                             </div>
                         </div>
                         <div class="tab-pane fade" id="iot">
-                            <div class="row g-4">
-                                <div class="col-md-4">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <i class="bi bi-gear"></i>
-                                        </div>
-                                        <h5>Servo Control</h5>
-                                        <ul class="list-unstyled">
-                                            <li>Pan-tilt mechanism</li>
-                                            <li>PID control system</li>
-                                        </ul>
+                            <div class="stack-grid">
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-servo">
+                                        <i class="bi bi-gear"></i>
                                     </div>
+                                    <h5>Servo Control</h5>
+                                    <ul>
+                                        <li>Pan-tilt mechanism</li>
+                                        <li>PID control system</li>
+                                    </ul>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <img src="./images/raspberry-pi-icon.svg" alt="Raspberry Pi"
-                                                class="img-fluid">
-                                        </div>
-                                        <h5>Raspberry Pi 4</h5>
-                                        <ul class="list-unstyled">
-                                            <li>Quad-core ARM CPU</li>
-                                            <li>1GB RAM</li>
-                                            <li>Wi-Fi & Bluetooth</li>
-                                            <li>GPIO for hardware control</li>
-                                        </ul>
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-raspberry">
+                                        <img src="./images/raspberry-pi-icon.svg" alt="Raspberry Pi" class="tech-icon">
                                     </div>
+                                    <h5>Raspberry Pi 4</h5>
+                                    <ul>
+                                        <li>Quad-core ARM CPU</li>
+                                        <li>1GB RAM</li>
+                                        <li>Wi-Fi & Bluetooth</li>
+                                        <li>GPIO for hardware control</li>
+                                    </ul>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="stack-item tilt-element">
-                                        <div class="tech-icon">
-                                            <i class="bi bi-soundwave"></i>
-                                        </div>
-                                        <h5>Sensors</h5>
-                                        <ul class="list-unstyled">
-                                            <li>Microphone Array</li>
-                                            <li>Touch Sensors</li>
-                                            <li>Raspberry Pi Camera</li>
-                                        </ul>
+                                <div class="stack-item">
+                                    <div class="stack-icon bg-sensor">
+                                        <i class="bi bi-soundwave"></i>
                                     </div>
+                                    <h5>Sensors</h5>
+                                    <ul>
+                                        <li>Microphone Array</li>
+                                        <li>Touch Sensors</li>
+                                        <li>Raspberry Pi Camera</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -1538,48 +1542,42 @@
     </section>
 
     <!-- Testing Section -->
-    <section id="testing" class="section">
+    <section id="testing" class="py-5 bg-dark">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Testing</h2>
+            <h2 class="text-center mb-4">Testing</h2>
+            <p data-aos="fade-up">Rigorous testing ensures P-E-BO's reliability and performance across various
+                conditions.</p>
             <div class="row">
-                <div class="col-lg-12" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card text-center mb-4 tilt-element">
-                        <p class="lead">Rigorous testing ensures P-E-BO's reliability and performance across various
-                            conditions.</p>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-check-circle fs-1"></i>
+                        <h5 class="mt-3">Functional Testing</h5>
+                        <ul class="feature-list">
+                            <li>Voice assistant responds accurately via Gemini API.</li>
+                            <li>Face and emotion recognition correctly identifies users and emotions.</li>
+                            <li>Face tracking ensures smooth movement following.</li>
+                        </ul>
                     </div>
                 </div>
-            </div>
-            <div class="row g-4">
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="feature-card text-center tilt-element">
-                        <i class="bi bi-check-circle interactive-icon fs-1"></i>
-                        <h5 class="mt-3">Functional Testing</h5>
-                        <ul class="list-unstyled text-start">
-                            <li class="mb-2">Voice assistant responds accurately via Gemini API</li>
-                            <li class="mb-2">Face and emotion recognition correctly identifies users</li>
-                            <li class="mb-2">Face tracking ensures smooth movement following</li>
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-speedometer fs-1"></i>
+                        <h5 class="mt-3">Performance Testing</h5>
+                        <ul class="feature-list">
+                            <li>Optimized response time in edge cases.</li>
+                            <li>Operates in low-light and noisy environments.</li>
+                            <li>TracksEli>Fast-moving users effectively.</li>
                         </ul>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="feature-card text-center tilt-element">
-                        <i class="bi bi-speedometer interactive-icon fs-1"></i>
-                        <h5 class="mt-3">Performance Testing</h5>
-                        <ul class="list-unstyled text-start">
-                            <li class="mb-2">Optimized response time in edge cases</li>
-                            <li class="mb-2">Operates in low-light and noisy environments</li>
-                            <li class="mb-2">Tracks fast-moving users effectively</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="feature-card text-center tilt-element">
-                        <i class="bi bi-hdd-rack interactive-icon fs-1"></i>
+                    <div class="feature-card text-center p-4">
+                        <i class="bi bi-hdd-rack fs-1"></i>
                         <h5 class="mt-3">Hardware Testing</h5>
-                        <ul class="list-unstyled text-start">
-                            <li class="mb-2">Ensures all components function as expected</li>
-                            <li class="mb-2">Validates servo motor and sensor reliability</li>
-                            <li class="mb-2">Confirms camera and microphone performance</li>
+                        <ul class="feature-list">
+                            <li>Ensures all components function as expected.</li>
+                            <li>Validates servo motor and sensor reliability.</li>
+                            <li>Confirms camera and microphone performance.</li>
                         </ul>
                     </div>
                 </div>
@@ -1588,203 +1586,168 @@
     </section>
 
     <!-- Security Section -->
-    <section id="security" class="section">
+    <section id="security" class="py-5 bg-light">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Security</h2>
-            <div class="row">
-                <div class="col-lg-12" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card tilt-element">
-                        <p class="lead text-center mb-4">P-E-BO prioritizes user data security with robust measures.</p>
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-start">
-                                    <i class="bi bi-shield-check me-3 text-success fs-3"></i>
-                                    <div>
-                                        <h6>IAM Roles & Least Privilege</h6>
-                                        <p class="mb-0">Blocks public access to Amazon S3 with secure access controls.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-start">
-                                    <i class="bi bi-lock me-3 text-success fs-3"></i>
-                                    <div>
-                                        <h6>Data Encryption</h6>
-                                        <p class="mb-0">Uses AES-256-GCM and server-side encryption with Amazon S3
-                                            managed
-                                            keys.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-start">
-                                    <i class="bi bi-cloud-slash me-3 text-success fs-3"></i>
-                                    <div>
-                                        <h6>No Local Storage of Faces</h6>
-                                        <p class="mb-0">Enhances privacy by storing facial data securely in the cloud.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-start">
-                                    <i class="bi bi-person-check me-3 text-success fs-3"></i>
-                                    <div>
-                                        <h6>Secure Authentication</h6>
-                                        <p class="mb-0">Requires sign-in to access the mobile app and all features.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <h2 class="text-center mb-4">Security</h2>
+            <p data-aos="fade-up">P-E-BO prioritizes user data security with robust measures.</p>
+            <ul data-aos="fade-up" data-aos-delay="100">
+                <li>IAM Roles & Least Privilege: Blocks public access to Amazon S3.</li>
+                <li>Data Encryption: Uses AES-256-GCM and server-side encryption with Amazon S3 managed keys (SSE-S3).
+                </li>
+                <li>No Local Storage of Faces: Enhances privacy by storing facial data in the cloud.</li>
+                <li>Secure Authentication: Requires sign-in to access the mobile app.</li>
+            </ul>
+            <!-- <img src="./images/security-diagram.jpg" alt="Security Architecture Diagram" class="img-fluid mt-4"
+                data-aos="fade-up" data-aos-delay="200" onclick="openModal(this);"> -->
         </div>
     </section>
 
     <!-- Budget Section -->
-    <section id="budget" class="section">
+    <section id="budget" class="py-5 bg-dark">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Budget</h2>
-            <div class="row">
-                <div class="col-lg-12" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card text-center mb-4 tilt-element">
-                        <p class="lead">P-E-BO's budget maximizes impact while staying cost-effective.</p>
+            <h2 class="text-center mb-4">Budget</h2>
+            <p data-aos="fade-up">P-E-BO's budget maximizes impact while staying cost-effective.</p>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Unit Price (Rs)</th>
+                        <th>All Cost (Rs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Raspberry Pi 4 B(From Department)</td>
+                        <td>1</td>
+                        <td>25200</td>
+                        <td>25200</td>
+                    </tr>
+                    <tr>
+                        <td>0.9" TFT Display</td>
+                        <td>2</td>
+                        <td>890</td>
+                        <td>1780</td>
+                    </tr>
+                    <tr>
+                        <td>Servo Motor SG90</td>
+                        <td>5</td>
+                        <td>395</td>
+                        <td>1975</td>
+                    </tr>
+                    <tr>
+                        <td>Raspberry Pi Camera</td>
+                        <td>1</td>
+                        <td>1390</td>
+                        <td>1390</td>
+                    </tr>
+                    <tr>
+                        <td>USB Microphone Dongle</td>
+                        <td>1</td>
+                        <td>660</td>
+                        <td>660</td>
+                    </tr>
+                    <tr>
+                        <td>PWM Servo Motor Drive</td>
+                        <td>1</td>
+                        <td>960</td>
+                        <td>960</td>
+                    </tr>
+                    <tr>
+                        <td>Servo-9g-Bracket-PT</td>
+                        <td>1</td>
+                        <td>450</td>
+                        <td>450</td>
+                    </tr>
+                    <tr>
+                        <td>4 ohm 2W Speaker</td>
+                        <td>1</td>
+                        <td>190</td>
+                        <td>190</td>
+                    </tr>
+                    <tr>
+                        <td>3.3W Stereo Audio Amplifier</td>
+                        <td>1</td>
+                        <td>130</td>
+                        <td>130</td>
+                    </tr>
+                    <tr>
+                        <td>TTP223 1-channel Digital Capacitive Touch Sensor</td>
+                        <td>2</td>
+                        <td>60</td>
+                        <td>120</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td></td>
+                        <td></td>
+                        <td><strong>32855</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section id="timeline" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-4">Project Timeline</h2>
+            <p data-aos="fade-up">P-E-BO's development is structured into key milestones to ensure timely progress.</p>
+            <div class="achievement-timeline" data-aos="fade-up" data-aos-delay="100">
+                <div class="timeline-item">
+                    <div class="timeline-badge">1</div>
+                    <div class="timeline-content">
+                        <h5>Milestone 1</h5>
+                        <p>Initial design and prototyping of hardware and software components.</p>
                     </div>
                 </div>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-lg-10" data-aos="fade-up" data-aos-delay="200">
-                    <div class="budget-table">
-                        <table class="table table-dark mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Price (Rs)</th>
-                                    <th>Total Cost (Rs)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Raspberry Pi 4 B</td>
-                                    <td>1</td>
-                                    <td>-</td>
-                                    <td>-</td>
-                                </tr>
-                                <tr>
-                                    <td>0.9" TFT Display</td>
-                                    <td>2</td>
-                                    <td>890</td>
-                                    <td>1,780</td>
-                                </tr>
-                                <tr>
-                                    <td>Servo Motor SG90</td>
-                                    <td>5</td>
-                                    <td>395</td>
-                                    <td>1,975</td>
-                                </tr>
-                                <tr>
-                                    <td>Raspberry Pi Camera</td>
-                                    <td>1</td>
-                                    <td>1,390</td>
-                                    <td>1,390</td>
-                                </tr>
-                                <tr>
-                                    <td>USB Microphone Dongle</td>
-                                    <td>1</td>
-                                    <td>660</td>
-                                    <td>660</td>
-                                </tr>
-                                <tr>
-                                    <td>PWM Servo Motor Drive</td>
-                                    <td>1</td>
-                                    <td>960</td>
-                                    <td>960</td>
-                                </tr>
-                                <tr>
-                                    <td>Servo-9g-Bracket-PT</td>
-                                    <td>1</td>
-                                    <td>450</td>
-                                    <td>450</td>
-                                </tr>
-                                <tr>
-                                    <td>4 ohm 2W Speaker</td>
-                                    <td>1</td>
-                                    <td>190</td>
-                                    <td>190</td>
-                                </tr>
-                                <tr>
-                                    <td>3.3W Stereo Audio Amplifier</td>
-                                    <td>1</td>
-                                    <td>130</td>
-                                    <td>130</td>
-                                </tr>
-                                <tr>
-                                    <td>TTP223 Touch Sensor</td>
-                                    <td>2</td>
-                                    <td>60</td>
-                                    <td>120</td>
-                                </tr>
-                                <tr class="total-row">
-                                    <td><strong>Total</strong></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td><strong>7,655</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="timeline-item">
+                    <div class="timeline-badge">2</div>
+                    <div class="timeline-content">
+                        <h5>Milestone 2</h5>
+                        <p>Integration of AI and cloud services with core functionalities.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-badge">3</div>
+                    <div class="timeline-content">
+                        <h5>Milestone 3</h5>
+                        <p>Testing and refinement of features and performance.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-badge">4</div>
+                    <div class="timeline-content">
+                        <h5>Milestone 4</h5>
+                        <p>Final deployment and user testing phase.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Timeline Section -->
-    <section id="timeline" class="section">
+    <!-- Challenges & Future Section -->
+    <section id="challenges-future" class="py-5 gradient-bg">
         <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Project Timeline</h2>
-            <div class="row">
-                <div class="col-lg-12" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card text-center mb-4 tilt-element">
-                        <p class="lead">P-E-BO's development is structured into key milestones to ensure timely
-                            progress.
-                        </p>
+            <div class="row g-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="challenge-card">
+                        <h3><i class="bi bi-exclamation-triangle"></i> Challenges</h3>
+                        <ul class="styled-list">
+                            <li>Real-time processing latency</li>
+                            <li>Hardware-software integration</li>
+                            <li>Multi-modal sensor synchronization</li>
+                        </ul>
                     </div>
                 </div>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-lg-8" data-aos="fade-up" data-aos-delay="200">
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-badge">1</div>
-                            <div class="timeline-content">
-                                <h5>Milestone 1</h5>
-                                <p>Initial design and prototyping of hardware and software components.</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-badge">2</div>
-                            <div class="timeline-content">
-                                <h5>Milestone 2</h5>
-                                <p>Integration of AI and cloud services with core functionalities.</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-badge">3</div>
-                            <div class="timeline-content">
-                                <h5>Milestone 3</h5>
-                                <p>Testing and refinement of features and performance.</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-badge">4</div>
-                            <div class="timeline-content">
-                                <h5>Milestone 4</h5>
-                                <p>Final deployment and user testing phase.</p>
-                            </div>
-                        </div>
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="future-card">
+                        <h3><i class="bi bi-rocket-takeoff"></i> Future Roadmap</h3>
+                        <ul class="styled-list">
+                            <li>Advanced ML model integration</li>
+                            <li>Cross-platform compatibility</li>
+                            <li>Enhanced natural language processing</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -1792,539 +1755,142 @@
     </section>
 
     <!-- Team Section -->
-    <section id="team" class="section">
-        <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Meet the Team</h2>
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                    <div class="team-card">
-                        <img src="Member1.png" alt="Buddhika Ariyarathne" class="team-img">
-                        <h5 class="team-name">Buddhika Ariyarathne</h5>
-                        <p class="team-id">E/20/024</p>
-                        <a href="https://www.thecn.com/EA770" class="team-btn">View Portfolio</a>
-                    </div>
+    <section id="team" class="py-5 bg-dark">
+        <div class="container" data-aos="fade-up">
+            <h2 class="text-center mb-4">Meet the Team</h2>
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <img src="Member1.png" alt="Buddhika" class="team-img mb-3">
+                    <h5 class="text-light">Buddhika Ariyarathne</h5>
+                    <p class="text-secondary">E/20/024</p>
+                    <a href="https://www.thecn.com/EA770" class="btn btn-outline-light mt-2">View Portfolio</a>
                 </div>
-                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                    <div class="team-card">
-                        <img src="Member2.png" alt="Yasiru Harinda" class="team-img">
-                        <h5 class="team-name">Yasiru Harinda</h5>
-                        <p class="team-id">E/20/089</p>
-                        <a href="https://www.thecn.com/EE452" class="team-btn">View Portfolio</a>
-                    </div>
+                <div class="col-md-3">
+                    <img src="Member2.png" alt="Yasiru" class="team-img mb-3">
+                    <h5 class="text-light">Yasiru Harinda</h5>
+                    <p class="text-secondary">E/20/089</p>
+                    <a href="https://www.thecn.com/EE452" class="btn btn-outline-light mt-2">View Portfolio</a>
                 </div>
-                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
-                    <div class="team-card">
-                        <img src="Member3.png" alt="Yohan Senadheera" class="team-img">
-                        <h5 class="team-name">Yohan Senadheera</h5>
-                        <p class="team-id">E/20/361</p>
-                        <a href="https://www.thecn.com/ES1366" class="team-btn">View Portfolio</a>
-                    </div>
+                <div class="col-md-3">
+                    <img src="Member3.png" alt="Yohan" class="team-img mb-3">
+                    <h5 class="text-light">Yohan Senadheera</h5>
+                    <p class="text-secondary">E/20/361</p>
+                    <a href="https://www.thecn.com/ES1366" class="btn btn-outline-light mt-2">View Portfolio</a>
                 </div>
-                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="500">
-                    <div class="team-card">
-                        <img src="Member4.png" alt="Bhagya Senevirathna" class="team-img">
-                        <h5 class="team-name">Bhagya Senevirathna</h5>
-                        <p class="team-id">E/20/366</p>
-                        <a href="https://www.thecn.com/ES1368" class="team-btn">View Portfolio</a>
-                    </div>
+                <div class="col-md-3">
+                    <img src="Member4.png" alt="Bhagya" class="team-img mb-3">
+                    <h5 class="text-light">Bhagya Senevirathna</h5>
+                    <p class="text-secondary">E/20/366</p>
+                    <a href="https://www.thecn.com/ES1368" class="btn btn-outline-light mt-2">View Portfolio</a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Links Section -->
-    <section id="links" class="section links-section">
-        <div class="container">
-            <h2 class="section-title tilt-element" data-aos="fade-up">Useful Links</h2>
-            <div class="row">
-                <div class="col-lg-12" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card text-center tilt-element">
-                        <p class="lead mb-4">Explore more about P-E-BO and related resources through the following
-                            links:
-                        </p>
-                        <div class="d-flex flex-wrap justify-content-center gap-3">
-                            <a href="https://github.com/cepdnaclk/e20-3yp-P-E-BO-Desk-Companion" class="btn">
-                                <i class="fab fa-github me-2"></i>GitHub Repository
-                            </a>
-                            <a href="https://www.ce.pdn.ac.lk/" class="btn">
-                                <i class="fas fa-university me-2"></i>Computer Engineering Department
-                            </a>
-                            <a href="https://eng.pdn.ac.lk/" class="btn">
-                                <i class="fas fa-graduation-cap me-2"></i>Faculty of Engineering
-                            </a>
-                            <a href="https://www.pdn.ac.lk/" class="btn">
-                                <i class="fas fa-school me-2"></i>University of Peradeniya
-                            </a>
-                            <a href="https://projects.ce.pdn.ac.lk/3yp/e20/P-E-BO-Desk-Companion/" class="btn">
-                                <i class="fas fa-project-diagram me-2"></i>Project Page
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <section id="links" class="py-5 bg-light">
+        <div class="container text-center">
+            <h2 class="mb-4">Useful Links</h2>
+            <p data-aos="fade-up">Explore more about P-E-BO and related resources through the following links:</p>
+            <ul class="list-inline" data-aos="fade-up" data-aos-delay="100">
+                <li class="list-inline-item">
+                    <a href="https://github.com/cepdnaclk/e20-3yp-P-E-BO-Desk-Companion"
+                        class="btn btn-outline-dark">GitHub</a>
+                </li>
+                <li class="list-inline-item">
+                    <a href="https://www.ce.pdn.ac.lk/" class="btn btn-outline-dark">Computer Engineering Department</a>
+                </li>
+                <li class="list-inline-item">
+                    <a href="https://eng.pdn.ac.lk/" class="btn btn-outline-dark">Faculty of Engineering</a>
+                </li>
+                <li class="list-inline-item">
+                    <a href="https://www.pdn.ac.lk/" class="btn btn-outline-dark">University of Peradeniya</a>
+                </li>
+                <li class="list-inline-item">
+                    <a href="https://projects.ce.pdn.ac.lk/3yp/e20/P-E-BO-Desk-Companion/"
+                        class="btn btn-outline-dark">Project Page</a>
+                </li>
+            </ul>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <h3 class="footer-title">P-E-BO</h3>
-            <p class="footer-description">Your Ultimate Futuristic Desk Companion - bringing intelligence, emotion, and
-                connectivity to your workspace.</p>
-            <div class="footer-bottom">
-                <p>&copy; 2024 P-E-BO Project. All rights reserved.</p>
-            </div>
-        </div>
+    <footer class="py-4 bg-dark text-center text-white">
+        <p>© 2025 P-E-BO. All rights reserved.</p>
     </footer>
 
-    <!-- Enhanced Modal -->
-    <div id="imageModal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="img01">
-        <div id="caption"></div>
+    <!-- Modal for Image Preview -->
+    <div id="imageModal" class="modal-custom">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-inner">
+            <span class="close-btn" onclick="closeModal()">×</span>
+            <img class="modal-img" id="img01" alt="Preview Image">
+            <div id="caption" class="caption-text"></div>
+        </div>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- AOS JS -->
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-
     <script>
-        // Initialize AOS
-        AOS.init({
-            duration: 1000,
-            easing: 'ease-in-out',
-            once: true
-        });
+        AOS.init();
 
-        // Mouse tracking variables
-        let mouseX = 0;
-        let mouseY = 0;
-        let mouseTrails = [];
-
-        // Track mouse movement
-        document.addEventListener('mousemove', function (e) {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-
-            // Update CSS variables for mouse position
-            document.documentElement.style.setProperty('--mouse-x', (mouseX - window.innerWidth / 2) + 'px');
-            document.documentElement.style.setProperty('--mouse-y', (mouseY - window.innerHeight / 2) + 'px');
-
-            // Update cursor position
-            const cursor = document.querySelector('.cursor');
-            if (cursor) {
-                cursor.style.left = mouseX + 'px';
-                cursor.style.top = mouseY + 'px';
-            }
-
-            // Update parallax elements
-            updateParallaxElements();
-
-            // Create mouse trail
-            createMouseTrail();
-
-            // Update 3D tilt effects
-            updateTiltEffects(e);
-        });
-
-        // Mouse click effects
-        document.addEventListener('mousedown', function () {
-            const cursor = document.querySelector('.cursor');
-            if (cursor) {
-                cursor.classList.add('click');
-            }
-            createRipple();
-        });
-
-        document.addEventListener('mouseup', function () {
-            const cursor = document.querySelector('.cursor');
-            if (cursor) {
-                cursor.classList.remove('click');
-            }
-        });
-
-        // Hover effects for interactive elements
-        document.querySelectorAll('.magnet, .feature-card, .team-card, .nav-link, .hero-btn').forEach(element => {
-            element.addEventListener('mouseenter', function () {
-                const cursor = document.querySelector('.cursor');
-                if (cursor) {
-                    cursor.classList.add('hover');
-                }
-            });
-
-            element.addEventListener('mouseleave', function () {
-                const cursor = document.querySelector('.cursor');
-                if (cursor) {
-                    cursor.classList.remove('hover');
-                }
-            });
-        });
-
-        // Update parallax elements based on mouse position
-        function updateParallaxElements() {
-            const parallaxElements = document.querySelectorAll('.parallax-element');
-            parallaxElements.forEach(element => {
-                const speed = parseFloat(element.dataset.speed) || 0.02;
-                const x = (mouseX - window.innerWidth / 2) * speed;
-                const y = (mouseY - window.innerHeight / 2) * speed;
-                element.style.transform = `translate(${x}px, ${y}px)`;
-            });
-        }
-
-        // Create mouse trail effect
-        function createMouseTrail() {
-            const trail = document.createElement('div');
-            trail.className = 'mouse-trail';
-            trail.style.left = mouseX + 'px';
-            trail.style.top = mouseY + 'px';
-            document.body.appendChild(trail);
-
-            // Remove trail after animation
-            setTimeout(() => {
-                if (trail.parentNode) {
-                    trail.parentNode.removeChild(trail);
-                }
-            }, 500);
-        }
-
-        // Create ripple effect on click
-        function createRipple() {
-            const ripple = document.createElement('div');
-            ripple.className = 'ripple';
-            ripple.style.left = (mouseX - 100) + 'px';
-            ripple.style.top = (mouseY - 100) + 'px';
-            document.body.appendChild(ripple);
-
-            // Remove ripple after animation
-            setTimeout(() => {
-                if (ripple.parentNode) {
-                    ripple.parentNode.removeChild(ripple);
-                }
-            }, 1000);
-        }
-
-        // Update 3D tilt effects
-        function updateTiltEffects(event) {
-            const tiltElements = document.querySelectorAll('.tilt-element');
-            tiltElements.forEach(element => {
-                const rect = element.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const y = event.clientY - rect.top;
-
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-
-                const rotateX = (y - centerY) / centerY * 10;
-                const rotateY = (centerX - x) / centerX * 10;
-
-                element.style.setProperty('--tilt-x', rotateX + 'deg');
-                element.style.setProperty('--tilt-y', rotateY + 'deg');
-            });
-        }
-
-        // Create enhanced floating particles
-        function createEnhancedParticles() {
-            const particleCount = 30;
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + 'vw';
-                particle.style.top = Math.random() * 100 + 'vh';
-                particle.style.animationDelay = Math.random() * 6 + 's';
-                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
-
-                // Add mouse interaction
-                particle.addEventListener('mouseenter', function () {
-                    this.style.transform = 'scale(2)';
-                    this.style.opacity = '1';
-                });
-
-                particle.addEventListener('mouseleave', function () {
-                    this.style.transform = 'scale(1)';
-                    this.style.opacity = '0.6';
-                });
-
-                document.body.appendChild(particle);
-            }
-        }
-
-        // Magnetic effect for elements
-        function addMagneticEffect() {
-            const magnetElements = document.querySelectorAll('.magnet');
-            magnetElements.forEach(element => {
-                element.addEventListener('mousemove', function (e) {
-                    const rect = this.getBoundingClientRect();
-                    const x = e.clientX - rect.left - rect.width / 2;
-                    const y = e.clientY - rect.top - rect.height / 2;
-
-                    const distance = Math.sqrt(x * x + y * y);
-                    const maxDistance = 100;
-
-                    if (distance < maxDistance) {
-                        const force = (maxDistance - distance) / maxDistance;
-                        const moveX = x * force * 0.3;
-                        const moveY = y * force * 0.3;
-
-                        this.style.transform = `translate(${moveX}px, ${moveY}px)`;
-                    }
-                });
-
-                element.addEventListener('mouseleave', function () {
-                    this.style.transform = 'translate(0, 0)';
-                });
-            });
-        }
-
-        // Interactive background grid
-        function createInteractiveGrid() {
-            const grid = document.querySelector('.grid-bg');
-            if (grid) {
-                grid.addEventListener('mousemove', function (e) {
-                    const rect = this.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    this.style.background = `
-                        radial-gradient(circle at ${x}px ${y}px, rgba(42, 157, 143, 0.3) 0%, transparent 50%),
-                        linear-gradient(rgba(42, 157, 143, 0.1) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(42, 157, 143, 0.1) 1px, transparent 1px)
-                    `;
-                });
-            }
-        }
-
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
+        // Smooth Scroll
+        document.querySelectorAll("a.nav-link").forEach(link => {
+            link.addEventListener("click", function (e) {
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+                const target = document.querySelector(this.getAttribute("href"));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    const offset = window.innerWidth < 768 ? 70 : 0;
+                    const targetPosition = target.getBoundingClientRect().top + window.scrollY - offset;
+                    window.scrollTo({ top: targetPosition, behavior: "smooth" });
                 }
             });
         });
 
-        // Navbar scroll effect
-        window.addEventListener('scroll', function () {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-
-        // Modal functionality
+        // Open and Close Modal
         function openModal(img) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('img01');
-            const caption = document.getElementById('caption');
-
-            modal.classList.add('show');
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("img01");
+            const caption = document.getElementById("caption");
+            modal.classList.add("show");
             modalImg.src = img.src;
-            caption.innerHTML = img.alt;
+            caption.textContent = img.alt;
+            document.body.style.overflow = "hidden"; // prevent scroll
         }
 
         function closeModal() {
-            document.getElementById('imageModal').classList.remove('show');
+            document.getElementById("imageModal").classList.remove("show");
+            document.body.style.overflow = ""; // restore scroll
         }
 
-        // Close modal when clicking outside
-        window.onclick = function (event) {
-            const modal = document.getElementById('imageModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
+        // ESC key support
+        window.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closeModal();
         });
 
-        // Close modal button
-        document.querySelector('.close').addEventListener('click', closeModal);
-
-        // Add loading animation to buttons
-        document.querySelectorAll('.hero-btn, .btn-primary, .btn-secondary, .team-btn').forEach(button => {
-            button.addEventListener('click', function (e) {
-                if (this.getAttribute('href') && this.getAttribute('href').startsWith('#')) {
-                    const originalText = this.innerHTML;
-                    this.innerHTML = '<div class="loading-spinner"></div>';
-                    setTimeout(() => {
-                        this.innerHTML = originalText;
-                    }, 1000);
-                }
-            });
+        // Animate on scroll
+        document.addEventListener("DOMContentLoaded", () => {
+            const elements = document.querySelectorAll('.animate-on-scroll');
+            const observer = new IntersectionObserver(
+                entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("visible");
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                },
+                { threshold: 0.15 }
+            );
+            elements.forEach(el => observer.observe(el));
         });
 
-        // Initialize all effects
-        document.addEventListener('DOMContentLoaded', function () {
-            createEnhancedParticles();
-            addMagneticEffect();
-            createInteractiveGrid();
-
-            // Add intersection observer for animations
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver(function (entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.fade-in').forEach(el => {
-                observer.observe(el);
-            });
-        });
-
-        // Counter animation for budget
-        function animateCounter(element, start, end, duration) {
-            let startTime = null;
-            function animation(currentTime) {
-                if (startTime === null) startTime = currentTime;
-                const progress = Math.min((currentTime - startTime) / duration, 1);
-                const value = Math.floor(progress * (end - start) + start);
-                element.textContent = value.toLocaleString();
-                if (progress < 1) {
-                    requestAnimationFrame(animation);
-                }
-            }
-            requestAnimationFrame(animation);
-        }
-
-        // Trigger counter animation when budget section is visible
-        const budgetObserver = new IntersectionObserver(function (entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const totalCell = document.querySelector('.total-row td:last-child strong');
-                    if (totalCell) {
-                        animateCounter(totalCell, 0, 7655, 2000);
-                        budgetObserver.unobserve(entry.target);
-                    }
-                }
-            });
-        }, { threshold: 0.5 });
-
-        const budgetSection = document.querySelector('#budget');
-        if (budgetSection) {
-            budgetObserver.observe(budgetSection);
-        }
-
-        // Typing effect for hero title
-        function typeWriter(element, text, speed = 100) {
-            let i = 0;
-            element.innerHTML = '';
-            function type() {
-                if (i < text.length) {
-                    element.innerHTML += text.charAt(i);
-                    i++;
-                    setTimeout(type, speed);
-                }
-            }
-            type();
-        }
-
-        // Initialize typing effect
-        window.addEventListener('load', function () {
-            const heroTitle = document.querySelector('.hero-title');
-            if (heroTitle) {
-                const originalText = heroTitle.textContent;
-                setTimeout(() => {
-                    typeWriter(heroTitle, originalText, 50);
-                }, 500);
-            }
-        });
-
-        // Add parallax effect to hero section
-        window.addEventListener('scroll', function () {
-            const scrolled = window.pageYOffset;
-            const hero = document.querySelector('.hero-section');
-            if (hero) {
-                const rate = scrolled * -0.3;
-                hero.style.transform = `translateY(${rate}px)`;
-            }
-
-            // Parallax effect for geometric shapes
-            const shapes = document.querySelectorAll('.geometric-shape');
-            shapes.forEach((shape, index) => {
-                const rate = scrolled * (0.1 + index * 0.05);
-                shape.style.transform = `translateY(${rate}px) rotate(${scrolled * 0.1}deg)`;
-            });
-        });
-
-        // Enhanced hover effects with 3D transforms
-        document.querySelectorAll('.feature-card, .team-card, .stack-item').forEach(card => {
-            card.addEventListener('mouseenter', function () {
-                this.style.transform = 'translateY(-15px) rotateX(5deg) rotateY(5deg) scale(1.03)';
-            });
-
-            card.addEventListener('mouseleave', function () {
-                this.style.transform = 'translateY(0) rotateX(0) rotateY(0) scale(1)';
-            });
-        });
-
-        // Particle interaction on hover
-        document.querySelectorAll('.particle').forEach(particle => {
-            particle.addEventListener('mouseenter', function () {
-                this.style.transform = 'scale(3)';
-                this.style.opacity = '1';
-                this.style.boxShadow = '0 0 20px currentColor';
-            });
-
-            particle.addEventListener('mouseleave', function () {
-                this.style.transform = 'scale(1)';
-                this.style.opacity = '0.6';
-                this.style.boxShadow = 'none';
-            });
-        });
-
-        // Dynamic color change based on scroll
-        window.addEventListener('scroll', function () {
-            const scrollPercent = window.pageYOffset / (document.documentElement.scrollHeight - window.innerHeight);
-            const hue = 180 + (scrollPercent * 60); // Shift from cyan to purple
-            document.documentElement.style.setProperty('--dynamic-color', `hsl(${hue}, 70%, 60%)`);
-        });
-
-        // Interactive icons rotation
-        document.querySelectorAll('.interactive-icon').forEach(icon => {
-            icon.addEventListener('mouseenter', function () {
-                this.style.transform = 'scale(1.3) rotate(360deg)';
-                this.style.transition = 'transform 0.6s ease';
-            });
-
-            icon.addEventListener('mouseleave', function () {
-                this.style.transform = 'scale(1) rotate(0deg)';
-            });
-        });
-
-        // Smooth reveal animations for sections
-        const revealElements = document.querySelectorAll('.section');
-        const revealObserver = new IntersectionObserver(function (entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.2 });
-
-        revealElements.forEach(element => {
-            element.style.opacity = '0';
-            element.style.transform = 'translateY(50px)';
-            element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-            revealObserver.observe(element);
+        // Delayed Fade-in
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in').forEach(el => el.classList.add('visible'));
+            }, 500);
         });
     </script>
 </body>

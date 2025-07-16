@@ -23,9 +23,7 @@
       "package": "com.yokka361.pebodeskcompanion"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "extra": {
+      "favicon": "./assets/favicon.png",
       "eas": {
         "projectId": "1638de7e-ecf4-48d8-8463-e9aa162f398d"
       }
@@ -34,7 +32,6 @@
     "plugins": [
       "expo-video",
       "expo-font"
-    ],
-    "owner": "yokka_20361"
+    ]
   }
 }
