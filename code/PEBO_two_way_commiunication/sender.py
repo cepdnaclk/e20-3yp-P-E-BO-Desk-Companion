@@ -5,6 +5,7 @@ import time
 import queue
 import audioop
 
+
 class AudioNode:
     def __init__(self, listen_port=8888, target_host='192.168.124.182', target_port=8889):
         self.CHUNK = 2048
@@ -14,10 +15,9 @@ class AudioNode:
         self.listen_port = listen_port
         self.target_host = target_host
         self.target_port = target_port
-        self.audio_queue = queue.Queue(maxsize=50)  # 🔄 Increased buffer for smoother playback
+        self.audio_queue = queue.Queue(maxsize=10)
         self.audio = pyaudio.PyAudio()
         self.running = True
-        self.threshold = 600  # Default threshold, will be updated in calibration
         self.setup_audio()
 
     def setup_audio(self):
@@ -26,17 +26,20 @@ class AudioNode:
         self.speaker_stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
                                               rate=self.RATE, output=True, frames_per_buffer=self.CHUNK)
 
-    def calibrate_threshold(self):
-        print("[SYSTEM] Calibrating background noise...")
-        noise_samples = []
-        for _ in range(10):
-            data = self.mic_stream.read(self.CHUNK, exception_on_overflow=False)
-            rms = audioop.rms(data, 2)
-            noise_samples.append(rms)
-        avg_noise = sum(noise_samples) / len(noise_samples)
-        self.threshold = avg_noise + 150  # Add buffer
-        print(f"[SYSTEM] Auto threshold set to {self.threshold:.2f}")
-
+    def send_audio(self):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
+            time.sleep(2)
+            sock.connect((self.target_host, self.target_port))
+            print(f"Connected to laptop at {self.target_host}:{self.target_port}")
+            while self.running:
+                data = self.mic_stream.read(self.CHUNK, exception_on_overflow=False)
+                sock.send(data)
+        except Exception as e:
+            print(f"Send error: {e}")
+        finally:
+            sock.close()
     def send_audio(self):
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,27 +48,26 @@ class AudioNode:
             sock.connect((self.target_host, self.target_port))
             print(f"Connected to laptop at {self.target_host}:{self.target_port}")
 
-            # RMS moving average window
-            rms_history = []
+            threshold = 500  # Adjust this value to your environment
 
             while self.running:
                 data = self.mic_stream.read(self.CHUNK, exception_on_overflow=False)
-                rms = audioop.rms(data, 2)
-                print(f"RMS: {rms}")
-                rms_history.append(rms)
-                if len(rms_history) > 5:
-                    rms_history.pop(0)
-                avg_rms = sum(rms_history) / len(rms_history)
+                rms = audioop.rms(data, 2)  # 2 bytes/sample for paInt16
 
-                if avg_rms > self.threshold:
+                # Debug: Print volume to help tune
+                print(f"RMS: {rms}")
+
+                if rms > threshold:
                     sock.send(data)
                 else:
-                    continue  # Don't send silence — skip it
+                    silence = b'\x00' * len(data)
+                    sock.send(silence)
 
         except Exception as e:
             print(f"Send error: {e}")
         finally:
             sock.close()
+
 
     def receive_audio(self):
         try:
@@ -86,11 +88,8 @@ class AudioNode:
         except Exception as e:
             print(f"Receive error: {e}")
         finally:
-            try:
-                conn.close()
-                sock.close()
-            except:
-                pass
+            conn.close()
+            sock.close()
 
     def play_audio(self):
         while self.running:
@@ -114,7 +113,6 @@ class AudioNode:
         print("Using 48kHz to match Pi Bluetooth speakers")
 
         self.send_trigger_signal(self.target_host, 8890)  # ✅ Trigger Device 2
-        self.calibrate_threshold()  # 🔧 Auto-adjust noise threshold
 
         send_thread = threading.Thread(target=self.send_audio)
         receive_thread = threading.Thread(target=self.receive_audio)
@@ -129,23 +127,21 @@ class AudioNode:
         send_thread.start()
 
         try:
-            while self.running:
+            while True:
                 time.sleep(1)
         except KeyboardInterrupt:
             print("\nStopping...")
             self.running = False
 
-        self.cleanup()
-
-    def cleanup(self):
         self.mic_stream.stop_stream()
-        self.mic_stream.close()
         self.speaker_stream.stop_stream()
+        self.mic_stream.close()
         self.speaker_stream.close()
         self.audio.terminate()
-        print("[SYSTEM] Audio system shut down cleanly.")
+
+    
 
 if __name__ == "__main__":
-    LAPTOP_IP = "192.168.124.182"  # Replace with your laptop's IP
+    LAPTOP_IP = "192.168.124.182"  # Replace with Device 2 IP
     node = AudioNode(listen_port=8888, target_host=LAPTOP_IP, target_port=8889)
     node.start()
