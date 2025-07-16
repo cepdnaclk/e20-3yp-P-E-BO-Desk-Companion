@@ -48,22 +48,26 @@ class AudioNode:
             sock.connect((self.target_host, self.target_port))
             print(f"Connected to laptop at {self.target_host}:{self.target_port}")
 
-            threshold = 500  #  Adjust this threshold based on testing
+            threshold = 500  # Adjust this value to your environment
 
             while self.running:
                 data = self.mic_stream.read(self.CHUNK, exception_on_overflow=False)
-                rms = audioop.rms(data, 2)  # Calculate volume level
-            if rms > threshold:
-                sock.send(data)  # Only send if loud enough
-            else:
-                # Optional: send silence or skip
-                silence = b'\x00' * len(data)
-                sock.send(silence)
+                rms = audioop.rms(data, 2)  # 2 bytes/sample for paInt16
+
+                # Debug: Print volume to help tune
+                print(f"RMS: {rms}")
+
+                if rms > threshold:
+                    sock.send(data)
+                else:
+                    silence = b'\x00' * len(data)
+                    sock.send(silence)
 
         except Exception as e:
             print(f"Send error: {e}")
         finally:
             sock.close()
+
 
     def receive_audio(self):
         try:
