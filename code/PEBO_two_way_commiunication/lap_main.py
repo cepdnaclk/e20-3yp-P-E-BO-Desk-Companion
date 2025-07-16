@@ -1,17 +1,16 @@
 import speech_recognition as sr
-from sender import AudioNode
+from sender_node import AudioNode
 import threading
 import time
 import socket
 import subprocess
 
 # === Configuration ===
-IS_PI = False  # Set to False on Laptop
+IS_PI = False
 
-MY_TRIGGER_PORT = 8891 if IS_PI else 8890
-PEER_TRIGGER_PORT = 8890 if IS_PI else 8891
-
-PEER_IP = "192.168.124.182" if IS_PI else "192.168.124.94"  # Laptop IP if Pi, and vice versa
+MY_TRIGGER_PORT = 8890
+PEER_TRIGGER_PORT = 8891
+PEER_IP = "192.168.124.94"  # Pi IP
 
 class VoiceControlledAudio:
     def __init__(self):
@@ -27,9 +26,9 @@ class VoiceControlledAudio:
         if not self.is_running:
             print("[SYSTEM] Starting audio communication...")
             self.node = AudioNode(
-                listen_port=8888 if IS_PI else 8889,
+                listen_port=8889,
                 target_host=PEER_IP,
-                target_port=8889 if IS_PI else 8888
+                target_port=8888
             )
             self.node_thread = threading.Thread(target=self.node.start)
             self.node_thread.daemon = True
@@ -63,16 +62,12 @@ class VoiceControlledAudio:
                     data = conn.recv(1024)
                     if data == b'start':
                         print("[TRIGGER] Start signal received. Launching receiver...")
-                        subprocess.Popen(['python3' if IS_PI else 'python',
-                                          'receiver.py'])  # Adjust path if needed
+                        subprocess.Popen(['python', 'receiver.py'])
 
     def listen_for_commands(self):
         recognizer = sr.Recognizer()
         mic = sr.Microphone()
         print("[VOICE] Say 'send message' to start or 'end communication' to stop.")
-        if not IS_PI:
-            print("[VOICE] Say 'start communication with pi' to initiate from laptop.")
-
         while True:
             with mic as source:
                 recognizer.adjust_for_ambient_noise(source)
@@ -90,14 +85,10 @@ class VoiceControlledAudio:
                 elif "end communication" in command and self.is_running:
                     self.stop_audio_node()
 
-                elif not IS_PI and "start communication with pi" in command:
-                    self.send_trigger_to_peer()
-
             except sr.UnknownValueError:
                 print("[VOICE] Could not understand. Try again.")
             except Exception as e:
                 print(f"[ERROR] {e}")
-
             time.sleep(1)
 
 if __name__ == "__main__":
