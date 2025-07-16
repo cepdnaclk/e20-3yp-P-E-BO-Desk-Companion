@@ -14,7 +14,8 @@ def wait_for_trigger():
             data = conn.recv(1024)
             if data == b'start':
                 print("[Trigger Listener] Start signal received. Launching receiver...")
-                subprocess.Popen(['python3', 'receiver.py'])  # Adjust path if needed
+                #subprocess.Popen(['python', 'receiver.py'])  # Adjust path if needed
+                subprocess.Popen(['python', r'c:\Users\DELL\Documents\sem5\3yp\e20-3yp-P-E-BO-Desk-Companion\code\PEBO_two_way_commiunication\receiver.py'])
 
 if __name__ == "__main__":
     wait_for_trigger()
