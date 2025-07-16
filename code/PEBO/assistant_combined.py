@@ -29,20 +29,29 @@ import smbus
 import RPi.GPIO as GPIO
 from arms.arms_pwm import (say_hi, express_tired, express_happy, express_sad, express_angry,
                            reset_to_neutral, scan_i2c_devices, angle_to_pulse_value, set_servos, smooth_move)
-from display.eyes import RoboEyesDual
-from interaction.play_song import play_music
+from display.eyes_qr import RoboEyesDual
+from interaction.play_song1 import play_music
+from Communication.sender import AudioNode, start_audio_node
+from datetime import datetime, timezone
+import dateutil.parser
+
+# Pin configuration for touch sensor
+TOUCH_PIN = 17  # GPIO pin number (Pin 11)
+
+# Setup GPIO
+GPIO.setmode(GPIO.BCM)  # Use BCM numbering
+GPIO.setup(TOUCH_PIN, GPIO.IN)  # Set pin as input
 
 # Constants for I2C addresses
 PCA9685_ADDR = 0x40
-LEFT_EYE_ADDRESS = 0x3D
-RIGHT_EYE_ADDRESS = 0x3C
+LEFT_EYE_ADDRESS = 0x3C
+RIGHT_EYE_ADDRESS = 0x3D
 
 # Global variables for hardware control
 i2c = None
 eyes = None
 current_eye_thread = None
 stop_event = None
-
 
 # LED pin configuration
 LED_PIN = 18  # GPIO pin number (Pin 12)
@@ -54,7 +63,7 @@ def initialize_hardware():
     eyes = RoboEyesDual(LEFT_EYE_ADDRESS, RIGHT_EYE_ADDRESS)
     eyes.begin(128, 64, 40)
 
-def run_emotion(arm_func, eye_func):
+def run_emotion(arm_func, eye_func, duration=1):
     """Run arm movement and eye expression simultaneously, then return to normal mode"""
     global current_eye_thread, stop_event
     stop_event = threading.Event()
@@ -63,9 +72,10 @@ def run_emotion(arm_func, eye_func):
     current_eye_thread.daemon = True
     current_eye_thread.start()
     
-    arm_func()
+    if arm_func:
+        arm_func()
     
-    time.sleep(1)
+    time.sleep(duration)
     
     stop_event.set()
     if current_eye_thread:
@@ -103,6 +113,11 @@ def angry():
 def love():
     print("Expressing Love")
     run_emotion(express_happy, eyes.Love)
+    
+def qr(device_id):
+    """Express QR code with the specified device ID"""
+    print(f"Expressing QR with device ID: {device_id}")
+    run_emotion(None, lambda stop_event: eyes.QR(device_id, stop_event=stop_event), duration=15)
 
 def cleanup():
     """Clean up resources, clear displays, and deinitialize I2C bus."""
@@ -132,8 +147,8 @@ def cleanup():
 # Initialize pygame
 pygame.mixer.init()
 
-# Gemini API setup
-GOOGLE_API_KEY = "AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"  # Replace with your actual API key
+# Gemini API 
+GOOGLE_API_KEY = "AIzaSyDXxEijFon8EyiUEULYbXiqsnPwm-J0UW4"
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
@@ -387,6 +402,68 @@ def get_wifi_ssid():
         logger.warning(f"Error getting SSID: {str(e)}")
         return None
 
+def fetch_user_tasks(user_id):
+    """Fetch tasks for the given user from Firebase and return a formatted response."""
+    try:
+        tasks_ref = db.reference(f'users/{user_id}/tasks')
+        tasks = tasks_ref.get()
+        if not tasks:
+            logger.info(f"No tasks found for user {user_id}")
+            return "You have no tasks scheduled."
+
+        current_time = datetime.now(timezone.utc)
+        pending_tasks = []
+
+        for task_id, task_data in tasks.items():
+            if not task_data.get('completed', False):
+                deadline_str = task_data.get('deadline')
+                try:
+                    deadline = dateutil.parser.isoparse(deadline_str)
+                    time_until_deadline = deadline - current_time
+                    minutes_until_deadline = int(time_until_deadline.total_seconds() / 60)
+
+                    # Format task details
+                    description = task_data.get('description', 'No description')
+                    priority = task_data.get('priority', 'Unknown')
+                    reminder_enabled = task_data.get('reminderEnabled', False)
+                    reminder_time1 = task_data.get('reminderTime1', None)
+                    reminder_time2 = task_data.get('reminderTime2', None)
+
+                    reminder_text = ""
+                    if reminder_enabled and (reminder_time1 or reminder_time2):
+                        reminders = []
+                        if reminder_time1:
+                            reminders.append(f"{reminder_time1} minutes before")
+                        if reminder_time2:
+                            reminders.append(f"{reminder_time2} minutes before")
+                        reminder_text = f" with reminders set for {', and '.join(reminders)}"
+
+                    task_info = (f"{description}, due on {deadline.strftime('%B %d at %I:%M %p')}, "
+                                f"priority {priority}{reminder_text}. "
+                                f"{'It is due soon!' if minutes_until_deadline <= reminder_time1 or minutes_until_deadline <= reminder_time2 else ''}")
+                    pending_tasks.append(task_info)
+                except ValueError:
+                    logger.warning(f"Invalid deadline format for task {task_id}: {deadline_str}")
+                    continue
+
+        if not pending_tasks:
+            return "You have no pending tasks."
+
+        # Sort tasks by deadline
+        #pending_tasks.sort(key=lambda x: dateutil.parser.isoparse(tasks[list(tasks.keys())[pending_tasks.index(x)]].get('deadline')))
+        
+        # Format response
+        task_count = len(pending_tasks)
+        if task_count == 1:
+            response = f"You have one task: {pending_tasks[0]}"
+        else:
+            response = f"You have {task_count} tasks: {'; '.join(pending_tasks)}"
+        return response
+
+    except Exception as e:
+        logger.error(f"Error fetching tasks for user {user_id}: {str(e)}")
+        return "Sorry, I couldn't retrieve your tasks due to an error."
+
 async def start_assistant_from_text(prompt_text):
     """Starts Gemini assistant with initial text prompt and controls robot emotions."""
     print(f"\U0001F4AC Initial Prompt: {prompt_text}")
@@ -395,7 +472,7 @@ async def start_assistant_from_text(prompt_text):
     full_prompt = f"{prompt_text}\nAbove is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion based on the message's context. Provide your answer in the format [emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response to my message."
     conversation_history.append({"role": "user", "parts": [full_prompt]})
 
-    response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 60})
+    response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 30})
     reply = response.text.strip()
 
     emotion = "Normal"
@@ -457,11 +534,44 @@ async def start_assistant_from_text(prompt_text):
                 await speak_text(message)
                 normal()
                 break
-            continue
-
+        GPIO.setmode(GPIO.BCM)  # Reinitialize GPIO mode
+        GPIO.setup(TOUCH_PIN, GPIO.IN)  # Reinitialize touch pin
         failed_attempts = 0  # Reset on valid input
         
-        # Check for "play song" with or without song name
+        # Check for "what are my tasks"
+        if user_input.lower() in ["what are reminders", "list reminders", "show reminders", "tell me my reminders"]:
+            try:
+                # Read user ID from pebo_config.json
+                with open(JSON_CONFIG_PATH, 'r') as config_file:
+                    config = json.load(config_file)
+                    user_id = config.get('userId')
+                
+                if not user_id:
+                    logger.error("Missing userId in config file")
+                    await speak_text("Sorry, I couldn't find your user ID.")
+                    await asyncio.to_thread(normal)
+                    continue
+
+                # Fetch tasks from Firebase
+                task_response = fetch_user_tasks(user_id)
+                await asyncio.gather(
+                    speak_text(task_response),
+                    asyncio.to_thread(normal)  # Express happy emotion for tasks
+                )
+                continue
+
+            except FileNotFoundError:
+                logger.error(f"Config file {JSON_CONFIG_PATH} not found")
+                await speak_text("Sorry, I couldn't read the user configuration.")
+                await asyncio.to_thread(normal)
+                continue
+            except Exception as e:
+                logger.error(f"Error fetching tasks: {str(e)}")
+                await speak_text("Sorry, there was an error retrieving your tasks.")
+                await asyncio.to_thread(normal)
+                continue
+
+        # Check for "play song" with or without a song name
         song_match = re.match(r'^play\s+a\s+song\s+(.+)$', user_input, re.IGNORECASE)
         if song_match or user_input == "play a song" or user_input == "play song":
             max_song_attempts = 3
@@ -494,7 +604,7 @@ async def start_assistant_from_text(prompt_text):
 
                     confirmation = confirmation.lower()
                     if any(pos in confirmation for pos in positive_responses):
-                        await play_music(song_input, None)  # Pass None for controller
+                        await play_music(song_input, None, TOUCH_PIN)  # Pass TOUCH_PIN
                         await asyncio.to_thread(normal)
                         break
                     elif any(neg in confirmation for neg in negative_responses):
@@ -533,7 +643,28 @@ async def start_assistant_from_text(prompt_text):
                         await asyncio.to_thread(normal)  # Set arms to neutral and eyes to normal
                         break
             continue  # Continue listening after song handling
+            
+        # Show QR to scanner
+        if user_input.lower() in ["show q r", "show me q r", "show qr", "show me qr", "show me q", "show q"]:
+            try:
+                # Read device ID from pebo_config.json
+                with open("/home/pi/pebo_config.json", 'r') as f:
+                    config = json.load(f)
+                    device_id = config.get("deviceId")
+                    if not str(device_id):
+                        await speak_text("Error: Invalid device ID in configuration")
+                        continue
+            except Exception as e:
+                await speak_text(f"Error reading device ID: {str(e)}")
+                continue
         
+            await asyncio.gather(
+                speak_text("Showing QR now, scan this using the user PEBO mobile app"),
+                asyncio.to_thread(run_emotion, None, lambda stop_event: eyes.QR(device_id, stop_event=stop_event), duration=15)
+            )
+            await asyncio.to_thread(normal)
+            continue
+            
         # Inter-device communication part
         if user_input == "send message":
             try:
@@ -609,7 +740,20 @@ async def start_assistant_from_text(prompt_text):
 
                 if selected_device:
                     print(f"Selected Device: Location={selected_device['location']}, IP={selected_device['ip_address']}")
-                    await speak_text(f"Selected device in {selected_device['location']} with IP {selected_device['ip_address']}.")
+                    await speak_text(f"Connected to PEBO in {selected_device['location']} with IP {selected_device['ip_address']}. Double-tap to stop communication.")
+                    await asyncio.to_thread(normal)
+                    # Reinitialize GPIO before starting audio node
+                    GPIO.setmode(GPIO.BCM)
+                    GPIO.setup(TOUCH_PIN, GPIO.IN)
+                    # Run start_audio_node in a separate thread to allow async continuation
+                    audio_thread = threading.Thread(
+                        target=start_audio_node,
+                        args=(8888, selected_device['ip_address'], 8889, TOUCH_PIN)
+                    )
+                    audio_thread.daemon = True
+                    audio_thread.start()
+                    audio_thread.join()  # Wait for audio node to complete (stops on double-tap)
+                    await speak_text("Communication stopped. Anything else?")
                     await asyncio.to_thread(normal)
                 else:
                     await speak_text("Sorry, I couldn't find a device in that location. Let's try something else.")
@@ -671,29 +815,31 @@ async def monitor_for_trigger(name, emotion):
     initialize_hardware()
     normal()
     
-    print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
-    text = listen(recognizer, mic)
-    if text:
-        trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-        if re.search(trigger_pattern, text, re.IGNORECASE):
-            print("✅ Trigger phrase detected! Starting assistant...")
-            print(f"Using: Name={name}, Emotion={emotion}")
-            if name and name.lower() != "none":
-                hi_task = asyncio.to_thread(hi)
-                voice_task = speak_text("Hello! I'm your pebo.")
-                await asyncio.gather(hi_task, voice_task)
-                if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
-                    await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
+    while True:
+        print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
+        text = listen(recognizer, mic)
+        if text:
+            trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
+            if re.search(trigger_pattern, text, re.IGNORECASE):
+                print("✅ Trigger phrase detected! Starting assistant...")
+                print(f"Using: Name={name}, Emotion={emotion}")
+                if name and name.lower() != "none":
+                    hi_task = asyncio.to_thread(hi)
+                    voice_task = speak_text("Hello! I'm your pebo.")
+                    await asyncio.gather(hi_task, voice_task)
+                    if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
+                        await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
+
+                    else:
+                        await start_assistant_from_text(f"I am {name}. I need your assist.")
+     
                 else:
-                    await start_assistant_from_text(f"I am {name}. I need your assist.")
+                    await speak_text("I can't identify you as my user")
             else:
-                await speak_text("I can't identify you as my user")
-        await asyncio.sleep(0.5)
-    
-    print("🖥️ Cleaning up in monitor_for_trigger: Clearing displays and I2C bus...")
-    cleanup()
-    await asyncio.sleep(0.5)
+                continue
         
+        print("🖥️ Cleaning up in monitor_for_trigger: Clearing displays and I2C bus...")
+
 async def monitor_start(name, emotion):
     """Run once to initialize the assistant with a single speech input."""
     initialize_hardware()
@@ -707,18 +853,82 @@ async def monitor_start(name, emotion):
             voice_task = speak_text("Hello! I'm your pebo.")
             await asyncio.gather(hi_task, voice_task)
             await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
+            
         else:
             await speak_text("I can't identify you as my user")
+            
     finally:
         print("🖥️ Cleaning up in monitor_start: Clearing displays and I2C bus...")
-        cleanup()
-        await asyncio.sleep(0.5)
+        
 
+async def monitor_new():
+    initialize_hardware()
+    normal()
+    
+    while True:
+        print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
+
+        name, emotion = read_recognition_result()
+        
+        if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
+            hi_task = asyncio.to_thread(hi)
+            voice_task = speak_text("Hello! I'm your pebo.")
+            await asyncio.gather(hi_task, voice_task)
+            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
+                
+        else:
+            text = listen(recognizer, mic)
+            if text:
+            
+                trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
+                qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'  # Matches "show qr", "show me qr", "show q"
+                if re.search(trigger_pattern, text, re.IGNORECASE):
+                    print("✅ Trigger phrase detected! Starting assistant...")
+                    print(f"Using: Name={name}, Emotion={emotion}")
+                    if name and name.lower() != "none":
+                        hi_task = asyncio.to_thread(hi)
+                        voice_task = speak_text("Hello! I'm your pebo.")
+                        await asyncio.gather(hi_task, voice_task)
+                        if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
+                            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
+
+                        else:
+                            await start_assistant_from_text(f"I am {name}. I need your assist.")
+             
+                    else:
+                        await speak_text("I can't identify you as my user")
+                        
+                # Check for QR code display
+                if re.search(qr_pattern, text, re.IGNORECASE):
+                    try:
+                        # Read device ID from pebo_config.json
+                        with open("/home/pi/pebo_config.json", 'r') as f:
+                            config = json.load(f)
+                            device_id = config.get("deviceId")
+                            if not str(device_id):
+                                await speak_text("Error: Invalid device ID in configuration")
+                                continue
+                    except Exception as e:
+                        await speak_text(f"Error reading device ID: {str(e)}")
+                        continue
+                
+                    await asyncio.gather(
+                        speak_text("Showing QR now, scan this using the user PEBO mobile app"),
+                        asyncio.to_thread(run_emotion, None, lambda stop_event: eyes.QR(device_id, stop_event=stop_event), duration=15)
+                    )
+                    await asyncio.to_thread(normal)  # Return to normal state
+                    continue
+            
+            else:
+                continue
+        
+        print("🖥️ Cleaning up in monitor_new: Clearing displays and I2C bus...")
+        
 if __name__ == "__main__":
     try:
         name = "Bhagya"
-        emotion = "Clam"
-        asyncio.run(monitor_for_trigger(name, emotion))
+        emotion = "Calm"
+        asyncio.run(monitor_new())
     except KeyboardInterrupt:
         print("\nProgram interrupted by user")
     finally:

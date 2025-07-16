@@ -1,16 +1,25 @@
-import threading
+#!/usr/bin/env python3
+
+import logging
 import time
+import threading
 import asyncio
 import board
 import busio
+import os
 from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo
 from display.eyes import RoboEyesDual
-from facetracking.face_tracking import CombinedFaceTracking
+from facetracking.face_tracking_qr import CombinedFaceTracking
 from interaction.touch_sensor import detect_continuous_touch
 from arms.arms_pwm import say_hi
 from recognition.person_recognition import recognize_image 
-from assistant_combined import monitor_for_trigger, monitor_start
+from assistant_combined import monitor_for_trigger, monitor_start, monitor_new
+from ipconfig.qr_reader import run_qr_scanner
+
+# Initialize logging
+logging.basicConfig(filename='/home/pi/main_controller.log', level=logging.DEBUG)
+logging.info("Main controller started at %s", time.strftime("%Y-%m-%d %H:%M:%S"))
 
 # Initialize I2C and PCA9685 PWM controller
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -34,40 +43,40 @@ def run_say_hi_once():
     say_hi()
 
 def run_periodic_recognition():
+    """Run periodic face recognition and save results to recognition_result.txt."""
     global recognition_result
-    while True:
-        print("🔍 Running periodic recognition...")
-        result = recognize_image()
-        print(f"Recognition Result: {result}")
-        with result_lock:
-            recognition_result = result  # Update shared result
-        time.sleep(5)
-
-def run_voice_monitoring():
-    """Run the voice monitoring loop in a separate thread, using emotion from periodic recognition."""
-    valid_emotions = {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}
+    file_path = "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/recognition_result.txt"
     
     while True:
         try:
-            # Get the latest recognition result
+            print("🔍 Running periodic recognition...")
+            result = recognize_image()
+            print(f"Recognition Result: {result}")
+            
+            # Update shared result with thread-safe access
             with result_lock:
-                user = recognition_result.get("name", "NONE")
-                emotion = recognition_result.get("emotion", "NONE").upper()
-            print(f"[Voice] Using Recognition Result: name={user}, emotion={emotion}")
-
-            # Decide which monitor function to run based on emotion
-            if emotion in valid_emotions:
-                print(f"[Voice] Detected emotion {emotion}, running monitor_start...")
-                asyncio.run(monitor_start(user, emotion))
-            else:
-                print(f"[Voice] Emotion {emotion} not in valid emotions, running monitor_for_trigger...")
-                asyncio.run(monitor_for_trigger(user, emotion))
-
-            # Brief pause before next iteration to avoid overwhelming the system
-            time.sleep(1)
+                recognition_result = result
+                
+                # Save result to file
+                try:
+                    name = result.get("name", "NONE")
+                    emotion = result.get("emotion", "NONE")
+                    with open(file_path, 'w') as file:
+                        file.write(f"Name: {name}\nEmotion: {emotion}\n")
+                    print(f"📝 Saved to {file_path}: Name={name}, Emotion={emotion}")
+                except IOError as e:
+                    print(f"❌ Error writing to {file_path}: {e}")
+                except Exception as e:
+                    print(f"❌ Unexpected error writing to {file_path}: {e}")
+                    
         except Exception as e:
-            print(f"[Voice] Error: {e}")
-            time.sleep(5)  # Wait before retrying on error
+            print(f"❌ Error in periodic recognition: {e}")
+        
+        time.sleep(0.5)  # Wait 0.5 seconds before next recognition
+
+def run_voice_monitoring():
+    """Run the voice monitoring loop in a separate thread, using emotion from periodic recognition."""
+    asyncio.run(monitor_new())
 
 def stop_servo(servo_channel):
     """Stop a servo by setting duty cycle to 0."""
@@ -78,9 +87,9 @@ def stop_servo(servo_channel):
         print(f"Error stopping servo channel {servo_channel}: {e}")
 
 def cleanup():
-    """Clean up servo resources for channels 0, 1, 4, 6, and 7."""
+    """Clean up servo resources for channels 0, 1, 5, 6, and 7."""
     print("Returning servos to safe positions...")
-    servo_channels = [0, 1, 4, 6, 7]  # Channels to clean up
+    servo_channels = [0, 1, 5, 6, 7]  # Channels to clean up
     safe_angle = 90  # Safe position for all servos
 
     try:
@@ -119,25 +128,37 @@ def cleanup():
     except Exception as e:
         print(f"Error de-initializing PWM/I2C: {e}")
 
-def main():
-    print("🕹️ Waiting for 3-second touch to begin...")
-    if detect_continuous_touch(duration=3):
-        print("✅ Touch confirmed. Starting recognition...")
-        
-        # Start eyes, face tracking, arm wave, periodic recognition, and voice monitoring simultaneously
-        #threading.Thread(target=run_eye_display, daemon=True).start()
-        threading.Thread(target=run_face_tracking, daemon=True).start()
-        #threading.Thread(target=run_say_hi_once, daemon=True).start()
-        threading.Thread(target=run_periodic_recognition, daemon=True).start()
-        threading.Thread(target=run_voice_monitoring, daemon=True).start()
-
-        # Keep the main thread alive
+def shutdown_on_touch():
+    """Monitor for a 5-second touch to clean up and shut down the Raspberry Pi."""
+    print("🖐️ Monitoring for 5-second touch to shut down...")
+    if detect_continuous_touch(duration=5):
+        print("✅ 5-second touch detected. Cleaning up and shutting down...")
+        logging.info("5-second touch detected, initiating shutdown at %s", time.strftime("%Y-%m-%d %H:%M:%S"))
+        cleanup()  # Perform servo cleanup
+        # Initiate Raspberry Pi shutdown
         try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("🛑 Exiting...")
-            cleanup()  # Perform servo cleanup on exit
+            os.system("sudo shutdown -h now")
+        except Exception as e:
+            print(f"❌ Error during shutdown: {e}")
+            logging.error("Error during shutdown: %s", e)
+
+def main():
+    print("✅ Starting main controller...")
+    
+    # Start eyes, face tracking, periodic recognition, voice monitoring, and shutdown monitor simultaneously
+    threading.Thread(target=run_face_tracking, daemon=True).start()
+    threading.Thread(target=run_periodic_recognition, daemon=True).start()
+    threading.Thread(target=run_voice_monitoring, daemon=True).start()
+    threading.Thread(target=shutdown_on_touch, daemon=True).start()
+
+    # Keep the main thread alive
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("🛑 Exiting via KeyboardInterrupt...")
+        cleanup()  # Perform servo cleanup on manual exit
+        logging.info("Main controller stopped via KeyboardInterrupt at %s", time.strftime("%Y-%m-%d %H:%M:%S"))
 
 if __name__ == "__main__":
     main()

@@ -111,3 +111,710 @@
 2025-06-03 08:50:08,413 - INFO - Firebase app cleaned up
 2025-06-03 11:49:00,188 - INFO - Firebase initialized successfully
 2025-06-03 11:51:26,599 - INFO - Firebase app cleaned up
+2025-06-03 13:06:36,649 - INFO - Firebase initialized successfully
+2025-06-03 13:07:25,004 - INFO - Firebase app cleaned up
+2025-06-03 13:15:22,921 - INFO - Firebase initialized successfully
+2025-06-03 13:15:52,026 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 13:16:33,218 - INFO - Firebase app cleaned up
+2025-06-03 13:17:52,384 - INFO - Firebase initialized successfully
+2025-06-03 13:18:17,352 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 13:19:04,512 - INFO - Firebase app cleaned up
+2025-06-03 13:29:12,114 - INFO - Firebase initialized successfully
+2025-06-03 13:29:47,534 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 13:47:05,466 - INFO - Initialization successful.
+2025-06-03 13:47:05,466 - INFO - Camera now open.
+2025-06-03 13:47:05,473 - INFO - Configuration successful!
+2025-06-03 13:47:05,626 - INFO - Camera started
+2025-06-03 13:47:15,848 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-03 13:48:03,388 - INFO - Firebase initialized successfully
+2025-06-03 13:48:31,991 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 13:50:08,524 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 13:50:47,855 - INFO - Firebase app cleaned up
+2025-06-03 13:51:04,239 - INFO - Camera stopped
+2025-06-03 13:51:04,447 - INFO - Camera closed successfully.
+2025-06-03 18:24:16,212 - INFO - Firebase initialized successfully
+2025-06-03 18:24:36,979 - INFO - Firebase app cleaned up
+2025-06-03 18:39:19,369 - INFO - Initialization successful.
+2025-06-03 18:39:19,370 - INFO - Camera now open.
+2025-06-03 18:39:19,378 - INFO - Configuration successful!
+2025-06-03 18:39:19,514 - INFO - Camera started
+2025-06-03 18:39:39,585 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-03 18:40:36,509 - INFO - Firebase initialized successfully
+2025-06-03 18:43:29,387 - INFO - Camera stopped
+2025-06-03 18:43:29,614 - INFO - Camera closed successfully.
+2025-06-03 20:20:34,342 - INFO - Initialization successful.
+2025-06-03 20:20:34,343 - INFO - Camera now open.
+2025-06-03 20:20:34,350 - INFO - Configuration successful!
+2025-06-03 20:20:34,475 - INFO - Camera started
+2025-06-03 20:20:54,691 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-03 20:21:45,661 - INFO - Firebase initialized successfully
+2025-06-03 20:23:03,967 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 20:24:27,840 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 20:25:40,144 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 20:26:33,719 - INFO - Camera stopped
+2025-06-03 20:26:33,940 - INFO - Camera closed successfully.
+2025-06-03 20:51:57,835 - INFO - Initialization successful.
+2025-06-03 20:51:57,836 - INFO - Camera now open.
+2025-06-03 20:51:57,843 - INFO - Configuration successful!
+2025-06-03 20:51:57,972 - INFO - Camera started
+2025-06-03 20:52:07,966 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-03 20:53:06,134 - INFO - Camera stopped
+2025-06-03 20:53:06,338 - INFO - Camera closed successfully.
+2025-06-03 21:12:04,917 - INFO - Initialization successful.
+2025-06-03 21:12:04,920 - INFO - Camera now open.
+2025-06-03 21:12:04,928 - INFO - Configuration successful!
+2025-06-03 21:12:05,057 - INFO - Camera started
+2025-06-03 21:12:15,014 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-03 21:13:20,848 - INFO - Firebase initialized successfully
+2025-06-03 21:17:03,981 - INFO - Camera stopped
+2025-06-03 21:17:03,991 - INFO - Camera closed successfully.
+2025-06-03 21:39:57,405 - INFO - Firebase initialized successfully
+2025-06-03 21:53:03,332 - INFO - Firebase initialized successfully
+2025-06-03 21:58:38,850 - INFO - Firebase initialized successfully
+2025-06-03 22:00:40,605 - INFO - Initialization successful.
+2025-06-03 22:00:40,606 - INFO - Camera now open.
+2025-06-03 22:00:40,617 - INFO - Configuration successful!
+2025-06-03 22:00:40,761 - INFO - Camera started
+2025-06-03 22:00:50,777 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-03 22:02:01,167 - INFO - Firebase initialized successfully
+2025-06-03 22:08:30,145 - INFO - Firebase app cleaned up
+2025-06-03 22:09:38,102 - INFO - Camera stopped
+2025-06-03 22:09:38,312 - INFO - Camera closed successfully.
+2025-06-03 22:42:21,420 - INFO - Initialization successful.
+2025-06-03 22:42:21,422 - INFO - Camera now open.
+2025-06-03 22:42:21,437 - INFO - Configuration successful!
+2025-06-03 22:42:21,583 - INFO - Camera started
+2025-06-03 22:42:46,523 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-03 22:43:43,187 - INFO - Firebase initialized successfully
+2025-06-03 22:46:07,281 - INFO - Firebase app cleaned up
+2025-06-03 22:47:06,923 - INFO - Firebase initialized successfully
+2025-06-03 22:49:00,294 - INFO - Firebase app cleaned up
+2025-06-03 22:50:11,403 - INFO - Camera stopped
+2025-06-03 22:50:11,620 - INFO - Camera closed successfully.
+2025-06-03 23:17:21,560 - INFO - Firebase initialized successfully
+2025-06-03 23:19:03,548 - INFO - Firebase initialized successfully
+2025-06-03 23:22:31,067 - INFO - Firebase app cleaned up
+2025-06-03 23:31:31,808 - INFO - Firebase initialized successfully
+2025-06-03 23:31:58,710 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 23:32:23,268 - INFO - Firebase app cleaned up
+2025-06-03 23:39:10,602 - INFO - Firebase initialized successfully
+2025-06-03 23:49:06,113 - INFO - Firebase initialized successfully
+2025-06-03 23:49:27,287 - ERROR - Error in interdevice communication: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-06-03 23:50:18,360 - INFO - Firebase app cleaned up
+2025-06-03 23:52:20,275 - INFO - Firebase initialized successfully
+2025-06-03 23:54:51,496 - INFO - Firebase initialized successfully
+2025-06-03 23:58:37,688 - INFO - Firebase initialized successfully
+2025-06-03 23:59:00,752 - INFO - Firebase app cleaned up
+2025-06-04 00:00:46,762 - INFO - Firebase initialized successfully
+2025-06-04 00:01:07,778 - INFO - Firebase app cleaned up
+2025-06-04 00:02:27,897 - INFO - Firebase initialized successfully
+2025-06-04 00:02:55,444 - INFO - Firebase app cleaned up
+2025-06-04 00:06:20,312 - INFO - Firebase initialized successfully
+2025-06-04 00:06:31,982 - INFO - Firebase app cleaned up
+2025-06-04 01:23:24,791 - INFO - Firebase initialized successfully
+2025-06-04 01:24:54,273 - INFO - Firebase app cleaned up
+2025-06-04 02:11:34,324 - INFO - Firebase initialized successfully
+2025-06-04 02:11:58,052 - INFO - Firebase app cleaned up
+2025-06-04 02:13:22,340 - INFO - Firebase initialized successfully
+2025-06-04 02:15:43,000 - INFO - Firebase initialized successfully
+2025-06-04 02:16:01,653 - INFO - Firebase app cleaned up
+2025-06-04 02:16:25,610 - INFO - Firebase initialized successfully
+2025-06-04 02:18:23,594 - INFO - Firebase app cleaned up
+2025-06-04 02:31:13,138 - INFO - Firebase initialized successfully
+2025-06-04 02:31:34,824 - INFO - Firebase app cleaned up
+2025-06-04 02:32:00,328 - INFO - Firebase initialized successfully
+2025-06-04 02:33:13,276 - INFO - Firebase app cleaned up
+2025-06-04 02:39:40,644 - INFO - Initialization successful.
+2025-06-04 02:39:40,646 - INFO - Camera now open.
+2025-06-04 02:39:40,672 - INFO - Configuration successful!
+2025-06-04 02:39:40,811 - INFO - Camera started
+2025-06-04 02:39:50,094 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 02:40:39,405 - INFO - Camera stopped
+2025-06-04 02:40:39,617 - INFO - Camera closed successfully.
+2025-06-04 02:41:31,173 - INFO - Initialization successful.
+2025-06-04 02:41:31,175 - INFO - Camera now open.
+2025-06-04 02:41:31,192 - INFO - Configuration successful!
+2025-06-04 02:41:31,372 - INFO - Camera started
+2025-06-04 02:41:37,338 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 02:42:16,132 - INFO - Firebase initialized successfully
+2025-06-04 02:42:37,647 - INFO - Firebase app cleaned up
+2025-06-04 02:43:18,567 - INFO - Firebase initialized successfully
+2025-06-04 02:43:37,244 - INFO - Firebase app cleaned up
+2025-06-04 02:44:11,301 - INFO - Camera stopped
+2025-06-04 02:44:11,524 - INFO - Camera closed successfully.
+2025-06-04 02:53:26,911 - INFO - Initialization successful.
+2025-06-04 02:53:26,912 - INFO - Camera now open.
+2025-06-04 02:53:26,921 - INFO - Configuration successful!
+2025-06-04 02:53:27,062 - INFO - Camera started
+2025-06-04 02:53:33,250 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 02:54:17,251 - INFO - Firebase initialized successfully
+2025-06-04 02:54:54,351 - INFO - Firebase app cleaned up
+2025-06-04 02:56:36,049 - INFO - Camera stopped
+2025-06-04 02:56:36,264 - INFO - Camera closed successfully.
+2025-06-04 03:02:09,564 - INFO - Initialization successful.
+2025-06-04 03:02:09,736 - INFO - Camera now open.
+2025-06-04 03:02:09,742 - INFO - Configuration successful!
+2025-06-04 03:02:09,871 - INFO - Camera started
+2025-06-04 03:02:15,758 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 03:03:04,483 - INFO - Firebase initialized successfully
+2025-06-04 03:05:22,125 - INFO - Camera stopped
+2025-06-04 03:05:22,158 - INFO - Camera closed successfully.
+2025-06-04 03:05:49,993 - INFO - Initialization successful.
+2025-06-04 03:05:49,994 - INFO - Camera now open.
+2025-06-04 03:05:50,005 - INFO - Configuration successful!
+2025-06-04 03:05:50,136 - INFO - Camera started
+2025-06-04 03:05:55,713 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 03:06:38,272 - INFO - Firebase initialized successfully
+2025-06-04 03:11:09,504 - INFO - Initialization successful.
+2025-06-04 03:11:09,507 - INFO - Camera now open.
+2025-06-04 03:11:09,516 - INFO - Configuration successful!
+2025-06-04 03:11:09,651 - INFO - Camera started
+2025-06-04 03:11:15,401 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 03:12:16,922 - INFO - Firebase initialized successfully
+2025-06-04 03:15:13,288 - INFO - Firebase app cleaned up
+2025-06-04 03:15:50,369 - INFO - Camera stopped
+2025-06-04 03:15:50,574 - INFO - Camera closed successfully.
+2025-06-04 03:16:34,473 - INFO - Initialization successful.
+2025-06-04 03:16:34,474 - INFO - Camera now open.
+2025-06-04 03:16:34,486 - INFO - Configuration successful!
+2025-06-04 03:16:34,617 - INFO - Camera started
+2025-06-04 03:16:40,156 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 03:17:26,091 - INFO - Firebase initialized successfully
+2025-06-04 03:20:25,791 - INFO - Firebase app cleaned up
+2025-06-04 03:20:47,394 - INFO - Camera stopped
+2025-06-04 03:20:47,604 - INFO - Camera closed successfully.
+2025-06-04 03:31:12,156 - INFO - Firebase initialized successfully
+2025-06-04 03:31:12,192 - INFO - Initialization successful.
+2025-06-04 03:31:12,193 - INFO - Camera now open.
+2025-06-04 03:31:12,203 - INFO - Configuration successful!
+2025-06-04 03:31:12,330 - INFO - Camera started
+2025-06-04 03:31:12,331 - INFO - Camera initialized successfully
+2025-06-04 03:31:17,457 - INFO - QR code detected: {"ssid":"Yasiru Harinda","password":"12345678","deviceId":"-ORmN5hmsLTbHiC367_l","userId":"smUEK4Z0JPUFuMUhHZmQ8RQ82bz1"}
+2025-06-04 03:31:17,457 - INFO - Decoded QR code data: {'ssid': 'Yasiru Harinda', 'password': '12345678', 'deviceId': '-ORmN5hmsLTbHiC367_l', 'userId': 'smUEK4Z0JPUFuMUhHZmQ8RQ82bz1'}
+2025-06-04 03:31:17,458 - INFO - Device ID: -ORmN5hmsLTbHiC367_l, User ID: smUEK4Z0JPUFuMUhHZmQ8RQ82bz1
+2025-06-04 03:31:17,459 - INFO - Successfully saved QR code data to /home/pi/pebo_config.json
+2025-06-04 03:31:17,459 - INFO - Attempting to connect to Wi-Fi SSID: Yasiru Harinda
+2025-06-04 03:31:23,939 - INFO - Successfully connected to Wi-Fi
+2025-06-04 03:31:23,939 - INFO - Wi-Fi connection successful
+2025-06-04 03:31:30,014 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-04 03:31:30,014 - INFO - QR code processed successfully, exiting...
+2025-06-04 03:31:30,137 - INFO - Camera stopped
+2025-06-04 03:31:30,156 - INFO - Firebase app cleaned up
+2025-06-04 03:31:30,160 - INFO - Camera stopped and windows closed
+2025-06-04 03:31:30,188 - INFO - Initialization successful.
+2025-06-04 03:31:30,190 - ERROR - Camera __init__ sequence did not complete.
+2025-06-04 03:31:40,566 - INFO - Camera closed successfully.
+2025-06-04 03:32:15,606 - INFO - Firebase initialized successfully
+2025-06-04 03:32:15,642 - INFO - Initialization successful.
+2025-06-04 03:32:15,643 - INFO - Camera now open.
+2025-06-04 03:32:15,652 - INFO - Configuration successful!
+2025-06-04 03:32:15,800 - INFO - Camera started
+2025-06-04 03:32:15,801 - INFO - Camera initialized successfully
+2025-06-04 03:32:20,803 - INFO - QR code detected: {"ssid":"Yasiru Harinda","password":"12345678","deviceId":"-ORmN5hmsLTbHiC367_l","userId":"smUEK4Z0JPUFuMUhHZmQ8RQ82bz1"}
+2025-06-04 03:32:20,804 - INFO - Decoded QR code data: {'ssid': 'Yasiru Harinda', 'password': '12345678', 'deviceId': '-ORmN5hmsLTbHiC367_l', 'userId': 'smUEK4Z0JPUFuMUhHZmQ8RQ82bz1'}
+2025-06-04 03:32:20,804 - INFO - Device ID: -ORmN5hmsLTbHiC367_l, User ID: smUEK4Z0JPUFuMUhHZmQ8RQ82bz1
+2025-06-04 03:32:20,805 - INFO - Successfully saved QR code data to /home/pi/pebo_config.json
+2025-06-04 03:32:20,805 - INFO - Attempting to connect to Wi-Fi SSID: Yasiru Harinda
+2025-06-04 03:32:27,242 - INFO - Successfully connected to Wi-Fi
+2025-06-04 03:32:27,243 - INFO - Wi-Fi connection successful
+2025-06-04 03:32:33,238 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-04 03:32:33,238 - INFO - QR code processed successfully, exiting...
+2025-06-04 03:32:33,369 - INFO - Camera stopped
+2025-06-04 03:32:33,399 - INFO - Firebase app cleaned up
+2025-06-04 03:32:33,405 - INFO - Camera stopped and windows closed
+2025-06-04 03:32:38,423 - INFO - Initialization successful.
+2025-06-04 03:32:38,425 - ERROR - Camera __init__ sequence did not complete.
+2025-06-04 03:33:12,906 - INFO - Firebase initialized successfully
+2025-06-04 03:33:12,941 - INFO - Initialization successful.
+2025-06-04 03:33:12,942 - INFO - Camera now open.
+2025-06-04 03:33:12,953 - INFO - Configuration successful!
+2025-06-04 03:33:13,098 - INFO - Camera started
+2025-06-04 03:33:13,098 - INFO - Camera initialized successfully
+2025-06-04 03:33:16,213 - INFO - QR code detected: {"ssid":"Yasiru Harinda","password":"12345678","deviceId":"-ORmN5hmsLTbHiC367_l","userId":"smUEK4Z0JPUFuMUhHZmQ8RQ82bz1"}
+2025-06-04 03:33:16,214 - INFO - Decoded QR code data: {'ssid': 'Yasiru Harinda', 'password': '12345678', 'deviceId': '-ORmN5hmsLTbHiC367_l', 'userId': 'smUEK4Z0JPUFuMUhHZmQ8RQ82bz1'}
+2025-06-04 03:33:16,215 - INFO - Device ID: -ORmN5hmsLTbHiC367_l, User ID: smUEK4Z0JPUFuMUhHZmQ8RQ82bz1
+2025-06-04 03:33:16,216 - INFO - Successfully saved QR code data to /home/pi/pebo_config.json
+2025-06-04 03:33:16,217 - INFO - Attempting to connect to Wi-Fi SSID: Yasiru Harinda
+2025-06-04 03:33:22,850 - INFO - Successfully connected to Wi-Fi
+2025-06-04 03:33:22,851 - INFO - Wi-Fi connection successful
+2025-06-04 03:33:28,882 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-04 03:33:28,882 - INFO - QR code processed successfully, exiting...
+2025-06-04 03:33:29,006 - INFO - Camera stopped
+2025-06-04 03:33:29,023 - INFO - Firebase app cleaned up
+2025-06-04 03:33:29,024 - INFO - Camera stopped and windows closed
+2025-06-04 03:33:39,041 - INFO - Initialization successful.
+2025-06-04 03:33:39,042 - ERROR - Camera __init__ sequence did not complete.
+2025-06-04 03:34:21,026 - INFO - Camera closed successfully.
+2025-06-04 03:35:27,854 - INFO - Firebase initialized successfully
+2025-06-04 03:35:27,888 - INFO - Initialization successful.
+2025-06-04 03:35:27,890 - INFO - Camera now open.
+2025-06-04 03:35:27,901 - INFO - Configuration successful!
+2025-06-04 03:35:28,036 - INFO - Camera started
+2025-06-04 03:35:28,037 - INFO - Camera initialized successfully
+2025-06-04 03:35:35,118 - INFO - QR code detected: {"ssid":"Yasiru Harinda","password":"12345678","deviceId":"-ORmN5hmsLTbHiC367_l","userId":"smUEK4Z0JPUFuMUhHZmQ8RQ82bz1"}
+2025-06-04 03:35:35,119 - INFO - Decoded QR code data: {'ssid': 'Yasiru Harinda', 'password': '12345678', 'deviceId': '-ORmN5hmsLTbHiC367_l', 'userId': 'smUEK4Z0JPUFuMUhHZmQ8RQ82bz1'}
+2025-06-04 03:35:35,120 - INFO - Device ID: -ORmN5hmsLTbHiC367_l, User ID: smUEK4Z0JPUFuMUhHZmQ8RQ82bz1
+2025-06-04 03:35:35,121 - INFO - Successfully saved QR code data to /home/pi/pebo_config.json
+2025-06-04 03:35:35,121 - INFO - Attempting to connect to Wi-Fi SSID: Yasiru Harinda
+2025-06-04 03:35:41,595 - INFO - Successfully connected to Wi-Fi
+2025-06-04 03:35:41,599 - INFO - Wi-Fi connection successful
+2025-06-04 03:36:30,153 - INFO - Firebase initialized successfully
+2025-06-04 03:36:30,189 - INFO - Initialization successful.
+2025-06-04 03:36:30,190 - INFO - Camera now open.
+2025-06-04 03:36:30,201 - INFO - Configuration successful!
+2025-06-04 03:36:30,350 - INFO - Camera started
+2025-06-04 03:36:30,351 - INFO - Camera initialized successfully
+2025-06-04 03:36:33,046 - INFO - QR code detected: {"ssid":"Yasiru Harinda","password":"12345678","deviceId":"-ORmN5hmsLTbHiC367_l","userId":"smUEK4Z0JPUFuMUhHZmQ8RQ82bz1"}
+2025-06-04 03:36:33,046 - INFO - Decoded QR code data: {'ssid': 'Yasiru Harinda', 'password': '12345678', 'deviceId': '-ORmN5hmsLTbHiC367_l', 'userId': 'smUEK4Z0JPUFuMUhHZmQ8RQ82bz1'}
+2025-06-04 03:36:33,046 - INFO - Device ID: -ORmN5hmsLTbHiC367_l, User ID: smUEK4Z0JPUFuMUhHZmQ8RQ82bz1
+2025-06-04 03:36:33,048 - INFO - Successfully saved QR code data to /home/pi/pebo_config.json
+2025-06-04 03:36:33,048 - INFO - Attempting to connect to Wi-Fi SSID: Yasiru Harinda
+2025-06-04 03:36:39,607 - INFO - Successfully connected to Wi-Fi
+2025-06-04 03:36:39,610 - INFO - Wi-Fi connection successful
+2025-06-04 03:36:45,684 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-04 03:36:45,686 - INFO - QR code processed successfully, exiting...
+2025-06-04 03:36:45,819 - INFO - Camera stopped
+2025-06-04 03:36:45,836 - INFO - Firebase app cleaned up
+2025-06-04 03:36:45,842 - INFO - Camera stopped and windows closed
+2025-06-04 03:36:55,862 - INFO - Initialization successful.
+2025-06-04 03:36:55,863 - ERROR - Camera __init__ sequence did not complete.
+2025-06-04 03:43:06,750 - INFO - Firebase initialized successfully
+2025-06-04 03:43:06,839 - INFO - Initialization successful.
+2025-06-04 03:43:06,841 - INFO - Camera now open.
+2025-06-04 03:43:06,861 - INFO - Configuration successful!
+2025-06-04 03:43:06,999 - INFO - Camera started
+2025-06-04 03:43:06,999 - INFO - Camera initialized successfully
+2025-06-04 03:43:11,141 - INFO - QR code detected: {"ssid":"Yasiru Harinda","password":"12345678","deviceId":"-ORmN5hmsLTbHiC367_l","userId":"smUEK4Z0JPUFuMUhHZmQ8RQ82bz1"}
+2025-06-04 03:43:11,142 - INFO - Decoded QR code data: {'ssid': 'Yasiru Harinda', 'password': '12345678', 'deviceId': '-ORmN5hmsLTbHiC367_l', 'userId': 'smUEK4Z0JPUFuMUhHZmQ8RQ82bz1'}
+2025-06-04 03:43:11,143 - INFO - Device ID: -ORmN5hmsLTbHiC367_l, User ID: smUEK4Z0JPUFuMUhHZmQ8RQ82bz1
+2025-06-04 03:43:11,144 - INFO - Successfully saved QR code data to /home/pi/pebo_config.json
+2025-06-04 03:43:11,144 - INFO - Attempting to connect to Wi-Fi SSID: Yasiru Harinda
+2025-06-04 03:43:17,713 - INFO - Successfully connected to Wi-Fi
+2025-06-04 03:43:17,715 - INFO - Wi-Fi connection successful
+2025-06-04 03:43:23,893 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-04 03:43:23,893 - INFO - QR code processed successfully, exiting...
+2025-06-04 03:43:24,020 - INFO - Camera stopped
+2025-06-04 03:43:24,425 - INFO - Camera closed successfully.
+2025-06-04 03:43:24,425 - INFO - Camera stopped and closed
+2025-06-04 03:43:24,430 - INFO - OpenCV windows closed
+2025-06-04 03:43:24,445 - INFO - Firebase app cleaned up
+2025-06-04 03:43:34,508 - INFO - Initialization successful.
+2025-06-04 03:43:34,509 - INFO - Camera now open.
+2025-06-04 03:43:34,522 - INFO - Configuration successful!
+2025-06-04 03:43:34,633 - INFO - Camera started
+2025-06-04 03:44:30,212 - INFO - Camera stopped
+2025-06-04 03:44:30,419 - INFO - Camera closed successfully.
+2025-06-04 03:49:17,160 - INFO - Firebase initialized successfully
+2025-06-04 03:49:17,195 - INFO - Initialization successful.
+2025-06-04 03:49:17,197 - INFO - Camera now open.
+2025-06-04 03:49:17,207 - INFO - Configuration successful!
+2025-06-04 03:49:17,346 - INFO - Camera started
+2025-06-04 03:49:17,346 - INFO - Camera initialized successfully
+2025-06-04 03:49:20,945 - INFO - QR code detected: {"ssid":"Yasiru Harinda","password":"12345678","deviceId":"-ORmN5hmsLTbHiC367_l","userId":"smUEK4Z0JPUFuMUhHZmQ8RQ82bz1"}
+2025-06-04 03:49:20,945 - INFO - Decoded QR code data: {'ssid': 'Yasiru Harinda', 'password': '12345678', 'deviceId': '-ORmN5hmsLTbHiC367_l', 'userId': 'smUEK4Z0JPUFuMUhHZmQ8RQ82bz1'}
+2025-06-04 03:49:20,945 - INFO - Device ID: -ORmN5hmsLTbHiC367_l, User ID: smUEK4Z0JPUFuMUhHZmQ8RQ82bz1
+2025-06-04 03:49:20,946 - INFO - Successfully saved QR code data to /home/pi/pebo_config.json
+2025-06-04 03:49:20,947 - INFO - Attempting to connect to Wi-Fi SSID: Yasiru Harinda
+2025-06-04 03:49:27,452 - INFO - Successfully connected to Wi-Fi
+2025-06-04 03:49:27,453 - INFO - Wi-Fi connection successful
+2025-06-04 03:49:33,537 - INFO - Stored IP 172.20.10.12 and SSID Yasiru Harinda for user smUEK4Z0JPUFuMUhHZmQ8RQ82bz1, device -ORmN5hmsLTbHiC367_l
+2025-06-04 03:49:33,537 - INFO - QR code processed successfully, exiting...
+2025-06-04 03:49:33,661 - INFO - Camera stopped
+2025-06-04 03:49:34,069 - INFO - Camera closed successfully.
+2025-06-04 03:49:34,069 - INFO - Camera stopped and closed
+2025-06-04 03:49:34,073 - INFO - OpenCV windows closed
+2025-06-04 03:49:34,088 - INFO - Firebase app cleaned up
+2025-06-04 03:49:34,164 - INFO - Initialization successful.
+2025-06-04 03:49:34,166 - INFO - Camera now open.
+2025-06-04 03:49:34,370 - INFO - Camera closed successfully.
+2025-06-04 03:49:34,444 - INFO - Initialization successful.
+2025-06-04 03:49:34,445 - INFO - Camera now open.
+2025-06-04 03:49:34,454 - INFO - Configuration successful!
+2025-06-04 03:49:34,573 - INFO - Camera started
+2025-06-04 03:50:34,570 - INFO - Camera stopped
+2025-06-04 03:50:34,775 - INFO - Camera closed successfully.
+2025-06-04 03:51:55,421 - INFO - Initialization successful.
+2025-06-04 03:51:55,421 - INFO - Camera now open.
+2025-06-04 03:51:55,430 - INFO - Configuration successful!
+2025-06-04 03:51:55,555 - INFO - Camera started
+2025-06-04 03:52:01,195 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 03:52:39,100 - INFO - Firebase initialized successfully
+2025-06-04 03:58:43,676 - INFO - Firebase app cleaned up
+2025-06-04 03:59:36,661 - INFO - Firebase initialized successfully
+2025-06-04 04:03:59,884 - INFO - Firebase app cleaned up
+2025-06-04 04:04:35,985 - INFO - Camera stopped
+2025-06-04 04:04:36,200 - INFO - Camera closed successfully.
+2025-06-04 04:22:44,916 - INFO - Initialization successful.
+2025-06-04 04:22:44,918 - INFO - Camera now open.
+2025-06-04 04:22:44,929 - INFO - Configuration successful!
+2025-06-04 04:22:45,059 - INFO - Camera started
+2025-06-04 04:23:04,278 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 04:24:09,492 - INFO - Firebase initialized successfully
+2025-06-04 04:24:39,226 - INFO - Firebase app cleaned up
+2025-06-04 04:26:02,550 - INFO - Firebase initialized successfully
+2025-06-04 04:28:55,676 - INFO - Firebase app cleaned up
+2025-06-04 04:30:06,767 - INFO - Firebase initialized successfully
+2025-06-04 04:35:33,153 - INFO - Firebase app cleaned up
+2025-06-04 04:36:10,502 - INFO - Firebase initialized successfully
+2025-06-04 04:36:32,616 - INFO - Firebase app cleaned up
+2025-06-04 04:37:33,567 - INFO - Firebase initialized successfully
+2025-06-04 04:38:12,434 - INFO - Firebase app cleaned up
+2025-06-04 04:39:09,930 - INFO - Camera stopped
+2025-06-04 04:39:10,161 - INFO - Camera closed successfully.
+2025-06-04 04:47:41,984 - INFO - Initialization successful.
+2025-06-04 04:47:41,985 - INFO - Camera now open.
+2025-06-04 04:47:41,995 - INFO - Configuration successful!
+2025-06-04 04:47:42,133 - INFO - Camera started
+2025-06-04 04:47:47,606 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 04:48:41,601 - INFO - Firebase initialized successfully
+2025-06-04 04:51:30,131 - INFO - Firebase app cleaned up
+2025-06-04 04:52:30,909 - INFO - Firebase initialized successfully
+2025-06-04 04:54:28,597 - INFO - Firebase app cleaned up
+2025-06-04 04:56:43,697 - INFO - Firebase initialized successfully
+2025-06-04 04:59:26,532 - INFO - Initialization successful.
+2025-06-04 04:59:26,533 - INFO - Camera now open.
+2025-06-04 04:59:26,542 - INFO - Configuration successful!
+2025-06-04 04:59:26,671 - INFO - Camera started
+2025-06-04 04:59:34,723 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 05:00:53,801 - INFO - Firebase initialized successfully
+2025-06-04 05:03:49,445 - INFO - Firebase app cleaned up
+2025-06-04 05:05:06,935 - INFO - Firebase initialized successfully
+2025-06-04 05:06:51,496 - INFO - Camera stopped
+2025-06-04 05:06:51,718 - INFO - Camera closed successfully.
+2025-06-04 05:10:54,959 - INFO - Initialization successful.
+2025-06-04 05:10:54,960 - INFO - Camera now open.
+2025-06-04 05:10:54,974 - INFO - Configuration successful!
+2025-06-04 05:10:55,111 - INFO - Camera started
+2025-06-04 05:11:00,716 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 05:11:55,574 - INFO - Firebase initialized successfully
+2025-06-04 05:16:56,590 - INFO - Camera stopped
+2025-06-04 05:16:56,836 - INFO - Camera closed successfully.
+2025-06-04 07:55:08,139 - INFO - Initialization successful.
+2025-06-04 07:55:08,289 - INFO - Camera now open.
+2025-06-04 07:55:08,296 - INFO - Configuration successful!
+2025-06-04 07:55:08,439 - INFO - Camera started
+2025-06-04 07:55:38,008 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 07:58:17,541 - INFO - Camera stopped
+2025-06-04 07:58:17,743 - INFO - Camera closed successfully.
+2025-06-04 07:58:46,655 - INFO - Initialization successful.
+2025-06-04 07:58:46,656 - INFO - Camera now open.
+2025-06-04 07:58:46,666 - INFO - Configuration successful!
+2025-06-04 07:58:46,800 - INFO - Camera started
+2025-06-04 07:59:03,075 - INFO - Camera stopped
+2025-06-04 07:59:03,285 - INFO - Camera closed successfully.
+2025-06-04 08:20:36,641 - INFO - Initialization successful.
+2025-06-04 08:20:36,643 - INFO - Camera now open.
+2025-06-04 08:20:36,662 - INFO - Configuration successful!
+2025-06-04 08:20:36,795 - INFO - Camera started
+2025-06-04 08:20:42,712 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 08:22:09,743 - INFO - Firebase initialized successfully
+2025-06-04 08:26:49,330 - INFO - Camera stopped
+2025-06-04 08:26:49,554 - INFO - Camera closed successfully.
+2025-06-04 08:26:49,605 - INFO - Firebase app cleaned up
+2025-06-04 10:11:43,593 - INFO - Initialization successful.
+2025-06-04 10:11:43,597 - INFO - Camera now open.
+2025-06-04 10:11:43,607 - INFO - Configuration successful!
+2025-06-04 10:11:43,750 - INFO - Camera started
+2025-06-04 10:11:49,772 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-06-04 10:16:59,737 - INFO - Camera stopped
+2025-06-04 10:16:59,942 - INFO - Camera closed successfully.
+2025-07-07 20:30:09,975 - INFO - Initialization successful.
+2025-07-07 20:30:09,982 - INFO - Camera now open.
+2025-07-07 20:30:09,998 - INFO - Configuration successful!
+2025-07-07 20:30:10,146 - INFO - Camera started
+2025-07-07 20:30:15,776 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-07 20:31:29,673 - INFO - Firebase initialized successfully
+2025-07-07 20:37:26,935 - INFO - Firebase app cleaned up
+2025-07-07 20:38:19,333 - INFO - Firebase initialized successfully
+2025-07-07 20:38:51,290 - INFO - Firebase app cleaned up
+2025-07-07 20:40:05,047 - INFO - Firebase initialized successfully
+2025-07-07 20:40:40,445 - INFO - Firebase app cleaned up
+2025-07-07 20:42:31,137 - INFO - Camera stopped
+2025-07-07 20:42:31,342 - INFO - Camera closed successfully.
+2025-07-07 20:44:16,517 - INFO - Initialization successful.
+2025-07-07 20:44:16,518 - INFO - Camera now open.
+2025-07-07 20:44:16,541 - INFO - Configuration successful!
+2025-07-07 20:44:16,675 - INFO - Camera started
+2025-07-07 20:44:38,187 - INFO - Camera stopped
+2025-07-07 20:44:38,404 - INFO - Camera closed successfully.
+2025-07-07 21:47:26,985 - INFO - Initialization successful.
+2025-07-07 21:47:26,986 - INFO - Camera now open.
+2025-07-07 21:47:26,998 - INFO - Configuration successful!
+2025-07-07 21:47:27,122 - INFO - Camera started
+2025-07-07 21:47:33,661 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-07 21:48:55,849 - INFO - Firebase initialized successfully
+2025-07-07 21:50:07,290 - INFO - Firebase app cleaned up
+2025-07-07 21:52:15,597 - INFO - Firebase initialized successfully
+2025-07-07 21:56:28,174 - INFO - Camera stopped
+2025-07-07 21:56:28,379 - INFO - Camera closed successfully.
+2025-07-07 22:07:21,842 - INFO - Initialization successful.
+2025-07-07 22:07:21,844 - INFO - Camera now open.
+2025-07-07 22:07:21,859 - INFO - Configuration successful!
+2025-07-07 22:07:21,986 - INFO - Camera started
+2025-07-07 22:07:37,942 - INFO - Camera stopped
+2025-07-07 22:07:38,146 - INFO - Camera closed successfully.
+2025-07-07 22:08:39,478 - INFO - Initialization successful.
+2025-07-07 22:08:39,479 - INFO - Camera now open.
+2025-07-07 22:08:39,486 - INFO - Configuration successful!
+2025-07-07 22:08:39,610 - INFO - Camera started
+2025-07-07 22:09:00,385 - INFO - Camera stopped
+2025-07-07 22:09:00,582 - INFO - Camera closed successfully.
+2025-07-08 08:07:10,038 - INFO - Initialization successful.
+2025-07-08 08:07:10,043 - INFO - Camera now open.
+2025-07-08 08:07:10,051 - INFO - Configuration successful!
+2025-07-08 08:07:10,190 - INFO - Camera started
+2025-07-08 08:07:46,015 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-08 08:09:46,172 - INFO - Firebase initialized successfully
+2025-07-08 08:10:15,984 - INFO - Firebase app cleaned up
+2025-07-08 08:14:25,224 - INFO - Initialization successful.
+2025-07-08 08:14:25,225 - INFO - Camera now open.
+2025-07-08 08:14:25,235 - INFO - Configuration successful!
+2025-07-08 08:14:25,360 - INFO - Camera started
+2025-07-08 08:14:31,403 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-08 08:15:01,241 - INFO - Camera stopped
+2025-07-08 08:15:01,444 - INFO - Camera closed successfully.
+2025-07-08 08:15:43,216 - INFO - Initialization successful.
+2025-07-08 08:15:43,217 - INFO - Camera now open.
+2025-07-08 08:15:43,235 - INFO - Configuration successful!
+2025-07-08 08:15:43,383 - INFO - Camera started
+2025-07-08 08:15:49,342 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-08 08:17:01,708 - INFO - Camera stopped
+2025-07-08 08:17:01,913 - INFO - Camera closed successfully.
+2025-07-08 08:31:40,173 - INFO - Initialization successful.
+2025-07-08 08:31:40,174 - INFO - Camera now open.
+2025-07-08 08:31:40,187 - INFO - Configuration successful!
+2025-07-08 08:31:40,316 - INFO - Camera started
+2025-07-08 08:31:45,754 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-08 08:33:43,833 - INFO - Firebase initialized successfully
+2025-07-08 08:38:25,055 - INFO - Firebase app cleaned up
+2025-07-08 09:00:20,548 - INFO - Initialization successful.
+2025-07-08 09:00:20,549 - INFO - Camera now open.
+2025-07-08 09:00:20,562 - INFO - Configuration successful!
+2025-07-08 09:00:20,691 - INFO - Camera started
+2025-07-08 09:00:26,128 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-10 19:17:08,332 - INFO - Initialization successful.
+2025-07-10 19:17:08,337 - INFO - Camera now open.
+2025-07-10 19:17:08,349 - INFO - Configuration successful!
+2025-07-10 19:17:08,500 - INFO - Camera started
+2025-07-10 19:20:11,409 - INFO - Camera stopped
+2025-07-10 19:20:11,613 - INFO - Camera closed successfully.
+2025-07-10 19:20:59,836 - INFO - Initialization successful.
+2025-07-10 19:20:59,838 - INFO - Camera now open.
+2025-07-10 19:20:59,851 - INFO - Configuration successful!
+2025-07-10 19:20:59,967 - INFO - Camera started
+2025-07-10 19:21:05,821 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-10 19:24:15,014 - INFO - Camera stopped
+2025-07-10 19:24:15,221 - INFO - Camera closed successfully.
+2025-07-10 19:28:01,605 - INFO - Initialization successful.
+2025-07-10 19:28:01,606 - INFO - Camera now open.
+2025-07-10 19:28:01,614 - INFO - Configuration successful!
+2025-07-10 19:28:01,739 - INFO - Camera started
+2025-07-10 19:28:10,828 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-10 19:29:58,075 - INFO - Firebase initialized successfully
+2025-07-10 19:39:30,506 - INFO - Camera stopped
+2025-07-10 19:39:30,711 - INFO - Camera closed successfully.
+2025-07-10 22:27:21,762 - INFO - Initialization successful.
+2025-07-10 22:27:21,767 - INFO - Camera now open.
+2025-07-10 22:27:21,779 - INFO - Configuration successful!
+2025-07-10 22:27:21,910 - INFO - Camera started
+2025-07-10 22:27:51,921 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-10 22:30:33,608 - INFO - Firebase initialized successfully
+2025-07-10 22:32:23,420 - INFO - Firebase app cleaned up
+2025-07-10 22:33:14,208 - INFO - Firebase initialized successfully
+2025-07-10 22:34:23,020 - INFO - Firebase app cleaned up
+2025-07-10 22:35:07,392 - INFO - Firebase initialized successfully
+2025-07-10 22:42:57,579 - INFO - Firebase app cleaned up
+2025-07-10 22:44:14,362 - INFO - Camera stopped
+2025-07-10 22:44:14,567 - INFO - Camera closed successfully.
+2025-07-11 13:33:38,980 - INFO - Initialization successful.
+2025-07-11 13:33:38,981 - INFO - Camera now open.
+2025-07-11 13:33:38,989 - INFO - Configuration successful!
+2025-07-11 13:33:39,114 - INFO - Camera started
+2025-07-11 13:33:52,654 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-11 13:35:25,612 - INFO - Firebase initialized successfully
+2025-07-11 13:40:09,535 - INFO - Camera stopped
+2025-07-11 13:40:09,739 - INFO - Camera closed successfully.
+2025-07-11 13:41:43,578 - INFO - Initialization successful.
+2025-07-11 13:41:43,579 - INFO - Camera now open.
+2025-07-11 13:41:43,587 - INFO - Configuration successful!
+2025-07-11 13:41:43,710 - INFO - Camera started
+2025-07-11 13:42:21,031 - INFO - Camera stopped
+2025-07-11 13:42:21,237 - INFO - Camera closed successfully.
+2025-07-11 13:44:15,882 - INFO - Initialization successful.
+2025-07-11 13:44:15,884 - INFO - Camera now open.
+2025-07-11 13:44:15,911 - INFO - Configuration successful!
+2025-07-11 13:44:16,040 - INFO - Camera started
+2025-07-11 13:44:39,400 - INFO - Camera stopped
+2025-07-11 13:44:39,602 - INFO - Camera closed successfully.
+2025-07-11 20:25:36,008 - INFO - Firebase initialized successfully
+2025-07-11 20:29:20,446 - INFO - Firebase initialized successfully
+2025-07-11 20:36:04,927 - INFO - Firebase initialized successfully
+2025-07-11 20:39:37,346 - INFO - Firebase initialized successfully
+2025-07-11 20:41:52,193 - INFO - Firebase initialized successfully
+2025-07-11 20:44:04,335 - INFO - Firebase initialized successfully
+2025-07-11 20:46:37,422 - INFO - Firebase initialized successfully
+2025-07-11 20:53:37,305 - INFO - Firebase initialized successfully
+2025-07-11 20:55:49,564 - INFO - Firebase initialized successfully
+2025-07-11 20:57:51,802 - INFO - Firebase initialized successfully
+2025-07-11 21:04:31,891 - INFO - Firebase initialized successfully
+2025-07-11 21:06:11,332 - INFO - Firebase initialized successfully
+2025-07-11 21:24:48,343 - INFO - Firebase initialized successfully
+2025-07-11 21:28:28,974 - INFO - Firebase initialized successfully
+2025-07-11 21:55:44,779 - INFO - Firebase initialized successfully
+2025-07-11 22:02:55,965 - INFO - Firebase initialized successfully
+2025-07-11 22:07:25,156 - INFO - Firebase initialized successfully
+2025-07-11 22:08:19,413 - INFO - Firebase app cleaned up
+2025-07-11 22:10:37,182 - INFO - Firebase initialized successfully
+2025-07-11 22:38:01,799 - INFO - Firebase initialized successfully
+2025-07-11 22:38:32,411 - INFO - Firebase app cleaned up
+2025-07-11 22:39:11,265 - INFO - Firebase initialized successfully
+2025-07-11 22:39:22,406 - INFO - Firebase app cleaned up
+2025-07-11 22:52:17,793 - INFO - Initialization successful.
+2025-07-11 22:52:17,794 - INFO - Camera now open.
+2025-07-11 22:52:17,802 - INFO - Configuration successful!
+2025-07-11 22:52:17,951 - INFO - Camera started
+2025-07-11 22:53:07,803 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-11 22:54:48,911 - INFO - Camera stopped
+2025-07-11 22:54:49,114 - INFO - Camera closed successfully.
+2025-07-11 23:02:23,142 - INFO - Initialization successful.
+2025-07-11 23:02:23,143 - INFO - Camera now open.
+2025-07-11 23:02:23,171 - INFO - Configuration successful!
+2025-07-11 23:02:23,351 - INFO - Camera started
+2025-07-11 23:03:13,139 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-11 23:04:16,997 - INFO - Camera stopped
+2025-07-11 23:04:17,201 - INFO - Camera closed successfully.
+2025-07-11 23:29:09,264 - INFO - Firebase initialized successfully
+2025-07-11 23:33:21,956 - INFO - Firebase initialized successfully
+2025-07-11 23:36:33,594 - INFO - Firebase app cleaned up
+2025-07-12 13:54:41,862 - INFO - Firebase initialized successfully
+2025-07-15 23:44:06,349 - INFO - Initialization successful.
+2025-07-15 23:44:06,355 - INFO - Camera now open.
+2025-07-15 23:44:06,367 - INFO - Configuration successful!
+2025-07-15 23:44:06,504 - INFO - Camera started
+2025-07-15 23:44:56,493 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-15 23:46:49,679 - INFO - Camera stopped
+2025-07-15 23:46:49,883 - INFO - Camera closed successfully.
+2025-07-15 23:47:57,878 - INFO - Initialization successful.
+2025-07-15 23:47:57,879 - INFO - Camera now open.
+2025-07-15 23:47:57,894 - INFO - Configuration successful!
+2025-07-15 23:47:58,068 - INFO - Camera started
+2025-07-15 23:48:04,076 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-15 23:49:33,424 - INFO - Firebase initialized successfully
+2025-07-15 23:50:33,519 - INFO - Firebase app cleaned up
+2025-07-15 23:52:38,853 - INFO - Camera stopped
+2025-07-15 23:52:39,046 - INFO - Camera closed successfully.
+2025-07-15 23:53:21,069 - INFO - Initialization successful.
+2025-07-15 23:53:21,070 - INFO - Camera now open.
+2025-07-15 23:53:21,079 - INFO - Configuration successful!
+2025-07-15 23:53:21,212 - INFO - Camera started
+2025-07-15 23:53:28,702 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-15 23:55:05,755 - INFO - Firebase app cleaned up
+2025-07-16 00:01:04,702 - INFO - Camera stopped
+2025-07-16 00:01:04,904 - INFO - Camera closed successfully.
+2025-07-16 04:00:56,612 - INFO - Main controller started at 2025-07-16 04:00:56
+2025-07-16 04:00:56,684 - INFO - Initialization successful.
+2025-07-16 04:00:56,685 - INFO - Camera now open.
+2025-07-16 04:00:56,695 - INFO - Configuration successful!
+2025-07-16 04:00:56,845 - INFO - Camera started
+2025-07-16 04:01:02,288 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 04:01:57,779 - INFO - Firebase app cleaned up
+2025-07-16 04:03:36,898 - INFO - Main controller stopped via KeyboardInterrupt at 2025-07-16 04:03:36
+2025-07-16 04:03:38,636 - INFO - Camera stopped
+2025-07-16 04:03:38,840 - INFO - Camera closed successfully.
+2025-07-16 04:05:09,672 - INFO - Main controller started at 2025-07-16 04:05:09
+2025-07-16 04:05:09,738 - INFO - Initialization successful.
+2025-07-16 04:05:09,740 - INFO - Camera now open.
+2025-07-16 04:05:09,751 - INFO - Configuration successful!
+2025-07-16 04:05:09,901 - INFO - Camera started
+2025-07-16 04:05:15,399 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 04:05:24,225 - INFO - 5-second touch detected, initiating shutdown at 2025-07-16 04:05:24
+2025-07-16 04:06:47,523 - INFO - Main controller started at 2025-07-16 04:06:47
+2025-07-16 04:06:47,586 - INFO - Initialization successful.
+2025-07-16 04:06:47,587 - INFO - Camera now open.
+2025-07-16 04:06:47,597 - INFO - Configuration successful!
+2025-07-16 04:06:47,723 - INFO - Camera started
+2025-07-16 04:06:53,160 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 04:07:55,944 - INFO - Firebase app cleaned up
+2025-07-16 04:08:28,635 - INFO - Main controller stopped via KeyboardInterrupt at 2025-07-16 04:08:28
+2025-07-16 04:08:28,698 - INFO - Camera stopped
+2025-07-16 04:08:28,903 - INFO - Camera closed successfully.
+2025-07-16 05:15:34,847 - INFO - Firebase initialized successfully
+2025-07-16 05:21:47,518 - INFO - Firebase initialized successfully
+2025-07-16 05:22:26,253 - INFO - No tasks found for user LDzQ2V6Zs0ZUaqR1E4yvMX3NYJF2
+2025-07-16 05:27:28,139 - INFO - Main controller started at 2025-07-16 05:27:28
+2025-07-16 05:27:28,222 - INFO - Initialization successful.
+2025-07-16 05:27:28,222 - INFO - Camera now open.
+2025-07-16 05:27:28,231 - INFO - Configuration successful!
+2025-07-16 05:27:28,388 - INFO - Camera started
+2025-07-16 05:27:35,521 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 05:32:21,624 - INFO - Main controller stopped via KeyboardInterrupt at 2025-07-16 05:32:21
+2025-07-16 05:32:21,693 - INFO - Camera stopped
+2025-07-16 05:32:21,901 - INFO - Camera closed successfully.
+2025-07-16 05:33:19,795 - INFO - Main controller started at 2025-07-16 05:33:19
+2025-07-16 05:33:19,862 - INFO - Initialization successful.
+2025-07-16 05:33:19,863 - INFO - Camera now open.
+2025-07-16 05:33:19,872 - INFO - Configuration successful!
+2025-07-16 05:33:20,013 - INFO - Camera started
+2025-07-16 05:33:26,057 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 05:34:38,416 - ERROR - Error fetching tasks for user 7T94qA4lzlcdNcXGgcCVM7esVZu1: 'Study, due on July 16 at 11:55 pm, priority Medium with reminders set for 10 minutes before, and 5 minutes before. ' is not in list
+2025-07-16 05:35:15,727 - ERROR - Error fetching tasks for user 7T94qA4lzlcdNcXGgcCVM7esVZu1: 'Study, due on July 16 at 11:55 pm, priority Medium with reminders set for 10 minutes before, and 5 minutes before. ' is not in list
+2025-07-16 05:35:50,333 - INFO - Firebase app cleaned up
+2025-07-16 05:37:12,189 - INFO - Main controller stopped via KeyboardInterrupt at 2025-07-16 05:37:12
+2025-07-16 05:37:12,370 - INFO - Camera stopped
+2025-07-16 05:37:12,587 - INFO - Camera closed successfully.
+2025-07-16 05:44:53,481 - INFO - Firebase initialized successfully
+2025-07-16 05:47:41,677 - INFO - Firebase initialized successfully
+2025-07-16 05:51:52,016 - INFO - Firebase initialized successfully
+2025-07-16 05:52:41,864 - ERROR - Error fetching tasks for user 7T94qA4lzlcdNcXGgcCVM7esVZu1: 'Study, due on July 16 at 11:55 PM, priority Medium with reminders set for 10 minutes before, and 5 minutes before. ' is not in list
+2025-07-16 05:53:23,888 - INFO - Firebase app cleaned up
+2025-07-16 05:53:51,374 - INFO - Firebase initialized successfully
+2025-07-16 05:54:20,969 - INFO - Firebase app cleaned up
+2025-07-16 05:56:54,729 - INFO - Firebase initialized successfully
+2025-07-16 06:12:42,435 - INFO - Firebase initialized successfully
+2025-07-16 06:20:33,900 - INFO - Main controller started at 2025-07-16 06:20:33
+2025-07-16 06:20:33,963 - INFO - Initialization successful.
+2025-07-16 06:20:33,964 - INFO - Camera now open.
+2025-07-16 06:20:33,973 - INFO - Configuration successful!
+2025-07-16 06:20:34,103 - INFO - Camera started
+2025-07-16 06:20:41,688 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 06:24:27,519 - INFO - Main controller stopped via KeyboardInterrupt at 2025-07-16 06:24:27
+2025-07-16 06:24:27,712 - INFO - Camera stopped
+2025-07-16 06:24:27,920 - INFO - Camera closed successfully.
+2025-07-16 19:00:49,207 - INFO - Main controller started at 2025-07-16 19:00:49
+2025-07-16 19:00:49,273 - INFO - Initialization successful.
+2025-07-16 19:00:49,273 - INFO - Camera now open.
+2025-07-16 19:00:49,281 - INFO - Configuration successful!
+2025-07-16 19:00:49,410 - INFO - Camera started
+2025-07-16 19:01:11,320 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 19:03:25,332 - INFO - Firebase app cleaned up
+2025-07-16 19:05:42,933 - INFO - Firebase initialized successfully
+2025-07-16 19:06:12,549 - INFO - Firebase app cleaned up
+2025-07-16 19:09:20,043 - INFO - Firebase initialized successfully
+2025-07-16 19:13:03,897 - INFO - Main controller stopped via KeyboardInterrupt at 2025-07-16 19:13:03
+2025-07-16 19:13:04,720 - INFO - Camera stopped
+2025-07-16 19:13:04,926 - INFO - Camera closed successfully.
+2025-07-16 19:14:24,525 - INFO - Main controller started at 2025-07-16 19:14:24
+2025-07-16 19:14:24,593 - INFO - Initialization successful.
+2025-07-16 19:14:24,594 - INFO - Camera now open.
+2025-07-16 19:14:24,602 - INFO - Configuration successful!
+2025-07-16 19:14:24,734 - INFO - Camera started
+2025-07-16 19:14:30,414 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 19:18:09,396 - INFO - Firebase app cleaned up
+2025-07-16 19:18:38,897 - INFO - Firebase initialized successfully
+2025-07-16 19:19:05,328 - INFO - Firebase app cleaned up
+2025-07-16 19:19:35,505 - INFO - Firebase initialized successfully
+2025-07-16 19:24:32,801 - ERROR - Error fetching tasks: No audio was received. Please verify that your parameters are correct.
+2025-07-16 19:26:53,122 - INFO - Firebase app cleaned up
+2025-07-16 19:29:16,884 - INFO - Main controller stopped via KeyboardInterrupt at 2025-07-16 19:29:16
+2025-07-16 19:29:16,939 - INFO - Camera stopped
+2025-07-16 19:29:17,144 - INFO - Camera closed successfully.
+2025-07-16 19:32:19,540 - INFO - Main controller started at 2025-07-16 19:32:19
+2025-07-16 19:32:19,646 - INFO - Initialization successful.
+2025-07-16 19:32:19,646 - INFO - Camera now open.
+2025-07-16 19:32:19,654 - INFO - Configuration successful!
+2025-07-16 19:32:19,813 - INFO - Camera started
+2025-07-16 19:32:54,210 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-07-16 20:20:24,877 - INFO - Firebase app cleaned up
+2025-07-16 20:21:11,019 - INFO - Main controller stopped via KeyboardInterrupt at 2025-07-16 20:21:11
+2025-07-16 20:21:11,081 - INFO - Camera stopped
+2025-07-16 20:21:11,301 - INFO - Camera closed successfully.

@@ -12,12 +12,12 @@ import smbus
 import threading
 from arms.arms_pwm import (say_hi, express_tired, express_happy, express_sad, express_angry,
                            reset_to_neutral, scan_i2c_devices, angle_to_pulse_value, set_servos, smooth_move)
-from display.eyes import RoboEyesDual
+from display.eyes_qr import RoboEyesDual
 
 # Constants for I2C addresses
 PCA9685_ADDR = 0x40
-LEFT_EYE_ADDRESS = 0x3D
-RIGHT_EYE_ADDRESS = 0x3C
+LEFT_EYE_ADDRESS = 0x3C
+RIGHT_EYE_ADDRESS = 0x3D
 
 class RobotController:
     def __init__(self):
@@ -83,7 +83,13 @@ class RobotController:
     def love(self):
         print("Expressing Love")
         self.run_emotion(express_happy, self.eyes.Love)
-
+        
+        
+    def qr(self, device_id):
+        """Express QR code with the specified device ID"""
+        print(f"Expressing QR with device ID: {device_id}")
+        self.run_emotion(None, self.eyes.QR(device_id))
+        
     def cleanup(self):
         """Clean up resources, clear displays, and deinitialize I2C bus to clear SCL and SDA."""
         print("🖥️ Cleaning up RobotController resources...")
@@ -135,6 +141,7 @@ def main():
             print("  4: Sad (Tired eyes, Sad arms)")
             print("  5: Angry (Angry eyes, Angry arms)")
             print("  6: Love (Love eyes, Happy arms)")
+            print("  7: QR (QR eyes, none)")
             print("  q: Quit Program")
 
             input_val = input("\nEnter command: ").lower()
@@ -154,8 +161,10 @@ def main():
                 controller.angry()
             elif input_val == '6':
                 controller.love()
+            elif input_val == '7':
+                controller.qr(123456)
             else:
-                print("Invalid command! Please use 1-6 or q.")
+                print("Invalid command! Please use 1-7 or q.")
 
     except KeyboardInterrupt:
         print("\nProgram interrupted by user")

@@ -33,6 +33,9 @@ JSON_CONFIG_PATH = "/home/pi/pebo_config.json"
 SERVICE_ACCOUNT_PATH = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/ipconfig/firebase_config.json'
 DATABASE_URL = 'https://pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app'
 
+# Fixed name for preconfigured Wi-Fi profile
+PRECONFIGURED_PROFILE = "preconfigured"
+
 def initialize_firebase():
     """Initialize Firebase with the provided service account key."""
     if not firebase_admin._apps:
@@ -88,8 +91,19 @@ def store_ip_to_firebase(user_id, device_id, ip_address, ssid):
     except Exception as e:
         logger.error(f"Error storing data to Firebase: {e}")
 
+def load_config():
+    """Load existing configuration from pebo_config.json."""
+    try:
+        if os.path.exists(JSON_CONFIG_PATH):
+            with open(JSON_CONFIG_PATH, 'r') as f:
+                return json.load(f)
+        return {}
+    except Exception as e:
+        logger.error(f"Error loading config from {JSON_CONFIG_PATH}: {e}")
+        return {}
+
 def save_to_json(data):
-    """Save the QR code data to a JSON file."""
+    """Save the QR code data to a JSON file, overwriting existing SSID and password."""
     try:
         directory = os.path.dirname(JSON_CONFIG_PATH) or '.'
         os.makedirs(directory, exist_ok=True)
@@ -98,9 +112,23 @@ def save_to_json(data):
             logger.error(f"Directory {directory} is not writable. Check permissions.")
             return False
         
+        # Load existing config to preserve other fields
+        existing_config = load_config()
+        # Update only ssid, password, and timestamp
+        existing_config.update({
+            "ssid": data.get("ssid"),
+            "password": data.get("password"),
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        })
+        # Ensure deviceId and userId are preserved if present
+        if "deviceId" in data:
+            existing_config["deviceId"] = data["deviceId"]
+        if "userId" in data:
+            existing_config["userId"] = data["userId"]
+        
         with open(JSON_CONFIG_PATH, 'w') as f:
-            json.dump(data, f, indent=4)
-        logger.info(f"Successfully saved QR code data to {JSON_CONFIG_PATH}")
+            json.dump(existing_config, f, indent=4)
+        logger.info(f"Successfully saved updated config to {JSON_CONFIG_PATH}")
         return True
     except PermissionError as e:
         logger.error(f"Permission denied when saving to {JSON_CONFIG_PATH}: {e}")
@@ -109,32 +137,109 @@ def save_to_json(data):
         logger.error(f"Failed to save JSON data to {JSON_CONFIG_PATH}: {e}")
         return False
 
-def connect_to_wifi(ssid, password):
-    """Attempt to connect to a Wi-Fi network using nmcli."""
+def delete_all_wifi_connections(exclude_profile=PRECONFIGURED_PROFILE):
+    """Delete all Wi-Fi connection profiles except the specified profile."""
     try:
-        logger.info(f"Attempting to connect to Wi-Fi SSID: {ssid}")
-        subprocess.run(['nmcli', 'connection', 'delete', ssid], check=False)
+        # List all connection profiles
+        result = subprocess.run(['nmcli', '--terse', '--fields', 'NAME,TYPE', 'connection', 'show'], 
+                              capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"Failed to list connections: {result.stderr}")
+            return False
         
+        connections = result.stdout.strip().split('\n')
+        wifi_connections = [conn.split(':')[0] for conn in connections if conn and ':802-11-wireless' in conn]
+        
+        # Delete each Wi-Fi connection except the excluded profile
+        for conn in wifi_connections:
+            if conn == exclude_profile:
+                logger.info(f"Preserving preconfigured Wi-Fi connection: {conn}")
+                continue
+            try:
+                subprocess.run(['nmcli', 'connection', 'delete', conn], check=True)
+                logger.info(f"Deleted Wi-Fi connection: {conn}")
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Failed to delete connection {conn}: {e}")
+        
+        logger.info("All non-excluded Wi-Fi connections deleted successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting Wi-Fi connections: {e}")
+        return False
+
+def connect_to_wifi(ssid, password, temp_profile="temp-qr-wifi"):
+    """Connect to the specified Wi-Fi network using a temporary profile."""
+    try:
+        logger.info(f"Attempting to connect to Wi-Fi SSID: {ssid} using temporary profile")
+        # Create a temporary connection profile
         result = subprocess.run(
-            ['nmcli', 'dev', 'wifi', 'connect', ssid, 'password', password],
-            capture_output=True,
-            text=True
+            ['nmcli', 'connection', 'add', 'type', 'wifi', 'con-name', temp_profile, 
+             'ssid', ssid, 'wifi-sec.key-mgmt', 'wpa-psk', 'wifi-sec.psk', password],
+            capture_output=True, text=True
         )
+        if result.returncode != 0:
+            logger.error(f"Failed to create temporary connection profile for SSID {ssid}: {result.stderr}")
+            return False
+        
+        # Connect to the temporary Wi-Fi profile
+        result = subprocess.run(['nmcli', 'connection', 'up', temp_profile], 
+                              capture_output=True, text=True)
         if result.returncode == 0:
-            logger.info("Successfully connected to Wi-Fi")
+            logger.info("Successfully connected to temporary Wi-Fi")
             return True
         else:
             logger.error(f"Failed to connect to Wi-Fi: {result.stderr}")
+            # Delete the temporary profile on failure
+            subprocess.run(['nmcli', 'connection', 'delete', temp_profile], check=False)
             return False
     except subprocess.CalledProcessError as e:
         logger.error(f"Error connecting to Wi-Fi: {e}")
+        subprocess.run(['nmcli', 'connection', 'delete', temp_profile], check=False)
         return False
     except Exception as e:
         logger.error(f"Unexpected error during Wi-Fi connection: {e}")
+        subprocess.run(['nmcli', 'connection', 'delete', temp_profile], check=False)
+        return False
+
+def update_preconfigured_wifi(ssid, password):
+    """Update or create the preconfigured Wi-Fi profile."""
+    try:
+        logger.info(f"Updating/creating preconfigured Wi-Fi profile for SSID: {ssid}")
+        # Check if the preconfigured profile exists
+        result = subprocess.run(['nmcli', 'connection', 'show', PRECONFIGURED_PROFILE], 
+                              capture_output=True, text=True)
+        if result.returncode == 0:
+            # Update existing preconfigured profile
+            logger.info(f"Updating preconfigured profile: {PRECONFIGURED_PROFILE}")
+            subprocess.run(['nmcli', 'connection', 'modify', PRECONFIGURED_PROFILE, 
+                           'wifi.ssid', ssid, 'wifi-sec.psk', password], check=True)
+        else:
+            # Create new preconfigured profile
+            logger.info(f"Creating new preconfigured profile: {PRECONFIGURED_PROFILE}")
+            subprocess.run(
+                ['nmcli', 'connection', 'add', 'type', 'wifi', 'con-name', PRECONFIGURED_PROFILE, 
+                 'ssid', ssid, 'wifi-sec.key-mgmt', 'wpa-psk', 'wifi-sec.psk', password],
+                capture_output=True, text=True
+            )
+        
+        # Connect to the preconfigured Wi-Fi
+        result = subprocess.run(['nmcli', 'connection', 'up', PRECONFIGURED_PROFILE], 
+                              capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info("Successfully connected to preconfigured Wi-Fi")
+            return True
+        else:
+            logger.error(f"Failed to connect to preconfigured Wi-Fi: {result.stderr}")
+            return False
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error updating/connecting to preconfigured Wi-Fi: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error during preconfigured Wi-Fi update: {e}")
         return False
 
 def process_qr_code(data):
-    """Process the decoded QR code data, save to JSON, and upload IP to Firebase."""
+    """Process the decoded QR code data, connect to new Wi-Fi, update preconfigured Wi-Fi, and clean up."""
     try:
         # Decode JSON data from QR code
         qr_data = json.loads(data)
@@ -153,20 +258,33 @@ def process_qr_code(data):
         # Log device and user info
         logger.info(f"Device ID: {device_id}, User ID: {user_id}")
 
-        # Save to JSON
+        # Connect to the new Wi-Fi using a temporary profile
+        temp_profile = "temp-qr-wifi"
+        if not connect_to_wifi(ssid, password, temp_profile=temp_profile):
+            logger.error("Failed to connect to new Wi-Fi, aborting")
+            return False
+
+        # Delete all Wi-Fi connections except the preconfigured profile
+        if not delete_all_wifi_connections(exclude_profile=PRECONFIGURED_PROFILE):
+            logger.warning("Failed to delete non-excluded Wi-Fi connections, proceeding anyway")
+
+        # Delete the temporary profile
+        subprocess.run(['nmcli', 'connection', 'delete', temp_profile], check=False)
+        logger.info(f"Deleted temporary Wi-Fi profile: {temp_profile}")
+
+        # Save updated config to JSON
         config_data = {
             "ssid": ssid,
             "password": password,
             "deviceId": device_id,
-            "userId": user_id,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            "userId": user_id
         }
         if not save_to_json(config_data):
             logger.warning("Continuing despite failure to save JSON")
 
-        # Connect to Wi-Fi
-        if connect_to_wifi(ssid, password):
-            logger.info("Wi-Fi connection successful")
+        # Update and connect to the preconfigured Wi-Fi
+        if update_preconfigured_wifi(ssid, password):
+            logger.info("Preconfigured Wi-Fi updated and connected successfully")
             # Wait briefly to ensure network is stable
             time.sleep(5)
             # Get IP and SSID
@@ -176,7 +294,7 @@ def process_qr_code(data):
             store_ip_to_firebase(user_id, device_id, ip_address, current_ssid)
             return True
         else:
-            logger.error("Wi-Fi connection failed")
+            logger.error("Failed to update/connect to preconfigured Wi-Fi")
             return False
 
     except json.JSONDecodeError as e:
@@ -258,7 +376,7 @@ def run_qr_scanner():
 
     finally:
         # Ensure camera is stopped and closed
-        if camera is not None:
+        if camera is None:
             try:
                 camera.stop()
                 camera.close()

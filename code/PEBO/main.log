@@ -1,0 +1,27 @@
+2025-06-03 13:05:19,682 - INFO - Hardware initialized successfully
+2025-06-03 13:05:19,686 - INFO - Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...
+2025-06-03 13:05:20,331 - INFO - Listening… (attempt 1)
+2025-06-03 13:05:25,359 - INFO - You said: hello keyboard
+2025-06-03 13:05:25,462 - INFO - Trigger phrase detected! Starting assistant...
+2025-06-03 13:05:25,463 - INFO - Using: Name=Bhagya, Emotion=Clam
+2025-06-03 13:05:35,345 - INFO - Initial Prompt: I am Bhagya. I need your assist.
+2025-06-03 13:05:36,591 - ERROR - Error in Gemini response: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2025-06-03 13:05:42,751 - INFO - Cleaning up resources...
+2025-06-03 13:05:46,203 - ERROR - Error clearing displays: 'RoboEyesDual' object has no attribute 'clear_display'
+2025-06-03 13:05:46,204 - INFO - I2C bus deinitialized
+2025-06-03 13:05:46,204 - INFO - GPIO cleaned up
+2025-06-03 13:05:46,204 - INFO - Cleanup complete
+2025-06-03 13:05:46,206 - INFO - Cleaning up resources...
+2025-06-03 13:05:48,355 - ERROR - Error clearing displays: 'RoboEyesDual' object has no attribute 'clear_display'
+2025-06-03 13:05:48,356 - INFO - I2C bus deinitialized
+2025-06-03 13:05:48,356 - INFO - GPIO cleaned up
+2025-06-03 13:05:48,356 - INFO - Cleanup complete
+2025-06-03 13:05:48,357 - INFO - Program terminated
