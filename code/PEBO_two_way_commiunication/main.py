@@ -3,7 +3,7 @@ from sender import AudioNode
 import threading
 import time
 
-LAPTOP_IP = "192.168.124.94"  # Replace with Device 2 IP
+LAPTOP_IP = "192.168.124.182"  # Replace with Device 2 IP
 
 class VoiceControlledAudio:
     def __init__(self):

@@ -5,7 +5,7 @@ import time
 import queue
 
 class AudioNode:
-    def __init__(self, listen_port=8888, target_host='192.168.124.94', target_port=8889):
+    def __init__(self, listen_port=8888, target_host='192.168.124.182', target_port=8889):
         self.CHUNK = 2048
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
@@ -110,6 +110,6 @@ class AudioNode:
         self.audio.terminate()
 
 if __name__ == "__main__":
-    LAPTOP_IP = "192.168.124.94"  # Replace with Device 2 IP
+    LAPTOP_IP = "192.168.124.182"  # Replace with Device 2 IP
     node = AudioNode(listen_port=8888, target_host=LAPTOP_IP, target_port=8889)
     node.start()
