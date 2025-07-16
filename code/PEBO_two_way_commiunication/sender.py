@@ -55,7 +55,7 @@ class AudioNode:
                 rms = audioop.rms(data, 2)  # 2 bytes/sample for paInt16
 
                 # Debug: Print volume to help tune
-                print(f"RMS: {rms}")
+                #Sprint(f"RMS: {rms}")
 
                 if rms > threshold:
                     sock.send(data)
