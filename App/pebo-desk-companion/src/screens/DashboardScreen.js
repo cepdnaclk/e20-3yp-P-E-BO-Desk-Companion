@@ -188,7 +188,7 @@ const DashboardScreen = () => {
           userListenerRef.current
         );
         userListenerRef.current = null;
-      }
+      r}
     } catch (error) {}
   }, [currentUser]);
 

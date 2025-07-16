@@ -1,12 +1,11 @@
 {
   "expo": {
-    "name": "pebo-desk-companion",
+    "name": "P-E-BO",
     "slug": "pebo-desk-companion",
     "version": "1.0.0",
     "jsEngine": "jsc",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -28,13 +27,14 @@
     },
     "extra": {
       "eas": {
-        "projectId": "325af024-4e4f-4aab-8007-0f5a064e9b2b"
+        "projectId": "1638de7e-ecf4-48d8-8463-e9aa162f398d"
       }
     },
     "newArchEnabled": false,
     "plugins": [
       "expo-video",
       "expo-font"
-    ]
+    ],
+    "owner": "yokka_20361"
   }
 }

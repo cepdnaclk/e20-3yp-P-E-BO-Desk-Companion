@@ -100,7 +100,7 @@ const SettingsScreen = () => {
   const [username, setUsername] = useState("");
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
   const [imageTimestamp, setImageTimestamp] = useState(Date.now());
-const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   // Secondary users state variables
   const [addUserModalVisible, setAddUserModalVisible] = useState(false);
   const [newUserName, setNewUserName] = useState("");
@@ -238,46 +238,49 @@ const [isLoading, setIsLoading] = useState(true);
   };
 
   // Fetch data on component mount
-useEffect(() => {
-  const fetchAllData = async () => {
-    try {
-      const devices = await getPeboDevices();
-      setPeboDevices(devices);
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const devices = await getPeboDevices();
+        setPeboDevices(devices);
 
-      const wifi = await getWifiName();
-      setWifiSSID(wifi.wifiSSID);
-      setWifiPassword(wifi.wifiPassword);
-      setOriginalWifiSSID(wifi.wifiSSID);
-      setOriginalWifiPassword(wifi.wifiPassword);
+        const wifi = await getWifiName();
+        setWifiSSID(wifi.wifiSSID);
+        setWifiPassword(wifi.wifiPassword);
+        setOriginalWifiSSID(wifi.wifiSSID);
+        setOriginalWifiPassword(wifi.wifiPassword);
 
-      const userId = auth.currentUser?.uid;
-      if (userId) {
-        const userSnapshot = await db.ref(`users/${userId}/name`).once("value");
-        if (userSnapshot.exists()) setMainUserName(userSnapshot.val());
+        const userId = auth.currentUser?.uid;
+   if (userId) {
+     const imageSnap = await db
+       .ref(`users/${userId}/profileImage`)
+       .once("value");
 
-        const profileImageRef = db.ref(`users/${userId}/profileImage`);
-        const unsubscribe = profileImageRef.on("value", (snapshot) => {
-          if (snapshot.exists()) {
-            setUserImage(snapshot.val());
-            setImageTimestamp(Date.now());
-          }
-        });
+     if (imageSnap.exists()) {
+       const img = imageSnap.val();
+       setUserImage(img);
+       setImageTimestamp(Date.now());
 
-        // cleanup
-        return () => {
-          if (typeof unsubscribe === "function") unsubscribe();
-        };
+       // Only fetch and set name if image exists
+       const nameSnap = await db.ref(`users/${userId}/name`).once("value");
+       if (nameSnap.exists()) {
+         const name = nameSnap.val();
+         if (typeof name === "string" && name.trim() !== "") {
+           setMainUserName(name);
+         }
+       }
+     }
+   }
+
+      } catch (err) {
+        console.error("Initialization error:", err);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Initialization error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  fetchAllData();
-}, []);
-
+    fetchAllData();
+  }, []);
 
   // Image handling with better error handling
   const handleImageError = (error, imageType = "profile") => {
@@ -475,10 +478,10 @@ useEffect(() => {
       // Save to Firebase with the correct path structure
       const mainUserId = auth.currentUser?.uid;
       if (mainUserId) {
-        // Save under: users/{mainUserId}/pebodevices/{deviceId}/secondaryUsers/{secondaryUserId}
+        // Save under: users/{mainUserId}/peboDevices/{deviceId}/secondaryUsers/{secondaryUserId}
         await db
           .ref(
-            `users/${mainUserId}/pebodevices/${deviceId}/secondaryUsers/${secondaryUserId}`
+            `users/${mainUserId}/peboDevices/${deviceId}/secondaryUsers/${secondaryUserId}`
           )
           .update({
             name: username,
@@ -498,7 +501,7 @@ useEffect(() => {
         // Save to image history
         await db
           .ref(
-            `users/${mainUserId}/pebodevices/${deviceId}/secondaryUsers/${secondaryUserId}/imageHistory`
+            `users/${mainUserId}/peboDevices/${deviceId}/secondaryUsers/${secondaryUserId}/imageHistory`
           )
           .push({
             url: s3Url,
@@ -797,48 +800,90 @@ useEffect(() => {
   };
 
   // **FIXED**: Update user function
-  const handleUpdateUser = async () => {
-    const name = editUserName.trim();
-    if (!name) {
-      showPopup("Error", "Enter user name", "alert-circle");
-      return;
+
+const handleUpdateUser = async () => {
+  const name = editUserName.trim();
+  if (!name) {
+    showPopup("Error", "Enter user name", "alert-circle");
+    return;
+  }
+
+  setIsUpdatingUser(true);
+  try {
+    const mainUserId = auth.currentUser?.uid;
+
+    const sanitizedUsername = name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    const objectName = `user_${sanitizedUsername}.jpg`;
+
+    const snapshot = await db
+      .ref(
+        `users/${mainUserId}/peboDevices/${selectedUser.deviceId}/secondaryUsers/${selectedUser.id}/profileImage`
+      )
+      .once("value");
+
+    const oldImageUrl = snapshot.exists() ? snapshot.val() : null;
+    let s3Url = null;
+
+    if (oldImageUrl) {
+      const response = await fetch(
+        `${API_GATEWAY_URL}?username=${encodeURIComponent(sanitizedUsername)}`
+      );
+      const data = await response.json();
+      const presignedUrl = data.body
+        ? JSON.parse(data.body).presignedUrl
+        : data.presignedUrl;
+
+      const oldImageBlob = await fetch(oldImageUrl).then((r) => r.blob());
+      await fetch(presignedUrl, {
+        method: "PUT",
+        body: oldImageBlob,
+        headers: { "Content-Type": "image/jpeg" },
+      });
+
+      s3Url = `https://${BUCKET_NAME}.s3.amazonaws.com/${objectName}`;
     }
 
-    setIsUpdatingUser(true);
-    try {
-      const mainUserId = auth.currentUser?.uid;
+    await db
+      .ref(
+        `users/${mainUserId}/peboDevices/${selectedUser.deviceId}/secondaryUsers/${selectedUser.id}`
+      )
+      .update({
+        name,
+        ...(s3Url && { profileImage: s3Url }),
+        updatedAt: new Date().toISOString(),
+      });
 
-      // Update in users-centered structure
-      await db
-        .ref(
-          `users/${mainUserId}/peboDevices/${selectedUser.deviceId}/secondaryUsers/${selectedUser.id}`
-        )
-        .update({
-          name,
-          updatedAt: new Date().toISOString(),
-        });
+    await db
+      .ref(`devices/${selectedUser.deviceId}/secondaryUsers/${selectedUser.id}`)
+      .update({
+        name,
+        ...(s3Url && { image: s3Url }),
+        updatedAt: new Date().toISOString(),
+      });
 
-      // Update local state
-      const updatedUsers = {
-        ...deviceSecondaryUsers,
-        [selectedUser.deviceId]: deviceSecondaryUsers[
-          selectedUser.deviceId
-        ].map((user) =>
-          user.id === selectedUser.id ? { ...user, name } : user
-        ),
-      };
-      setDeviceSecondaryUsers(updatedUsers);
+    const updatedUsers = {
+      ...deviceSecondaryUsers,
+      [selectedUser.deviceId]: deviceSecondaryUsers[selectedUser.deviceId].map(
+        (user) =>
+          user.id === selectedUser.id
+            ? { ...user, name, ...(s3Url && { image: s3Url }) }
+            : user
+      ),
+    };
+    setDeviceSecondaryUsers(updatedUsers);
 
-      setEditUserModalVisible(false);
-      setSelectedUser(null);
-      setEditUserName("");
-      showPopup("Success", "User updated successfully!", "checkmark-circle");
-    } catch (err) {
-      showPopup("Error", err.message, "alert-circle");
-    } finally {
-      setIsUpdatingUser(false);
-    }
-  };
+    setEditUserModalVisible(false);
+    setSelectedUser(null);
+    setEditUserName("");
+    showPopup("Success", "User updated successfully!", "checkmark-circle");
+  } catch (err) {
+    showPopup("Error", err.message, "alert-circle");
+  } finally {
+    setIsUpdatingUser(false);
+  }
+};
+
+    
 
   // **FIXED**: Remove user function
   const handleRemoveUser = (user, deviceId) => {
@@ -879,8 +924,7 @@ useEffect(() => {
   };
 
   // **FIXED**: Update main user function
-  const handleUpdateMainUser = async () => {
-    const name = newMainUserName.trim();
+  const handleUpdateMainUser = async () => {    const name = newMainUserName.trim();
     if (!name) {
       showPopup("Error", "Enter user name", "alert-circle");
       return;
@@ -890,7 +934,43 @@ useEffect(() => {
     try {
       const userId = auth.currentUser?.uid;
       if (userId) {
-        await db.ref(`users/${userId}/name`).set(name);
+        const sanitizedUsername = name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+        const objectName = `user_${sanitizedUsername}.jpg`;
+
+        const imageSnap = await db.ref(`users/${userId}/profileImage`).once("value");
+        const oldImageUrl = imageSnap.exists() ? imageSnap.val() : null;
+
+        if (oldImageUrl) {
+          const response = await fetch(`${API_GATEWAY_URL}?username=${encodeURIComponent(sanitizedUsername)}`);
+          const data = await response.json();
+          const presignedUrl = data.body
+            ? JSON.parse(data.body).presignedUrl
+            : data.presignedUrl;
+
+          const oldImageBlob = await fetch(oldImageUrl).then((r) => r.blob());
+
+          await fetch(presignedUrl, {
+            method: "PUT",
+            body: oldImageBlob,
+            headers: { "Content-Type": "image/jpeg" },
+          });
+
+          const s3Url = `https://${BUCKET_NAME}.s3.amazonaws.com/${objectName}`;
+
+          await db.ref(`users/${userId}/profileImage`).set(s3Url);
+          await db.ref(`users/${userId}/name`).set(name);
+          await db.ref(`users/${userId}/imageHistory`).push({
+            url: s3Url,
+            timestamp: new Date().toISOString(),
+            path: objectName,
+          });
+
+          setUserImage(s3Url);
+          setImageTimestamp(Date.now());
+        } else {
+          await db.ref(`users/${userId}/name`).set(name);
+        }
+
         setMainUserName(name);
         setEditMainUserModalVisible(false);
         setNewMainUserName("");
@@ -900,8 +980,7 @@ useEffect(() => {
       showPopup("Error", err.message, "alert-circle");
     } finally {
       setIsUpdatingMainUser(false);
-    }
-  };
+    }};
 
   const openImageViewer = (imageUrl, title) => {
     setSelectedImage(imageUrl);
@@ -933,9 +1012,9 @@ useEffect(() => {
     inputRange: [0, 1],
     outputRange: ["0deg", "360deg"],
   });
-if (isLoading) {
-  return <LoadingScreen message="Syncing PEBO Settings..." />;
-}
+  if (isLoading) {
+    return <LoadingScreen message="Syncing PEBO Settings..." />;
+  }
 
   return (
     <View style={styles.container}>
@@ -1102,28 +1181,32 @@ if (isLoading) {
             </TouchableOpacity>
           </View>
           <View style={styles.nameSection}>
-            <Text style={styles.profileName}>
-              {mainUserName || "Main User"}
-            </Text>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => {
-                setNewMainUserName(mainUserName);
-                setEditMainUserModalVisible(true);
-              }}
-            >
-              <MaterialIcons
-                name="edit"
-                size={16}
-                color={THEME_COLORS.primary}
-              />
-            </TouchableOpacity>
+            <Text style={styles.profileName}></Text>
+
+            {userImage && mainUserName && (
+              <View style={styles.nameSection}>
+                <Text style={styles.profileName}>{mainUserName}</Text>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => {
+                    setNewMainUserName(mainUserName);
+                    setEditMainUserModalVisible(true);
+                  }}
+                >
+                  <MaterialIcons
+                    name="edit"
+                    size={16}
+                    color={THEME_COLORS.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
 
         {/* WiFi Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>NETWORK MATRIX</Text>
+          <Text style={styles.sectionTitle}>NETWORK SETUP</Text>
           <View style={styles.cardContainer}>
             <View style={styles.inputGroup}>
               <TextInput
@@ -1803,7 +1886,7 @@ if (isLoading) {
             <View style={styles.qrCodeContainer}>
               <QRCode
                 value={generateQrCodeValue()}
-                size={200}
+                size={300} // enlarged size
                 color={THEME_COLORS.background}
                 backgroundColor={THEME_COLORS.textPrimary}
               />
@@ -2785,14 +2868,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: THEME_COLORS.textPrimary,
     borderRadius: 16,
-    padding: 20,
-    marginVertical: 20,
+    padding: 30, // previously 20
+    marginVertical: 30, // add more vertical space
     shadowColor: THEME_COLORS.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 10,
   },
+
   qrSubtitle: {
     color: THEME_COLORS.textSecondary,
     fontSize: 14,
