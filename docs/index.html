@@ -42,6 +42,13 @@
             font-weight: 700;
         }
 
+        @font-face {
+            font-family: 'Mokoto';
+            src: url('./Mokoto\ Demo.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         /* Body text - Roboto */
         body,
         p,
@@ -91,16 +98,31 @@
 
         /* Body and General Styles */
         body {
-            background-color: #121212;
+            background-color: transparent;
             color: #f1f1f1;
             margin: 0;
             padding: 0;
         }
 
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url('bot.png') no-repeat center center/cover;
+            filter: blur(10px) brightness(0.5);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+
+
         /* Navbar */
         /* Navbar */
         .navbar {
-            background-color: #1a1a1a;
+            background-color: #000000;
             border-bottom: 1px solid #444;
             padding: 15px 20px;
             position: fixed;
@@ -111,13 +133,15 @@
 
         .navbar .navbar-brand {
             font-size: 1.8rem;
+            font-family: mokoto, 'Orbitron', sans-serif;
+            letter-spacing: 0.5rem;
             color: #fff;
             text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc;
             justify-content: left;
         }
 
         .navbar .nav-link {
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             color: #bbb !important;
             text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
             text-decoration: none;
@@ -157,11 +181,29 @@
             align-items: center;
             text-align: center;
         }
+/* #solution-architecture,
+#hardware,
+#testing,
+#security,
+.bg-dark,
+#team,
+#introduction,
+#budget,
+#features,
+#links,
+#timeline {
+    background: transparent !important;
+} */
+.section-overlay {
+    background: rgba(18,18,18, 0.6);  /* slightly dark overlay */
+    border-radius: 16px;
+    padding: 1rem;
+}
 
         .hero-section.shrink {
             height: 70vh;
-            filter: blur(2px);
-            background-color: rgba(0, 0, 0, 0.8);
+            /* filter: blur(2px); */
+            background-color: rgba(0, 0, 0, 0.336);
         }
 
         .hero-section::before {
@@ -177,7 +219,7 @@
         }
 
         .hero-section.shrink::before {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.24);
             backdrop-filter: blur(7px);
         }
 
@@ -190,6 +232,15 @@
             color: #fff;
             z-index: 2;
         }
+
+        .hero-title {
+            font-family: 'Mokoto', 'Orbitron', sans-serif;
+            font-size: 5rem;
+            color: #4caf50;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 0, 0.5);
+            letter-spacing: 5px;
+        }
+
 
         .hero-section h1 {
             font-size: 5rem;
@@ -210,11 +261,14 @@
         #testing,
         #security,
         .bg-dark,
+        #introduction,
         #team,
+        #budget,
         #features,
         #links,
+        #challenges-future,
         #timeline {
-            background-color: #121212 !important;
+            background-color: #00000049 !important;
             color: #f1f1f1;
         }
 
@@ -234,11 +288,7 @@
         }
 
         /* Budget and Useful Links Section */
-        #budget,
-        #useful-links {
-            background-color: #1a1a1a;
-            padding: 40px 0;
-        }
+     
 
         #budget h2,
         #useful-links h2 {
@@ -287,7 +337,7 @@
 
         /* Footer */
         footer {
-            background-color: #1a1a1a;
+            background-color: transparent !important;
             color: #bbb;
         }
 
@@ -298,7 +348,7 @@
 
         /* Feature Section */
         .feature-card {
-            background-color: #1a1a1a;
+            background-color: transparent !important;
             border-radius: 10px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -345,7 +395,7 @@
 
         /* Custom Table Styling */
         table {
-            background-color: #1a1a1a;
+            background-color: transparent !important;
             color: #f1f1f1;
             width: 100%;
             margin-top: 30px;
@@ -1165,15 +1215,15 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="#introduction">Introduction</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <!-- <li class="nav-item"><a class="nav-link" href="#features">Features</a></li> -->
                     <!-- <li class="nav-item"><a class="nav-link" href="#solution-architecture">Solution Architecture</a> -->
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="#hardware">Hardware</a></li>
+                    <!-- </li> -->
+                    <!-- <li class="nav-item"><a class="nav-link" href="#hardware">Hardware</a></li> -->
                     <li class="nav-item"><a class="nav-link" href="#mobile-app">Mobile App</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#technology-stack">Technology Stack</a></li>
+                    <!-- <li class="nav-item"><a class="nav-link" href="#technology-stack">Technology Stack</a></li> -->
                     <!-- <li class="nav-item"><a class="nav-link" href="#testing">Testing</a></li> -->
-                    <li class="nav-item"><a class="nav-link" href="#security">Security</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#budget">Budget</a></li>
+                    <!-- <li class="nav-item"><a class="nav-link" href="#security">Security</a></li> -->
+                    <!-- <li class="nav-item"><a class="nav-link" href="#budget">Budget</a></li> -->
                     <!-- <li class="nav-item"><a class="nav-link" href="#timeline">Timeline</a></li> -->
                     <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
                     <li class="nav-item"><a class="nav-link" href="#links">Links</a></li>
@@ -1330,6 +1380,62 @@
         </div>
     </section>
 
+
+
+<!-- Making Process Video Section (Immersive Portrait) -->
+<section id="pebo-making-video" class="py-5 bg-dark" style="position:relative;">
+    <div class="container">
+        <h2 class="text-center mb-4">Fabricating the Future: PEBO's Build Process </h2>
+        <p class="text-center">See the assembly process behind PEBO’s creation!</p>
+        <div class="video-portrait-wrapper d-flex justify-content-center align-items-center">
+            <video src="../docs/pebo.mp4" autoplay loop muted playsinline class="pebo-portrait-video" style="
+          box-shadow: 0 12px 40px rgba(0,0,0,0.5); 
+          border-radius: 24px; 
+          object-fit: cover;
+        ">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+</section>
+
+<style>
+    .video-portrait-wrapper {
+        min-height: 700px;
+        justify-content: center;
+        align-items: center;
+        background: transparent;
+    }
+
+    .pebo-portrait-video {
+        width: 360px;
+        max-width: 90vw;
+        height: 640px;
+        max-height: 80vh;
+        background: rgba(10, 10, 10, 0.38);
+        border: none;
+        outline: none;
+        display: block;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        border-radius: 24px;
+        object-fit: cover;
+    }
+
+    @media (max-width:600px) {
+        .video-portrait-wrapper {
+            min-height: 400px;
+        }
+
+        .pebo-portrait-video {
+            width: 100vw;
+            height: 66vw;
+            /* Maintain portrait ratio */
+            max-height: 80vh;
+        }
+    }
+</style>
+
+    
     <!-- Mobile App Section -->
     <section id="mobile-app" class="py-5 bg-dark">
         <div class="container">
@@ -1586,7 +1692,7 @@
     </section>
 
     <!-- Security Section -->
-    <section id="security" class="py-5 bg-light">
+    <section id="security" class="py-5 bg-dark">
         <div class="container">
             <h2 class="text-center mb-4">Security</h2>
             <p data-aos="fade-up">P-E-BO prioritizes user data security with robust measures.</p>
@@ -1727,7 +1833,7 @@
     </section>
 
     <!-- Challenges & Future Section -->
-    <section id="challenges-future" class="py-5 gradient-bg">
+    <section id="challenges-future" class="py-5 ">
         <div class="container">
             <div class="row g-5">
                 <div class="col-lg-6" data-aos="fade-right">
