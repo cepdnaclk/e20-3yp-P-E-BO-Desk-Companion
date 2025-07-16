@@ -114,7 +114,7 @@ const DashboardScreen = () => {
       })
     ).start();
 
-    // Floating animations
+    // Floating animations-
     Animated.loop(
       Animated.sequence([
         Animated.timing(float1, {
