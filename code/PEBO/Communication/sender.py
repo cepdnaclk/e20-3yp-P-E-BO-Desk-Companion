@@ -1,4 +1,4 @@
-# pi_audio_node.py - FIXED VERSION for Raspberry Pi
+# sender.py
 import socket
 import pyaudio
 import threading
