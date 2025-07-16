@@ -47,7 +47,7 @@ class VoiceControlledAudio:
                 if "send message" in command and not self.is_running:
                     self.start_audio_node()
 
-                elif "end communication" in command and self.is_running:
+                elif any(kw in command for kw in ["end communication", "and communication", "end the communication",""]) and self.is_running:
                     self.stop_audio_node()
 
             except sr.UnknownValueError:

@@ -3,6 +3,8 @@ import pyaudio
 import threading
 import time
 import queue
+import audioop
+
 
 class AudioNode:
     def __init__(self, listen_port=8888, target_host='192.168.124.182', target_port=8889):
@@ -34,6 +36,30 @@ class AudioNode:
             while self.running:
                 data = self.mic_stream.read(self.CHUNK, exception_on_overflow=False)
                 sock.send(data)
+        except Exception as e:
+            print(f"Send error: {e}")
+        finally:
+            sock.close()
+    def send_audio(self):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
+            time.sleep(2)
+            sock.connect((self.target_host, self.target_port))
+            print(f"Connected to laptop at {self.target_host}:{self.target_port}")
+
+            threshold = 500  #  Adjust this threshold based on testing
+
+            while self.running:
+                data = self.mic_stream.read(self.CHUNK, exception_on_overflow=False)
+                rms = audioop.rms(data, 2)  # Calculate volume level
+            if rms > threshold:
+                sock.send(data)  # Only send if loud enough
+            else:
+                # Optional: send silence or skip
+                silence = b'\x00' * len(data)
+                sock.send(silence)
+
         except Exception as e:
             print(f"Send error: {e}")
         finally:
@@ -108,6 +134,8 @@ class AudioNode:
         self.mic_stream.close()
         self.speaker_stream.close()
         self.audio.terminate()
+
+    
 
 if __name__ == "__main__":
     LAPTOP_IP = "192.168.124.182"  # Replace with Device 2 IP
