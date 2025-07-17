@@ -1,7 +1,6 @@
 {
     "title": "e20-3yp-P-E-BO-Desk-Companion",
-
-"team": [
+    "team": [
         {
             "name": "Yohan Senadheera",
             "email": "e20361@eng.pdn.ac.lk",
@@ -28,5 +27,14 @@
             "name": "Dr. Isuru Nawinna",
             "email": "isurunawinne@eng.pdn.ac.lk"
         }
+    ],
+    "tags": [
+        "Web",
+        "Embedded Systems",
+        "Mobile",
+        "Entertainment",
+        "IoT",
+        "Emotional Assistance",
+        "Desk Companion Robot"
     ]
 }

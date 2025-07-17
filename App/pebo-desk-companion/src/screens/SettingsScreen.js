@@ -129,6 +129,12 @@ const SettingsScreen = () => {
   const float1 = useRef(new Animated.Value(0)).current;
   const float2 = useRef(new Animated.Value(0)).current;
   const glow = useRef(new Animated.Value(0)).current;
+const canShowQr =
+  wifiSSID.trim() &&
+  wifiPassword.trim() &&
+  wifiSSID.trim().toUpperCase() !== "N/A" &&
+  wifiPassword.trim().toUpperCase() !== "N/A" &&
+  peboDevices.length > 0;
 
   const BUCKET_NAME = "pebo-user-images";
   const API_GATEWAY_URL =
@@ -576,27 +582,33 @@ const SettingsScreen = () => {
   };
 
   // **FIXED**: Show QR Code function
-  const handleShowQrCode = () => {
-    if (!wifiSSID.trim() || !wifiPassword.trim()) {
-      showPopup(
-        "Error",
-        "Please save valid Wi-Fi settings first",
-        "alert-circle"
-      );
-      return;
-    }
+ const handleShowQrCode = () => {
+   if (
+     !wifiSSID.trim() ||
+     !wifiPassword.trim() ||
+     wifiSSID.trim().toUpperCase() === "N/A" ||
+     wifiPassword.trim().toUpperCase() === "N/A"
+   ) {
+     showPopup(
+       "Error",
+       "Please save valid Wi-Fi settings first",
+       "alert-circle"
+     );
+     return;
+   }
 
-    if (peboDevices.length === 0) {
-      showPopup(
-        "Error",
-        "No PEBO devices found. Please add a device first.",
-        "alert-circle"
-      );
-      return;
-    }
+   if (peboDevices.length === 0) {
+     showPopup(
+       "Error",
+       "No PEBO devices found. Please add a device first.",
+       "alert-circle"
+     );
+     return;
+   }
 
-    setDeviceSelectionModalVisible(true);
-  };
+   setDeviceSelectionModalVisible(true);
+ };
+
 
   // **FIXED**: Device selection for QR
   const handleDeviceSelection = (device) => {
@@ -1261,8 +1273,13 @@ const handleUpdateUser = async () => {
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.button, styles.qrButton]}
+                style={[
+                  styles.button,
+                  styles.qrButton,
+                  !canShowQr && { opacity: 0.5 }, // Visually disables if requirements not met
+                ]}
                 onPress={handleShowQrCode}
+                disabled={!canShowQr}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Ionicons

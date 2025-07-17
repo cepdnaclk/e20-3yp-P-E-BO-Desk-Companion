@@ -754,14 +754,7 @@ useEffect(() => {
           <View style={styles.content}>
             {/* Enhanced Setup Warning for New Users */}
             {showSetupWarning && currentUser && (
-              <Animated.View
-                style={[
-                  styles.warningContainer,
-                  {
-                    opacity: pulse1,
-                  },
-                ]}
-              >
+             <View style={styles.warningContainer}>
                 <View style={styles.warningHeader}>
                   <Ionicons name="warning" size={20} color="#FF5252" />
                   <Text style={styles.warningTitle}>Setup Required</Text>
@@ -880,7 +873,7 @@ useEffect(() => {
                     <Text style={styles.warningButtonText}>Complete Setup</Text>
                   </LinearGradient>
                 </TouchableOpacity>
-              </Animated.View>
+              </View>
             )}
 
             {/* Welcome Message - Hidden during setup warning */}

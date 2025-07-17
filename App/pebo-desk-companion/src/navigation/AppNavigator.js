@@ -14,7 +14,27 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
-
+const THEME_COLORS = {
+  primary: "#1DE9B6",
+  secondary: "#4CAF50",
+  background: "#000000",
+  cardBackground: "rgba(26, 26, 26, 0.3)",
+  cardBorder: "rgba(29, 233, 182, 0.2)",
+  textPrimary: "#FFFFFF",
+  textSecondary: "#888",
+  textMuted: "#666",
+  inputBackground: "rgba(26, 26, 26, 0.6)",
+  inputBorder: "rgba(29, 233, 182, 0.3)",
+  success: "#4CAF50",
+  error: "#FF5252",
+  warning: "#FF9800",
+  accent: "#1DE9B6",
+  glow: "rgba(29, 233, 182, 0.3)",
+  shadow: "rgba(29, 233, 182, 0.2)",
+  glassyGreen: "rgba(29, 233, 182, 0.1)",
+  glassyBorder: "rgba(29, 233, 182, 0.4)",
+  glassyGradient: ["#1DE9B6", "#00BFA5"],
+};
 // Log imports to debug
 console.log("SettingsScreen:", SettingsScreen);
 console.log("DashboardScreen:", DashboardScreen);
@@ -41,10 +61,23 @@ const TabNavigator = () => {
       initialRouteName="Dashboard"
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: "#1e1e1e", borderTopWidth: 0 },
-        tabBarLabelStyle: { fontSize: 14 },
-        tabBarActiveTintColor: "#fff",
-        tabBarInactiveTintColor: "#aaa",
+        tabBarStyle: {
+          backgroundColor: THEME_COLORS.background,
+          borderTopWidth: 0,
+          // Optional: add a border or shadow that matches the theme
+          borderTopColor: THEME_COLORS.cardBorder,
+          elevation: 10,
+          shadowColor: THEME_COLORS.shadow,
+        },
+        tabBarLabelStyle: {
+          fontSize: 14,
+          color: THEME_COLORS.textPrimary,
+          fontWeight: "bold",
+          letterSpacing: 1,
+        },
+        tabBarActiveTintColor: THEME_COLORS.primary,
+        tabBarInactiveTintColor: THEME_COLORS.textSecondary,
+        tabBarShowLabel: true,
       }}
     >
       <Tab.Screen
