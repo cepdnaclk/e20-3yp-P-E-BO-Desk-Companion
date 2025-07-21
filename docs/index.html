@@ -136,16 +136,20 @@
     object-fit: contain;
     border-radius: 12px;
 }
-#mobile-app img {
+#mobile-app .mobile-app-image {
     width: 100%;
-    max-width: 320px;
-    aspect-ratio: 9 / 18; /* Portrait phone shape, adjust as needed */
+    max-width: 300px;
+    aspect-ratio: 9 / 18; /* Recommend for portrait mobile screens */
     height: auto;
-    object-fit: contain; /* Keeps full image in frame */
-    border-radius: 10px;
-    margin: 0 auto 20px auto; /* Center and space images */
+    object-fit: cover;
     display: block;
+    margin: 0 auto;
+    border-radius: 12px;
+    background-color: #000; /* fallback background if images are transparent */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* optional */
 }
+
+
 
 
         /* Navbar */
@@ -1084,20 +1088,19 @@
             /* Reduced space between rows */
         }
 
-        .mobile-app-grid .mobile-app-image {
+      /*  .mobile-app-grid .mobile-app-image {
             width: 350px;
             /* Fixed width for uniform size */
-            max-width: 100%;
+          /*  max-width: 100%;
             height: auto;
             object-fit: contain;
             /* Ensures images fit without stretching */
-            border-radius: 10px;
+          /*  border-radius: 10px;
             transition: transform 0.3s ease, border-color 0.3s ease;
             cursor: pointer;
             border: 2px solid transparent;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
+        }*/
         .mobile-app-grid .mobile-app-image:hover {
             transform: scale(1.05);
             border-color: var(--primary);
