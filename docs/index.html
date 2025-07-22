@@ -44,7 +44,7 @@
 
         @font-face {
             font-family: 'Mokoto';
-            src: url('./Mokoto\ Demo.ttf') format('truetype');
+            src: url('./Mokoto Demo.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
@@ -117,42 +117,96 @@
             pointer-events: none;
         }
 
-/* Example: For solution-architecture section */
-#solution-architecture .arch-image {
-    width: 100%;
-    max-width: 500px;
-    aspect-ratio: 16/9;
-    height: auto;
-    object-fit: cover;
-    border-radius: 12px;
-}
+        /* Example: For solution-architecture section */
+        #solution-architecture .arch-image {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 16/9;
+            height: auto;
+            object-fit: cover;
+            border-radius: 12px;
+        }
 
-/* For hardware section */
-#hardware .arch-image {
-    width: 100%;
-    max-width: 400px;
-    aspect-ratio: 4/3;
-    height: auto;
-    object-fit: contain;
-    border-radius: 12px;
-}
-#mobile-app .mobile-app-image {
-    width: 100%;
-    max-width: 300px;
-    aspect-ratio: 9 / 18; /* Recommend for portrait mobile screens */
-    height: auto;
-    object-fit: cover;
-    display: block;
-    margin: 0 auto;
-    border-radius: 12px;
-    background-color: #000; /* fallback background if images are transparent */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* optional */
-}
+        /* For hardware section */
+        #hardware .arch-image {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 4/3;
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        #mobile-app .mobile-app-image {
+            width: 100%;
+            max-width: 300px;
+            aspect-ratio: 9 / 18;
+            /* Recommend for portrait mobile screens */
+            height: auto;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+            background-color: #000;
+            /* fallback background if images are transparent */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            /* optional */
+        }
 
 
 
+        /* Universal Card Styles */
+        .card-unified,
+        .feature-card,
+        .tech-card,
+        .arch-card,
+        .hardware-card {
+            background: rgba(25, 25, 30, 0.85);
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.30), 0 1.5px 6px rgba(44, 255, 255, 0.05);
+            border: 1.5px solid rgba(255, 255, 255, 0.07);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: transform 0.23s cubic-bezier(.28, .89, .45, 1.17),
+                box-shadow 0.23s cubic-bezier(.28, .89, .45, 1.17),
+                border-color 0.23s linear;
+            color: #f1f1f1;
+            margin-bottom: 2rem;
+        }
 
-        /* Navbar */
+        .card-unified:hover,
+        .feature-card:hover,
+        .tech-card:hover,
+        .arch-card:hover,
+        .hardware-card:hover {
+            transform: translateY(-7px) scale(1.025);
+            box-shadow: 0 8px 32px rgba(0, 255, 170, 0.10), 0 2px 20px rgba(10, 255, 255, 0.13);
+            border-color: var(--primary, #2A9D8F);
+        }
+
+        /* Icon and card content styling for consistency */
+        .card-unified i,
+        .feature-card i {
+            font-size: 2.5rem;
+            color: var(--primary, #2A9D8F);
+            margin-bottom: 0.7rem;
+            display: block;
+        }
+
+        .card-unified h5,
+        .feature-card h5 {
+            margin-top: 1rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .card-unified p,
+        .feature-card p {
+            font-size: 1.07rem;
+            color: #eaf8fa;
+            margin: 0.6rem 0 0 0;
+        }
+
         /* Navbar */
         .navbar {
             background-color: #000000;
@@ -214,24 +268,14 @@
             align-items: center;
             text-align: center;
         }
-/* #solution-architecture,
-#hardware,
-#testing,
-#security,
-.bg-dark,
-#team,
-#introduction,
-#budget,
-#features,
-#links,
-#timeline {
-    background: transparent !important;
-} */
-.section-overlay {
-    background: rgba(18,18,18, 0.6);  /* slightly dark overlay */
-    border-radius: 16px;
-    padding: 1rem;
-}
+
+
+        .section-overlay {
+            background: rgba(18, 18, 18, 0.6);
+            /* slightly dark overlay */
+            border-radius: 16px;
+            padding: 1rem;
+        }
 
         .hero-section.shrink {
             height: 70vh;
@@ -300,6 +344,7 @@
         #features,
         #links,
         #challenges-future,
+        #project-details,
         #timeline {
             background-color: #00000049 !important;
             color: #f1f1f1;
@@ -321,7 +366,7 @@
         }
 
         /* Budget and Useful Links Section */
-     
+
 
         #budget h2,
         #useful-links h2 {
@@ -471,6 +516,94 @@
             font-size: 1.1rem;
         }
 
+      /* Supervisor Section Styling - Using P-E-BO Colors */
+.supervisor-section {
+    margin-bottom: 4rem;
+    padding: 2rem 0;
+    position: relative;
+}
+
+.supervisor-title {
+    font-size: 1.8rem;
+    color: #f5b1ab;
+    text-shadow: 0 0 10px #ff6f61, 0 0 15px #ff6f61;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+}
+
+.supervisor-card {
+    /* background: rgba(255, 111, 97, 0.1); */
+    border: 2px solid #ff6f61;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 400px;
+    margin: 0 auto;
+    /* box-shadow: 0 8px 32px rgba(255, 111, 97, 0.2); */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+
+.supervisor-img {
+    border-radius: 50%;
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border: 4px solid #ff6f61;
+    box-shadow: 0 6px 20px rgba(255, 111, 97, 0.3);
+    transition: transform 0.3s ease;
+}
+
+
+
+.supervisor-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 8px #ff6f61;
+    color: #f1f1f1;
+}
+
+.supervisor-designation {
+    font-size: 1.1rem;
+    color: #f5b1ab !important;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.supervisor-department {
+    font-size: 0.95rem;
+    color: #ffffff !important;
+    margin-bottom: 1.5rem;
+}
+
+.team-members-title {
+    color: #f5b1ab;
+    text-shadow: 0 0 10px #ff6f61, 0 0 15px #ff6f61;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2rem;
+}
+
+
+/* View Profile Button */
+.supervisor-card .btn-outline-warning {
+    border-color: #ff6f61;
+    color: #ffffff;
+    background: transparent;
+}
+
+.supervisor-card .btn-outline-warning:hover {
+    background-color: #ff6f61;
+    color: #121212;
+    border-color: #ff6f61;
+}
+
+
+
         /* Solution Architecture Section */
         #solution-architecture ul,
         #hardware ul {
@@ -515,14 +648,14 @@
             margin: 0 auto;
             border: 5px solid #ff6f61;
         }
-        
-.flipbook-wrapper {
-    max-width: 100%;
-    margin: 0 auto;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    border-radius: 12px;
-    overflow: hidden;
-}
+
+        .flipbook-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+        }
 
         #solution-architecture img:hover,
         #hardware img:hover {
@@ -1088,19 +1221,7 @@
             /* Reduced space between rows */
         }
 
-      /*  .mobile-app-grid .mobile-app-image {
-            width: 350px;
-            /* Fixed width for uniform size */
-          /*  max-width: 100%;
-            height: auto;
-            object-fit: contain;
-            /* Ensures images fit without stretching */
-          /*  border-radius: 10px;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-            cursor: pointer;
-            border: 2px solid transparent;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }*/
+
         .mobile-app-grid .mobile-app-image:hover {
             transform: scale(1.05);
             border-color: var(--primary);
@@ -1302,23 +1423,18 @@
     </section>
 
     <!-- Project Details via Heyzine Flipbook -->
-<section id="project-details" class="py-5">
-  <div class="container">
-    <h2 class="text-center mb-4">Project Document</h2>
-    <p class="text-center mb-4 description">Flip through our interactive project PDF below:</p>
-    
-    <div class="flipbook-wrapper" data-aos="fade-up">
-      <iframe 
-        allowfullscreen="allowfullscreen" 
-        allow="clipboard-write" 
-        scrolling="no" 
-        class="fp-iframe" 
-        style="border: 1px solid lightgray; width: 100%; height: 500px;"  
-        src="https://heyzine.com/flip-book/ab6901214c.html">
-      </iframe>
-    </div>
-  </div>
-</section>
+    <section id="project-details" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Project Document</h2>
+            <p class="text-center">Flip through our interactive project PDF below:</p>
+
+            <div class="flipbook-wrapper" data-aos="fade-up">
+                <iframe allowfullscreen="allowfullscreen" allow="clipboard-write" scrolling="no" class="fp-iframe"
+                    style="border: 1px solid lightgray; width: 100%; height: 597px;"
+                    src="https://heyzine.com/flip-book/52ceea97fd.html"></iframe>
+            </div>
+        </div>
+    </section>
 
 
     <!-- Feature Section -->
@@ -1327,63 +1443,63 @@
             <h2 class="text-center mb-4">Features</h2>
             <div class="row">
                 <div class="col-md-4" data-aos="fade-up">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-person-badge fs-1"></i>
                         <h5 class="mt-3">User Identification</h5>
                         <p>Recognizes individual users via biometric data for personalized interactions.</p>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-cpu fs-1"></i>
                         <h5 class="mt-3">AI Voice Response</h5>
                         <p>Advanced natural language processing for contextual command understanding and execution.</p>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-camera-reels fs-1"></i>
                         <h5 class="mt-3">Movement Tracking</h5>
                         <p>Spatial awareness with automatic face-tracking for perfect positioning.</p>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-emoji-heart-eyes fs-1"></i>
                         <h5 class="mt-3">Emotion Recognition</h5>
                         <p>Real-time mood analysis through voice tone and facial expression detection.</p>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-telephone fs-1"></i>
                         <h5 class="mt-3">Two-Way Voice Communication</h5>
                         <p>Enables real-time audio communication between PEBO devices for seamless connectivity.</p>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-hand-index fs-1"></i>
                         <h5 class="mt-3">Touch Interaction</h5>
                         <p>Responsive touch sensors with haptic feedback for precise gesture controls.</p>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-heart-fill fs-1 text-danger"></i>
                         <h5 class="mt-3">Affection Response</h5>
                         <p>Responds to petting and gentle touches with happy lights, vibrations, and emotive sounds.</p>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="700">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-music-note-beamed fs-1"></i>
                         <h5 class="mt-3">Music Playback</h5>
                         <p>Plays songs on voice command for entertainment and relaxation.</p>
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="800">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-list-check fs-1"></i>
                         <h5 class="mt-3">Task Management</h5>
                         <p>Organizes and reminds users of tasks and schedules through voice-activated commands.</p>
@@ -1442,13 +1558,13 @@
 
 
 
-<!-- Making Process Video Section (Immersive Portrait) -->
-<section id="pebo-making-video" class="py-5 bg-dark" style="position:relative;">
-    <div class="container">
-        <h2 class="text-center mb-4">Fabricating the Future: PEBO's Build Process</h2>
-        <p class="text-center mb-5">See the assembly process behind PEBO’s creation!</p>
-        <div class="d-flex justify-content-center align-items-center">
-            <video autoplay muted loop playsinline preload="auto" class="pebo-portrait-video" style="
+    <!-- Making Process Video Section (Immersive Portrait) -->
+    <section id="pebo-making-video" class="py-5 bg-dark" style="position:relative;">
+        <div class="container">
+            <h2 class="text-center mb-4">Fabricating the Future: PEBO's Build Process</h2>
+            <p class="text-center" data-aos="fade-up">See the assembly process behind PEBO’s creation!</p>
+            <div class="d-flex justify-content-center align-items-center">
+                <video autoplay muted loop playsinline preload="auto" class="pebo-portrait-video" style="
           width: 370px; 
           max-width: 95vw; 
           height: 660px; 
@@ -1461,98 +1577,98 @@
           outline: none;
           display: block;
         ">
-                <source src="pebo.mp4" type="video/mp4">
-                <!-- If your video is in docs/, use src="docs/pebo.mp4" -->
-                Your browser does not support the video tag.
-            </video>
+                    <source src="pebo.mp4" type="video/mp4">
+                    <!-- If your video is in docs/, use src="docs/pebo.mp4" -->
+                    Your browser does not support the video tag.
+                </video>
+            </div>
         </div>
-    </div>
-</section>
-<style>
-    @media (max-width: 576px) {
-        .pebo-portrait-video {
-            width: 98vw !important;
-            height: 62vw !important;
-            border-radius: 18px !important;
-            max-height: 65vh !important;
+    </section>
+    <style>
+        @media (max-width: 576px) {
+            .pebo-portrait-video {
+                width: 98vw !important;
+                height: 62vw !important;
+                border-radius: 18px !important;
+                max-height: 65vh !important;
+            }
+
+            #pebo-making-video .container {
+                padding: 0 2px;
+            }
         }
-
-        #pebo-making-video .container {
-            padding: 0 2px;
-        }
-    }
-</style>
+    </style>
 
 
-<style>
-    .video-portrait-wrapper {
-        min-height: 700px;
-        justify-content: center;
-        align-items: center;
-        background: transparent;
-    }
-
-    .pebo-portrait-video {
-        width: 360px;
-        max-width: 90vw;
-        height: 640px;
-        max-height: 80vh;
-        background: rgba(10, 10, 10, 0.38);
-        border: none;
-        outline: none;
-        display: block;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-        border-radius: 24px;
-        object-fit: cover;
-    }
-
-    @media (max-width:600px) {
+    <style>
         .video-portrait-wrapper {
-            min-height: 400px;
+            min-height: 700px;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
         }
 
         .pebo-portrait-video {
-            width: 100vw;
-            height: 66vw;
-            /* Maintain portrait ratio */
+            width: 360px;
+            max-width: 90vw;
+            height: 640px;
             max-height: 80vh;
+            background: rgba(10, 10, 10, 0.38);
+            border: none;
+            outline: none;
+            display: block;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            border-radius: 24px;
+            object-fit: cover;
         }
-    }
-</style>
 
-<!-- Mobile App Section -->
-<section id="mobile-app" class="py-5 bg-dark">
-  <div class="container">
-    <h2 class="text-center mb-4">Mobile App</h2>
-    <p class="description text-center mb-5" data-aos="fade-up">
-      The P-E-BO mobile app provides a user-friendly interface to control and interact with your desk
-      companion, offering real-time monitoring, configuration, and personalized settings.
-    </p>
+        @media (max-width:600px) {
+            .video-portrait-wrapper {
+                min-height: 400px;
+            }
 
-    <div class="row gy-4 justify-content-center align-items-center">
-      <div class="col-sm-6 col-md-4 col-lg-3 text-center" data-aos="fade-up" data-aos-delay="200">
-        <img src="./images/mobile-screen-1.jpg" alt="Mobile App Screen 1"
-          class="mobile-app-image clickable-img" onclick="openModal(this);">
-      </div>
-      <div class="col-sm-6 col-md-4 col-lg-3 text-center" data-aos="fade-up" data-aos-delay="300">
-        <img src="./images/mobile-screen-2.jpg" alt="Mobile App Screen 2"
-          class="mobile-app-image clickable-img" onclick="openModal(this);">
-      </div>
-      <div class="col-sm-6 col-md-4 col-lg-3 text-center" data-aos="fade-up" data-aos-delay="400">
-        <img src="./images/mobile-screen-3.jpg" alt="Mobile App Screen 3"
-          class="mobile-app-image clickable-img" onclick="openModal(this);">
-      </div>
-      <div class="col-sm-6 col-md-6 col-lg-4 text-center" data-aos="fade-up" data-aos-delay="500">
-        <img src="./images/mobile-screen-4.jpg" alt="Mobile App Screen 4"
-          class="mobile-app-image clickable-img" onclick="openModal(this);">
-      </div>
-      <div class="col-sm-6 col-md-6 col-lg-4 text-center" data-aos="fade-up" data-aos-delay="600">
-        <img src="./images/mobile-screen-5.jpg" alt="Mobile App Screen 5"
-          class="mobile-app-image clickable-img" onclick="openModal(this);">
-      </div>
-    </div>
-  </div>
-</section>
+            .pebo-portrait-video {
+                width: 100vw;
+                height: 66vw;
+                /* Maintain portrait ratio */
+                max-height: 80vh;
+            }
+        }
+    </style>
+
+    <!-- Mobile App Section -->
+    <section id="mobile-app" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-4">Mobile App</h2>
+            <p class="text-center" data-aos="fade-up">
+                The P-E-BO mobile app provides a user-friendly interface to control and interact with your desk
+                companion, offering real-time monitoring, configuration, and personalized settings.
+            </p>
+
+            <div class="row gy-4 justify-content-center align-items-center">
+                <div class="col-sm-6 col-md-4 col-lg-3 text-center" data-aos="fade-up" data-aos-delay="200">
+                    <img src="./images/mobile-screen-1.jpg" alt="Sign-up Page" class="mobile-app-image clickable-img"
+                        onclick="openModal(this);">
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3 text-center" data-aos="fade-up" data-aos-delay="300">
+                    <img src="./images/mobile-screen-2.jpg" alt="Sign-in Page" class="mobile-app-image clickable-img"
+                        onclick="openModal(this);">
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3 text-center" data-aos="fade-up" data-aos-delay="400">
+                    <img src="./images/mobile-screen-3.jpg" alt="Home Page" class="mobile-app-image clickable-img"
+                        onclick="openModal(this);">
+                </div>
+                <div class="col-sm-6 col-md-6 col-lg-4 text-center" data-aos="fade-up" data-aos-delay="500">
+                    <img src="./images/mobile-screen-4.jpg" alt="Task Control Page"
+                        class="mobile-app-image clickable-img" onclick="openModal(this);">
+                </div>
+                <div class="col-sm-6 col-md-6 col-lg-4 text-center" data-aos="fade-up" data-aos-delay="600">
+                    <img src="./images/mobile-screen-5.jpg" alt="Settings Page" class="mobile-app-image clickable-img"
+                        onclick="openModal(this);">
+                </div>
+            </div>
+        </div>
+    </section>
 
 
 
@@ -1729,11 +1845,12 @@
     <section id="testing" class="py-5 bg-dark">
         <div class="container">
             <h2 class="text-center mb-4">Testing</h2>
-            <p data-aos="fade-up">Rigorous testing ensures P-E-BO's reliability and performance across various
+            <p class="text-center" data-aos="fade-up">Rigorous testing ensures P-E-BO's reliability and performance
+                across various
                 conditions.</p>
             <div class="row">
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-check-circle fs-1"></i>
                         <h5 class="mt-3">Functional Testing</h5>
                         <ul class="feature-list">
@@ -1744,7 +1861,7 @@
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-speedometer fs-1"></i>
                         <h5 class="mt-3">Performance Testing</h5>
                         <ul class="feature-list">
@@ -1755,7 +1872,7 @@
                     </div>
                 </div>
                 <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="feature-card text-center p-4">
+                    <div class="feature-card card-unified text-center p-4">
                         <i class="bi bi-hdd-rack fs-1"></i>
                         <h5 class="mt-3">Hardware Testing</h5>
                         <ul class="feature-list">
@@ -1941,35 +2058,55 @@
     <!-- Team Section -->
     <section id="team" class="py-5 bg-dark">
         <div class="container" data-aos="fade-up">
-            <h2 class="text-center mb-4">Meet the Team</h2>
-            <div class="row text-center">
-                <div class="col-md-3">
-                    <img src="Member1.png" alt="Buddhika" class="team-img mb-3">
-                    <h5 class="text-light">Buddhika Ariyarathne</h5>
-                    <p class="text-secondary">E/20/024</p>
-                    <a href="https://www.thecn.com/EA770" class="btn btn-outline-light mt-2">View Portfolio</a>
+            <h2 class="text-center mb-5">Meet the Team</h2>
+
+            <!-- Supervisor Section -->
+            <div class="supervisor-section text-center mb-5" data-aos="fade-up">
+                <h3 class="supervisor-title mb-4">
+                   Project Supervisor
+                </h3>
+                <div class="supervisor-card">
+                    <img src="supervisor.png" alt="Dr. Supervisor Name" class="supervisor-img mb-3">
+                    <h4 class="text-light supervisor-name">Dr. Isuru Nawinna</h4>
+                    <p class="text-secondary supervisor-designation">Senior Lecturer</p>
+                    <p class="text-muted supervisor-department">Department of Computer Engineering</p>
+                    <a href="https://people.ce.pdn.ac.lk/staff/academic/isuru-nawinne/" class="btn btn-outline-warning mt-2">View Profile</a>
                 </div>
-                <div class="col-md-3">
-                    <img src="Member2.png" alt="Yasiru" class="team-img mb-3">
-                    <h5 class="text-light">Yasiru Harinda</h5>
-                    <p class="text-secondary">E/20/089</p>
-                    <a href="https://www.thecn.com/EE452" class="btn btn-outline-light mt-2">View Portfolio</a>
-                </div>
-                <div class="col-md-3">
-                    <img src="Member3.png" alt="Yohan" class="team-img mb-3">
-                    <h5 class="text-light">Yohan Senadheera</h5>
-                    <p class="text-secondary">E/20/361</p>
-                    <a href="https://www.thecn.com/ES1366" class="btn btn-outline-light mt-2">View Portfolio</a>
-                </div>
-                <div class="col-md-3">
-                    <img src="Member4.png" alt="Bhagya" class="team-img mb-3">
-                    <h5 class="text-light">Bhagya Senevirathna</h5>
-                    <p class="text-secondary">E/20/366</p>
-                    <a href="https://www.thecn.com/ES1368" class="btn btn-outline-light mt-2">View Portfolio</a>
+            </div>
+
+            <!-- Team Members Section -->
+            <div class="team-members-section">
+                <h3 class="text-center mb-4 team-members-title">Team Members</h3>
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <img src="Member1.png" alt="Buddhika" class="team-img mb-3">
+                        <h5 class="text-light">Buddhika Ariyarathne</h5>
+                        <p class="text-secondary">E/20/024</p>
+                        <a href="https://www.thecn.com/EA770" class="btn btn-outline-light mt-2">View Portfolio</a>
+                    </div>
+                    <div class="col-md-3">
+                        <img src="Member2.png" alt="Yasiru" class="team-img mb-3">
+                        <h5 class="text-light">Yasiru Harinda</h5>
+                        <p class="text-secondary">E/20/089</p>
+                        <a href="https://www.thecn.com/EE452" class="btn btn-outline-light mt-2">View Portfolio</a>
+                    </div>
+                    <div class="col-md-3">
+                        <img src="Member3.png" alt="Yohan" class="team-img mb-3">
+                        <h5 class="text-light">Yohan Senadheera</h5>
+                        <p class="text-secondary">E/20/361</p>
+                        <a href="https://www.thecn.com/ES1366" class="btn btn-outline-light mt-2">View Portfolio</a>
+                    </div>
+                    <div class="col-md-3">
+                        <img src="Member4.png" alt="Bhagya" class="team-img mb-3">
+                        <h5 class="text-light">Bhagya Senevirathna</h5>
+                        <p class="text-secondary">E/20/366</p>
+                        <a href="https://www.thecn.com/ES1368" class="btn btn-outline-light mt-2">View Portfolio</a>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
+
 
     <!-- Links Section -->
     <section id="links" class="py-5 bg-light">
