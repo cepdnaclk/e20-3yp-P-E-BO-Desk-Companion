@@ -22,7 +22,7 @@ import subprocess
 
 # Configuration
 SERVICE_ACCOUNT_PATH = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/ipconfig/firebase_config.json'
-DATABASE_URL = 'https://pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app'
+DATABASE_URL = 'https://pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app/'
 JSON_CONFIG_PATH = '/home/pi/pebo_config.json'
 TOUCH_PIN = 17  # GPIO pin for touch sensor (Pin 11)
 REMINDER_SOUND = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminders/reminder.wav'  # Path to reminder sound

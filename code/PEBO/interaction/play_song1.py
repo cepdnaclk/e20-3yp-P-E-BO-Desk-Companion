@@ -259,7 +259,7 @@ if __name__ == "__main__":
     try:
         GPIO.setmode(GPIO.BCM)  # Set mode for standalone testing
         GPIO.setup(17, GPIO.IN)  # Set pin for standalone testing
-        asyncio.run(play_music("soft music"))
+        asyncio.run(play_music("papare"))
     except KeyboardInterrupt:
         print("Script interrupted by user.")
         stop_music_flag = True

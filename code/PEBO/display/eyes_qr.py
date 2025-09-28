@@ -713,14 +713,14 @@ if __name__ == "__main__":
         # ~ eyes.QR(-OUukosDkZuvHboo-qX5)
         
         # Test QR mode with the user ID
-        stop_event = threading.Event()
-        qr_thread = threading.Thread(target=eyes.QR, args=("-OUukosDkZuvHboo-qX5", stop_event))
-        qr_thread.start()
-        time.sleep(10)  # Display QR for 10 seconds
-        stop_event.set()
-        qr_thread.join()
+        # ~ stop_event = threading.Event()
+        # ~ qr_thread = threading.Thread(target=eyes.QR, args=("-OUukosDkZuvHboo-qX5", stop_event))
+        # ~ qr_thread.start()
+        # ~ time.sleep(10)  # Display QR for 10 seconds
+        # ~ stop_event.set()
+        # ~ qr_thread.join()
         
-        # ~ eyes.Happy()
+        eyes.Default()
         # ~ for mood in moods:
             # ~ stop_event = threading.Event()
             # ~ mood_thread = threading.Thread(target=mood, args=(stop_event,))

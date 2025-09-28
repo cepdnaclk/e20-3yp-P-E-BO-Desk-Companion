@@ -26,7 +26,7 @@ from arm_eyes import RobotController  # Import RobotController from arm_eyes.py
 pygame.mixer.init()
 
 # Gemini API setup
-GOOGLE_API_KEY = "AIzaSyDjx04eYTq-09j7kzd24NeZfwYZ7eu3w9Q"  # Replace with your actual API key
+GOOGLE_API_KEY = "AIzaSyB1JOAtxltrujUYSXVWD4GAa4pv2N3N4PM"  # Replace with your actual API key
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
