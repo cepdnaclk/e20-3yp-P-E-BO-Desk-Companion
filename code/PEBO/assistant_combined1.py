@@ -63,6 +63,8 @@ import fcntl
 import struct
 import logging
 
+SKIP_USER_CHECK = bool(int(os.getenv("PEBO_SKIP_USER_CHECK", "1")))  # 1=skip, 0=enable
+
 # ---------------------------
 # Logging
 # ---------------------------
@@ -125,6 +127,24 @@ ROLE_PROMPT = (
     "Never name detected emotions aloud; instead, react with facial/eye/hand animations. "
     "Keep spoken replies concise, targeting ~40 tokens."
 )
+
+# Place near TTS helpers
+EMO_REGEX = {
+    "Sad": r"\b(i('?m| am)?\s+)?(so\s+)?(very\s+)?(sad|down|blue|upset|depressed|unhappy|low)\b",
+    "Angry": r"\b(angry|mad|furious|pissed|irritated|annoyed|frustrated)\b",
+    "Happy": r"\b(happy|glad|cheerful|excited|joyful|stoked|thrilled)\b",
+    "Love": r"\b(love|loving|beloved|adore|affection|fond|caring|cute|adorable|sweet|charming)\b",
+    "Normal": r"\b(okay|ok|fine|alright|normal|so-so|meh)\b"
+}
+def extract_emotion_from_text(text: str) -> str | None:
+    t = (text or "").lower()
+    if re.search(r"\bnot\s+(sad|angry|mad|upset|depressed|happy|in love|loving)\b", t):
+        return None
+    for label, pattern in EMO_REGEX.items():
+        if re.search(pattern, t, re.IGNORECASE):
+            return label
+    return None
+
 
 # ---------------------------
 # Eyes/Arms Helpers
@@ -966,7 +986,25 @@ async def start_loop():
             normal()
             break
 
-        # Regular conversation turn with emotion parsing (silent reaction)
+        # Immediate, silent reaction from text (e.g., "i'm sad") before LLM
+        did_react = False
+        detected = extract_emotion_from_text(user_input)  # returns one of "Happy","Sad","Angry","Love","Normal" or None
+        if detected:
+            emotion_methods = {
+                "Happy": happy,
+                "Sad": sad,
+                "Angry": angry,
+                "Normal": normal,
+                "Love": love
+            }
+            # React with eyes/hands immediately; keep reply short and emotion-free
+            await asyncio.gather(
+                asyncio.to_thread(emotion_methods.get(detected, normal)),
+                speak_text("Here with support.")
+            )
+            did_react = True
+
+        # Regular conversation turn with LLM emotion parsing (silent: no label spoken)
         full_user_input = (
             f"{ROLE_PROMPT}\n\n"
             f"{user_input}\n"
@@ -991,17 +1029,24 @@ async def start_loop():
             print(f"Error parsing Gemini response: {e}")
 
         valid_emotions = {"Happy", "Sad", "Angry", "Normal", "Love"}
-        emotion_methods = {
-            "Happy": happy,
-            "Sad": sad,
-            "Angry": angry,
-            "Normal": normal,
-            "Love": love
-        }
-        emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
-        emotion_task = asyncio.to_thread(emotion_method)
-        voice_task = speak_text(answer)
-        await asyncio.gather(emotion_task, voice_task)
+        chosen_emotion = emotion if emotion in valid_emotions else "Normal"
+
+        if did_react:
+            # Already animated; just speak the concise, redacted answer
+            await speak_text(answer)
+        else:
+            # Animate once here if not already done
+            emotion_methods = {
+                "Happy": happy,
+                "Sad": sad,
+                "Angry": angry,
+                "Normal": normal,
+                "Love": love
+            }
+            emotion_task = asyncio.to_thread(emotion_methods.get(chosen_emotion, normal))
+            voice_task = speak_text(answer)
+            await asyncio.gather(emotion_task, voice_task)
+
         conversation_history.append({"role": "model", "parts": [prepare_spoken_text(answer)]})
 
     # Clean up Firebase app
@@ -1024,24 +1069,28 @@ async def monitor_for_trigger(name, emotion):
     while True:
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
         text = listen(recognizer, mic)
-        if text:
-            trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-            if re.search(trigger_pattern, text, re.IGNORECASE):
-                print("✅ Trigger phrase detected! Starting assistant...")
-                print(f"Using: Name={name}, Emotion={emotion}")
-                if name and name.lower() != "none":
-                    # React silently with detected emotion if available
-                    reaction_task = asyncio.to_thread(react_detected_emotion_label, emotion)
-                    voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
-                    await asyncio.gather(reaction_task, voice_task)
-                    if (emotion or "").upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY", "LOVE"}:
-                        await start_assistant_from_text(f"I am {name}. Ask why.")
-                    else:
-                        await start_assistant_from_text(f"I am {name}. I need your assist.")
-                else:
-                    await speak_text("I can't identify you as my user")
-            else:
-                continue
+        if not text:
+            continue
+
+        # Light text-based emotion detector so phrases like "i'm sad" animate immediately
+        detected_from_text = extract_emotion_from_text(text)
+
+        trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
+        should_start = bool(re.search(trigger_pattern, text, re.IGNORECASE)) or SKIP_USER_CHECK
+
+        if should_start:
+            print("✅ Trigger (or skip-user) detected! Starting assistant...")
+            print(f"Using: Name={name}, Emotion={emotion}")
+            chosen_emotion = detected_from_text or emotion  # text emotion overrides file emotion when present
+            reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
+            voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
+            await asyncio.gather(reaction_task, voice_task)
+
+            # Do not gate on name; start for anyone speaking
+            await start_assistant_from_text(f"I am {name or 'friend'}.")
+        else:
+            continue
+
         print("🖥️ Cleaning up in monitor_for_trigger...")
 
 async def monitor_start(name, emotion):
@@ -1050,13 +1099,15 @@ async def monitor_start(name, emotion):
     try:
         print("🎧 Waiting for initial speech input...")
         print(f"Using: Name={name}, Emotion={emotion}")
-        if name and name.lower() != "none":
-            reaction_task = asyncio.to_thread(react_detected_emotion_label, emotion)
-            voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
-            await asyncio.gather(reaction_task, voice_task)
-            await start_assistant_from_text(f"I am {name}. Ask why.")
-        else:
-            await speak_text("I can't identify you as my user")
+
+        # In skip-user mode, proceed immediately; otherwise keep same behavior
+        chosen_emotion = emotion
+        reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
+        voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
+        await asyncio.gather(reaction_task, voice_task)
+
+        # Start without identity gating
+        await start_assistant_from_text(f"I am {name or 'friend'}.")
     finally:
         print("🖥️ Cleaning up in monitor_start...")
 
@@ -1065,36 +1116,45 @@ async def monitor_new():
     normal()
     while True:
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
-        name, emotion = read_recognition_result()
+
+        # In skip-user mode, ignore recognition_result; otherwise read it
+        if SKIP_USER_CHECK:
+            name, emotion = (None, None)
+        else:
+            name, emotion = read_recognition_result()
+
+        # If a camera-derived emotion is present, greet and start
         if (emotion or "").upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY", "LOVE"}:
             reaction_task = asyncio.to_thread(react_detected_emotion_label, emotion)
             voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
             await asyncio.gather(reaction_task, voice_task)
-            await start_assistant_from_text(f"I am {name}. Ask why.")
+            await start_assistant_from_text(f"I am {name or 'friend'}. Ask why.")
         else:
+            # Wait for speech
             text = listen(recognizer, mic)
             if text:
+                # Immediate text-based emotion reaction (e.g., "i'm sad")
+                detected_from_text = extract_emotion_from_text(text)
+
                 trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
                 qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'
-                if re.search(trigger_pattern, text, re.IGNORECASE):
-                    print("✅ Trigger phrase detected! Starting assistant...")
+                should_start = bool(re.search(trigger_pattern, text, re.IGNORECASE)) or SKIP_USER_CHECK
+
+                if should_start:
+                    print("✅ Trigger phrase or skip-user mode detected! Starting assistant...")
                     print(f"Using: Name={name}, Emotion={emotion}")
-                    if name and name.lower() != "none":
-                        reaction_task = asyncio.to_thread(react_detected_emotion_label, emotion)
-                        voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
-                        await asyncio.gather(reaction_task, voice_task)
-                        if (emotion or "").upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY", "LOVE"}:
-                            await start_assistant_from_text(f"I am {name}. Ask why.")
-                        else:
-                            await start_assistant_from_text(f"I am {name}. I need your assist.")
-                    else:
-                        await speak_text("I can't identify you as my user")
+                    chosen_emotion = detected_from_text or emotion
+                    reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
+                    voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
+                    await asyncio.gather(reaction_task, voice_task)
+                    await start_assistant_from_text(f"I am {name or 'friend'}.")
                 # QR intent during idle
                 if re.search(qr_pattern, text, re.IGNORECASE):
                     await handle_qr_intent()
                     continue
             else:
                 continue
+
         print("🖥️ Cleaning up in monitor_new...")
 
 # ---------------------------

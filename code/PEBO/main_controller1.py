@@ -33,6 +33,10 @@ from assistant_combined1 import monitor_new  # async assistant loop that reads r
 from ipconfig.qr_reader import run_qr_scanner  # imported if started elsewhere
 from reminders.reminders_1 import reminder_loop
 
+
+# main_controller1.py (top-level toggles)
+SKIP_USER_CHECK = bool(int(os.getenv("PEBO_SKIP_USER_CHECK", "1")))
+
 # ---------------------------
 # Logging
 # ---------------------------
@@ -221,9 +225,11 @@ def main():
 
     # Workers
     threading.Thread(target=run_face_tracking, daemon=True).start()
-    threading.Thread(target=run_periodic_recognition, daemon=True).start()
+    if not SKIP_USER_CHECK:
+        threading.Thread(target=run_periodic_recognition, daemon=True).start()
     threading.Thread(target=run_voice_monitoring, daemon=True).start()
     threading.Thread(target=shutdown_on_touch, daemon=True).start()
+
 
     # Stagger reminders to allow Firebase init by assistant
     print("⏳ Waiting 20 seconds for Firebase initialization before starting reminder loop...")
