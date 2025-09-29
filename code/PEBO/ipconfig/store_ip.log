@@ -11062,3 +11062,242 @@ NameError: name 'emotion_methods' is not defined
 2025-09-29 15:27:03,710 - INFO - Firebase initialized successfully
 2025-09-29 16:40:42,165 - INFO - Firebase initialized successfully
 2025-09-29 16:43:48,589 - INFO - Firebase app cleaned up
+2025-09-29 23:36:07,637 - INFO - Main controller started at 2025-09-29 23:36:07
+2025-09-29 23:36:07,647 - INFO - Main controller launching worker threads...
+2025-09-29 23:36:07,650 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-29 23:36:07,700 - INFO - Initialization successful.
+2025-09-29 23:36:07,702 - INFO - Camera now open.
+2025-09-29 23:36:07,711 - INFO - Configuration successful!
+2025-09-29 23:36:07,755 - INFO - Camera started
+2025-09-29 23:36:17,381 - ERROR - Touch sensor monitor failed: 'unknown handle'
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 121, in shutdown_on_touch
+    if detect_continuous_touch(duration=5):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/interaction/touch_sensor.py", line 19, in detect_continuous_touch
+    if GPIO.input(TOUCH_PIN) == GPIO.HIGH:  # Touch detected
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 722, in input
+    if not _in_use(gpio):
+           ^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 408, in _in_use
+    return bool(_check(lgpio.gpio_get_mode(_chip, gpio)) & _LG_MODES)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 732, in gpio_get_mode
+    return _u2i(_lgpio._gpio_get_mode(handle&0xffff, gpio))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 458, in _u2i
+    raise error(error_text(v))
+lgpio.error: 'unknown handle'
+2025-09-29 23:36:25,439 - ERROR - Assistant monitor_new crashed: 500 Internal error encountered.
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 72, in run_voice_monitoring
+    asyncio.run(monitor_new())
+  File "/usr/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 1089, in monitor_new
+    await start_assistant_from_text(f"I am {name}. I need your assist.")
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 646, in start_assistant_from_text
+    response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 131, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 293, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 153, in retry_target
+    _retry_error_helper(
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 212, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 144, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 78, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InternalServerError: 500 Internal error encountered.
+2025-09-29 23:36:27,665 - INFO - Starting reminder loop
+2025-09-29 23:36:27,671 - INFO - Using existing Firebase app
+2025-09-29 23:36:27,672 - INFO - Checking for reminders...
+2025-09-29 23:37:29,541 - INFO - Checking for reminders...
+2025-09-29 23:37:52,453 - INFO - Main controller stopped via KeyboardInterrupt at 2025-09-29 23:37:52
+2025-09-29 23:37:52,498 - INFO - Camera stopped
+2025-09-29 23:37:52,702 - INFO - Camera closed successfully.
+2025-09-30 00:04:38,239 - INFO - Main controller started at 2025-09-30 00:04:38
+2025-09-30 00:04:38,248 - INFO - Main controller launching worker threads...
+2025-09-30 00:04:38,251 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-30 00:04:38,309 - INFO - Initialization successful.
+2025-09-30 00:04:38,310 - INFO - Camera now open.
+2025-09-30 00:04:38,323 - INFO - Configuration successful!
+2025-09-30 00:04:38,375 - INFO - Camera started
+2025-09-30 00:04:44,039 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-09-30 00:04:58,255 - INFO - Starting reminder loop
+2025-09-30 00:04:58,256 - INFO - Using existing Firebase app
+2025-09-30 00:04:58,257 - INFO - Checking for reminders...
+2025-09-30 00:04:58,616 - ERROR - shutdown_on_touch loop failed: 'unknown handle'
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 204, in shutdown_on_touch
+    if detect_continuous_touch(duration=5):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/interaction/touch_sensor.py", line 19, in detect_continuous_touch
+    if GPIO.input(TOUCH_PIN) == GPIO.HIGH:  # Touch detected
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 722, in input
+    if not _in_use(gpio):
+           ^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 408, in _in_use
+    return bool(_check(lgpio.gpio_get_mode(_chip, gpio)) & _LG_MODES)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 732, in gpio_get_mode
+    return _u2i(_lgpio._gpio_get_mode(handle&0xffff, gpio))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 458, in _u2i
+    raise error(error_text(v))
+lgpio.error: 'unknown handle'
+2025-09-30 00:06:01,126 - INFO - Checking for reminders...
+2025-09-30 00:07:01,275 - INFO - Checking for reminders...
+2025-09-30 00:07:24,859 - ERROR - Assistant monitor_new crashed: 500 Internal error encountered.
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 194, in run_voice_monitoring
+    asyncio.run(monitor_new())
+  File "/usr/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 1089, in monitor_new
+    await start_assistant_from_text(f"I am {name}. I need your assist.")
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 646, in start_assistant_from_text
+    response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/generativeai/generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 835, in generate_content
+    response = rpc(
+               ^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py", line 131, in __call__
+    return wrapped_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 293, in retry_wrapped_func
+    return retry_target(
+           ^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 153, in retry_target
+    _retry_error_helper(
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/retry/retry_base.py", line 212, in _retry_error_helper
+    raise final_exc from source_exc
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py", line 144, in retry_target
+    result = target()
+             ^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py", line 78, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.InternalServerError: 500 Internal error encountered.
+2025-09-30 00:08:02,441 - INFO - Checking for reminders...
+2025-09-30 00:09:33,853 - INFO - Main controller started at 2025-09-30 00:09:33
+2025-09-30 00:09:33,862 - INFO - Main controller launching worker threads...
+2025-09-30 00:09:33,866 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-30 00:09:33,925 - INFO - Initialization successful.
+2025-09-30 00:09:33,926 - INFO - Camera now open.
+2025-09-30 00:09:33,936 - INFO - Configuration successful!
+2025-09-30 00:09:33,982 - INFO - Camera started
+2025-09-30 00:09:39,514 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2025-09-30 00:09:53,868 - INFO - Starting reminder loop
+2025-09-30 00:09:53,869 - INFO - Using existing Firebase app
+2025-09-30 00:09:53,870 - INFO - Checking for reminders...
+2025-09-30 00:10:02,988 - ERROR - shutdown_on_touch loop failed: 'unknown handle'
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 204, in shutdown_on_touch
+    if detect_continuous_touch(duration=5):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/interaction/touch_sensor.py", line 19, in detect_continuous_touch
+    if GPIO.input(TOUCH_PIN) == GPIO.HIGH:  # Touch detected
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 722, in input
+    if not _in_use(gpio):
+           ^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 408, in _in_use
+    return bool(_check(lgpio.gpio_get_mode(_chip, gpio)) & _LG_MODES)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 732, in gpio_get_mode
+    return _u2i(_lgpio._gpio_get_mode(handle&0xffff, gpio))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 458, in _u2i
+    raise error(error_text(v))
+lgpio.error: 'unknown handle'
+2025-09-30 00:10:55,528 - INFO - Checking for reminders...
+2025-09-30 00:11:55,721 - INFO - Checking for reminders...
+2025-09-30 00:12:55,926 - INFO - Checking for reminders...
+2025-09-30 00:13:56,226 - INFO - Checking for reminders...
+2025-09-30 00:14:56,449 - INFO - Checking for reminders...
+2025-09-30 00:15:53,916 - INFO - Main controller stopped via KeyboardInterrupt at 2025-09-30 00:15:53
+2025-09-30 00:15:56,648 - INFO - Checking for reminders...
+2025-09-30 00:15:58,020 - ERROR - Assistant monitor_new crashed: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 320, in listen
+    audio = recognizer.listen(source, timeout=timeout, phrase_time_limit=phrase_time_limit)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/.local/lib/python3.11/site-packages/speech_recognition/__init__.py", line 460, in listen
+    for a in result:
+  File "/home/pi/.local/lib/python3.11/site-packages/speech_recognition/__init__.py", line 490, in _listen
+    raise WaitTimeoutError("listening timed out while waiting for phrase to start")
+speech_recognition.exceptions.WaitTimeoutError: listening timed out while waiting for phrase to start
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 393, in _gpio_list
+    return tuple(_to_gpio(int(channel)) for channel in chanlist)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'int' object is not iterable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 194, in run_voice_monitoring
+    asyncio.run(monitor_new())
+  File "/usr/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 1075, in monitor_new
+    text = listen(recognizer, mic)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 344, in listen
+    GPIO.output(LED_PIN, GPIO.LOW)
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 744, in output
+    gpios = _gpio_list(channel)
+            ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 396, in _gpio_list
+    return (_to_gpio(int(chanlist)),)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 356, in _to_gpio
+    raise RuntimeError(
+RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
