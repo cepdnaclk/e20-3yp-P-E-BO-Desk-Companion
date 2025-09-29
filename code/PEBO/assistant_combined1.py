@@ -663,10 +663,10 @@ async def start_assistant_from_text(prompt_text):
     conversation_history.append({"role": "user", "parts": [full_prompt]})
 
     try:
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
+        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 30})
     except gcore_exceptions.NotFound as e:
         print(f"Model not found: {e}. Check for deprecation and update model name.")
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
+        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 30})
 
     reply = (getattr(response, "text", "") or "").strip()
     emotion = "Normal"
@@ -1087,7 +1087,7 @@ async def monitor_for_trigger(name, emotion):
             await asyncio.gather(reaction_task, voice_task)
 
             # Do not gate on name; start for anyone speaking
-            await start_assistant_from_text(f"I am {name or 'friend'}.")
+            await start_assistant_from_text(f"I am {name or 'yohan'}.")
         else:
             continue
 
@@ -1107,7 +1107,7 @@ async def monitor_start(name, emotion):
         await asyncio.gather(reaction_task, voice_task)
 
         # Start without identity gating
-        await start_assistant_from_text(f"I am {name or 'friend'}.")
+        await start_assistant_from_text(f"I am {name or 'yohan'}.")
     finally:
         print("🖥️ Cleaning up in monitor_start...")
 
@@ -1128,7 +1128,7 @@ async def monitor_new():
             reaction_task = asyncio.to_thread(react_detected_emotion_label, emotion)
             voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
             await asyncio.gather(reaction_task, voice_task)
-            await start_assistant_from_text(f"I am {name or 'friend'}. Ask why.")
+            await start_assistant_from_text(f"I am {name or 'yohan'}. Ask why.")
         else:
             # Wait for speech
             text = listen(recognizer, mic)
@@ -1147,7 +1147,7 @@ async def monitor_new():
                     reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
                     voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
                     await asyncio.gather(reaction_task, voice_task)
-                    await start_assistant_from_text(f"I am {name or 'friend'}.")
+                    await start_assistant_from_text(f"I am {name or 'yohan'}.")
                 # QR intent during idle
                 if re.search(qr_pattern, text, re.IGNORECASE):
                     await handle_qr_intent()

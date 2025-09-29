@@ -11301,3 +11301,116 @@ Traceback (most recent call last):
   File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 356, in _to_gpio
     raise RuntimeError(
 RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-09-30 00:39:29,664 - INFO - Main controller started at 2025-09-30 00:39:29
+2025-09-30 00:39:29,673 - INFO - Main controller launching worker threads...
+2025-09-30 00:39:29,676 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-30 00:39:29,727 - INFO - Initialization successful.
+2025-09-30 00:39:29,728 - INFO - Camera now open.
+2025-09-30 00:39:29,738 - INFO - Configuration successful!
+2025-09-30 00:39:29,786 - INFO - Camera started
+2025-09-30 00:39:49,677 - INFO - Starting reminder loop
+2025-09-30 00:39:49,678 - INFO - Using existing Firebase app
+2025-09-30 00:39:49,679 - INFO - Checking for reminders...
+2025-09-30 00:39:58,662 - ERROR - shutdown_on_touch loop failed: 'unknown handle'
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 208, in shutdown_on_touch
+    if detect_continuous_touch(duration=5):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/interaction/touch_sensor.py", line 19, in detect_continuous_touch
+    if GPIO.input(TOUCH_PIN) == GPIO.HIGH:  # Touch detected
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 722, in input
+    if not _in_use(gpio):
+           ^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 408, in _in_use
+    return bool(_check(lgpio.gpio_get_mode(_chip, gpio)) & _LG_MODES)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 732, in gpio_get_mode
+    return _u2i(_lgpio._gpio_get_mode(handle&0xffff, gpio))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 458, in _u2i
+    raise error(error_text(v))
+lgpio.error: 'unknown handle'
+2025-09-30 00:40:56,597 - INFO - Checking for reminders...
+2025-09-30 00:41:56,870 - INFO - Checking for reminders...
+2025-09-30 00:42:57,070 - INFO - Checking for reminders...
+2025-09-30 00:43:57,265 - INFO - Checking for reminders...
+2025-09-30 00:44:57,446 - INFO - Checking for reminders...
+2025-09-30 00:45:57,784 - INFO - Checking for reminders...
+2025-09-30 00:46:57,966 - INFO - Checking for reminders...
+2025-09-30 00:47:58,660 - INFO - Checking for reminders...
+2025-09-30 00:48:59,975 - INFO - Checking for reminders...
+2025-09-30 00:50:00,174 - INFO - Checking for reminders...
+2025-09-30 00:51:00,652 - INFO - Checking for reminders...
+2025-09-30 00:52:00,958 - INFO - Checking for reminders...
+2025-09-30 00:53:03,083 - INFO - Checking for reminders...
+2025-09-30 00:53:58,570 - ERROR - Assistant monitor_new crashed: No audio was received. Please verify that your parameters are correct.
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 198, in run_voice_monitoring
+    asyncio.run(monitor_new())
+  File "/usr/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 1149, in monitor_new
+    await asyncio.gather(reaction_task, voice_task)
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/assistant_combined1.py", line 300, in speak_text
+    await tts.save(filename)
+  File "/home/pi/.local/lib/python3.11/site-packages/edge_tts/communicate.py", line 603, in save
+    async for message in self.stream():
+  File "/home/pi/.local/lib/python3.11/site-packages/edge_tts/communicate.py", line 579, in stream
+    async for message in self.__stream():
+  File "/home/pi/.local/lib/python3.11/site-packages/edge_tts/communicate.py", line 554, in __stream
+    raise NoAudioReceived(
+edge_tts.exceptions.NoAudioReceived: No audio was received. Please verify that your parameters are correct.
+2025-09-30 00:54:03,269 - INFO - Checking for reminders...
+2025-09-30 00:54:50,421 - INFO - Main controller started at 2025-09-30 00:54:50
+2025-09-30 00:54:50,433 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-30 00:54:50,485 - INFO - Initialization successful.
+2025-09-30 00:54:50,487 - INFO - Camera now open.
+2025-09-30 00:54:50,496 - INFO - Configuration successful!
+2025-09-30 00:54:50,540 - INFO - Camera started
+2025-09-30 00:55:10,434 - INFO - Starting reminder loop
+2025-09-30 00:55:10,436 - INFO - Using existing Firebase app
+2025-09-30 00:55:10,436 - INFO - Checking for reminders...
+2025-09-30 00:56:18,617 - INFO - Checking for reminders...
+2025-09-30 00:57:19,903 - INFO - Checking for reminders...
+2025-09-30 00:58:20,136 - INFO - Checking for reminders...
+2025-09-30 00:59:20,258 - INFO - Checking for reminders...
+2025-09-30 01:00:21,245 - INFO - Checking for reminders...
+2025-09-30 01:01:21,534 - INFO - Checking for reminders...
+2025-09-30 01:02:21,709 - INFO - Checking for reminders...
+2025-09-30 01:03:17,118 - INFO - Main controller started at 2025-09-30 01:03:17
+2025-09-30 01:03:17,127 - INFO - Main controller launching worker threads...
+2025-09-30 01:03:17,130 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-30 01:03:17,186 - INFO - Initialization successful.
+2025-09-30 01:03:17,188 - INFO - Camera now open.
+2025-09-30 01:03:17,198 - INFO - Configuration successful!
+2025-09-30 01:03:17,264 - INFO - Camera started
+2025-09-30 01:03:37,131 - INFO - Starting reminder loop
+2025-09-30 01:03:37,133 - INFO - Using existing Firebase app
+2025-09-30 01:03:37,134 - INFO - Checking for reminders...
+2025-09-30 01:03:38,964 - ERROR - shutdown_on_touch loop failed: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 208, in shutdown_on_touch
+    if detect_continuous_touch(duration=5):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/interaction/touch_sensor.py", line 19, in detect_continuous_touch
+    if GPIO.input(TOUCH_PIN) == GPIO.HIGH:  # Touch detected
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 721, in input
+    gpio = _to_gpio(channel)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 356, in _to_gpio
+    raise RuntimeError(
+RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)
+2025-09-30 01:04:38,473 - INFO - Checking for reminders...
+2025-09-30 01:05:38,692 - INFO - Checking for reminders...
+2025-09-30 01:06:30,476 - INFO - Main controller stopped via KeyboardInterrupt at 2025-09-30 01:06:30
+2025-09-30 01:06:30,534 - INFO - Camera stopped
+2025-09-30 01:06:30,742 - INFO - Camera closed successfully.
