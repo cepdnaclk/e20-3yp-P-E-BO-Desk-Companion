@@ -64,6 +64,8 @@ import struct
 import logging
 
 SKIP_USER_CHECK = bool(int(os.getenv("PEBO_SKIP_USER_CHECK", "1")))  # 1=skip, 0=enable
+# Globals (near top)
+SESSION_ACTIVE = False  # one active session at a time
 
 # ---------------------------
 # Logging
@@ -1076,7 +1078,7 @@ async def monitor_for_trigger(name, emotion):
         detected_from_text = extract_emotion_from_text(text)
 
         trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-        should_start = bool(re.search(trigger_pattern, text, re.IGNORECASE)) or SKIP_USER_CHECK
+        should_start = bool(re.search(trigger_pattern, text, re.IGNORECASE))  # no SKIP_USER_CHECK here
 
         if should_start:
             print("✅ Trigger (or skip-user) detected! Starting assistant...")
@@ -1111,51 +1113,53 @@ async def monitor_start(name, emotion):
     finally:
         print("🖥️ Cleaning up in monitor_start...")
 
+# monitor_new(): require wake phrase to start, greet once, then hand over to start_loop()
 async def monitor_new():
+    global SESSION_ACTIVE
     initialize_hardware()
     normal()
     while True:
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
+        # Skip identity; only use camera emotion to enhance greeting
+        name, emotion = (None, None) if SKIP_USER_CHECK else read_recognition_result()
 
-        # In skip-user mode, ignore recognition_result; otherwise read it
-        if SKIP_USER_CHECK:
-            name, emotion = (None, None)
-        else:
-            name, emotion = read_recognition_result()
+        text = listen(recognizer, mic)
+        if not text:
+            continue
 
-        # If a camera-derived emotion is present, greet and start
-        if (emotion or "").upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY", "LOVE"}:
-            reaction_task = asyncio.to_thread(react_detected_emotion_label, emotion)
-            voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
-            await asyncio.gather(reaction_task, voice_task)
-            await start_assistant_from_text(f"I am {name or 'yohan'}. Ask why.")
-        else:
-            # Wait for speech
-            text = listen(recognizer, mic)
-            if text:
-                # Immediate text-based emotion reaction (e.g., "i'm sad")
-                detected_from_text = extract_emotion_from_text(text)
+        # QR during idle
+        qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'
+        if re.search(qr_pattern, text, re.IGNORECASE):
+            await handle_qr_intent()
+            continue
 
-                trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-                qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'
-                should_start = bool(re.search(trigger_pattern, text, re.IGNORECASE)) or SKIP_USER_CHECK
+        trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
+        if not re.search(trigger_pattern, text, re.IGNORECASE):
+            # No wake phrase → ignore for greeting; start_loop will handle once active
+            if SESSION_ACTIVE:
+                # If a session is active, forward this utterance to start_loop by pushing into a shared queue
+                # or simply let start_loop keep listening (recommended). Do nothing here.
+                pass
+            continue
 
-                if should_start:
-                    print("✅ Trigger phrase or skip-user mode detected! Starting assistant...")
-                    print(f"Using: Name={name}, Emotion={emotion}")
-                    chosen_emotion = detected_from_text or emotion
-                    reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
-                    voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
-                    await asyncio.gather(reaction_task, voice_task)
-                    await start_assistant_from_text(f"I am {name or 'yohan'}.")
-                # QR intent during idle
-                if re.search(qr_pattern, text, re.IGNORECASE):
-                    await handle_qr_intent()
-                    continue
-            else:
-                continue
+        if SESSION_ACTIVE:
+            # Already in session; do not greet again
+            continue
 
-        print("🖥️ Cleaning up in monitor_new...")
+        # Greet once, with optional camera emotion reaction
+        SESSION_ACTIVE = True
+        chosen_emotion = extract_emotion_from_text(text) or emotion
+        reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
+        voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
+        await asyncio.gather(reaction_task, voice_task)
+
+        # Enter conversation loop (no more introductions inside)
+        await start_loop()
+
+        # When start_loop returns, end session
+        SESSION_ACTIVE = False
+        normal()
+
 
 # ---------------------------
 # Main
