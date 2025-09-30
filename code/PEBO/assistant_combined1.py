@@ -798,6 +798,7 @@ async def start_assistant_from_text(prompt_text):
     cleanup()
     print("Assistant shutdown complete")
     await asyncio.sleep(1)
+    
 # ---------------------------
 # Emotion extraction and policy
 # ---------------------------
