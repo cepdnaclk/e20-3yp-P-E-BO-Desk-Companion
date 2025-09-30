@@ -151,6 +151,25 @@ JSON_INSTRUCTION = (
 )
 STAGE_RE = re.compile(r"\s*\(*\b(eyes?|hands?|head|nods?|blinks?|gestures?|sighs?|smiles?)\b.*?\)*[.?!]?", re.IGNORECASE)
 
+
+
+conversation_history = deque(maxlen=20)
+
+def clear_conversation_history():
+    """Clear the conversation history deque."""
+    conversation_history.clear()
+
+def add_to_conversation(role: str, parts: list):
+    """Add a new exchange to the conversation history."""
+    conversation_history.append({
+        "role": role,
+        "parts": parts
+    })
+
+def get_conversation():
+    """Retrieve the current conversation history."""
+    return list(conversation_history)
+
 def sanitize_llm_text(t: str) -> str:
     t = STAGE_RE.sub("", t or "").strip()
     return t if t else "Here to help."
