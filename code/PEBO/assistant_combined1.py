@@ -931,7 +931,7 @@ async def start_loop():
     max_attempts = 1
 
     while failed_attempts < max_attempts:
-        # Reminder check
+        # Reminders
         reminder_text = read_reminder_file()
         if reminder_text:
             print(f"📝 Found reminder: {reminder_text}")
@@ -970,17 +970,14 @@ async def start_loop():
 
         await handle_song_intent(user_input)
 
-        # Show QR
         if user_input.lower() in ["show q r", "show me q r", "show qr", "show me qr", "show me q", "show q"]:
             await handle_qr_intent()
             continue
 
-        # Inter-device audio
         if user_input == "send message":
             await handle_interdevice_communication()
             continue
 
-        # Exit phrases
         if user_input in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
             print("👋 Exiting assistant.")
             message_exit = random.choice(goodbye_messages)
@@ -988,9 +985,9 @@ async def start_loop():
             normal()
             break
 
-        # Immediate, silent reaction from text (e.g., "i'm sad") before LLM
+        # Mood reaction first, silently
         did_react = False
-        detected = extract_emotion_from_text(user_input)  # returns one of "Happy","Sad","Angry","Love","Normal" or None
+        detected = extract_emotion_from_text(user_input)
         if detected:
             emotion_methods = {
                 "Happy": happy,
@@ -999,14 +996,13 @@ async def start_loop():
                 "Normal": normal,
                 "Love": love
             }
-            # React with eyes/hands immediately; keep reply short and emotion-free
             await asyncio.gather(
                 asyncio.to_thread(emotion_methods.get(detected, normal)),
                 speak_text("Here with support.")
             )
             did_react = True
 
-        # Regular conversation turn with LLM emotion parsing (silent: no label spoken)
+        # LLM turn: generate concise answer without naming the emotion
         full_user_input = (
             f"{ROLE_PROMPT}\n\n"
             f"{user_input}\n"
@@ -1034,10 +1030,8 @@ async def start_loop():
         chosen_emotion = emotion if emotion in valid_emotions else "Normal"
 
         if did_react:
-            # Already animated; just speak the concise, redacted answer
-            await speak_text(answer)
+            await speak_text(answer)  # already animated; only speak
         else:
-            # Animate once here if not already done
             emotion_methods = {
                 "Happy": happy,
                 "Sad": sad,
@@ -1045,13 +1039,14 @@ async def start_loop():
                 "Normal": normal,
                 "Love": love
             }
-            emotion_task = asyncio.to_thread(emotion_methods.get(chosen_emotion, normal))
-            voice_task = speak_text(answer)
-            await asyncio.gather(emotion_task, voice_task)
+            await asyncio.gather(
+                asyncio.to_thread(emotion_methods.get(chosen_emotion, normal)),
+                speak_text(answer)
+            )
 
         conversation_history.append({"role": "model", "parts": [prepare_spoken_text(answer)]})
 
-    # Clean up Firebase app
+    # Cleanup firebase and devices
     try:
         firebase_admin.delete_app(firebase_admin.get_app())
         logger.info("Firebase app cleaned up")
@@ -1061,6 +1056,7 @@ async def start_loop():
     cleanup()
     print("assistant loop ended")
     await asyncio.sleep(1)
+
 
 # ---------------------------
 # Triggered starts
@@ -1073,45 +1069,29 @@ async def monitor_for_trigger(name, emotion):
         text = listen(recognizer, mic)
         if not text:
             continue
-
-        # Light text-based emotion detector so phrases like "i'm sad" animate immediately
         detected_from_text = extract_emotion_from_text(text)
-
         trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-        should_start = bool(re.search(trigger_pattern, text, re.IGNORECASE))  # no SKIP_USER_CHECK here
-
-        if should_start:
-            print("✅ Trigger (or skip-user) detected! Starting assistant...")
-            print(f"Using: Name={name}, Emotion={emotion}")
-            chosen_emotion = detected_from_text or emotion  # text emotion overrides file emotion when present
+        if re.search(trigger_pattern, text, re.IGNORECASE) and not SESSION_ACTIVE:
+            chosen_emotion = detected_from_text or emotion
             reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
             voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
             await asyncio.gather(reaction_task, voice_task)
+            await start_assistant_from_text(f"I am {name or 'friend'}.")
 
-            # Do not gate on name; start for anyone speaking
-            await start_assistant_from_text(f"I am {name or 'yohan'}.")
-        else:
-            continue
-
-        print("🖥️ Cleaning up in monitor_for_trigger...")
 
 async def monitor_start(name, emotion):
     initialize_hardware()
     normal()
     try:
         print("🎧 Waiting for initial speech input...")
-        print(f"Using: Name={name}, Emotion={emotion}")
-
-        # In skip-user mode, proceed immediately; otherwise keep same behavior
         chosen_emotion = emotion
         reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
         voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
         await asyncio.gather(reaction_task, voice_task)
-
-        # Start without identity gating
-        await start_assistant_from_text(f"I am {name or 'yohan'}.")
+        await start_assistant_from_text(f"I am {name or 'friend'}.")
     finally:
         print("🖥️ Cleaning up in monitor_start...")
+
 
 # monitor_new(): require wake phrase to start, greet once, then hand over to start_loop()
 async def monitor_new():
@@ -1120,14 +1100,18 @@ async def monitor_new():
     normal()
     while True:
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
-        # Skip identity; only use camera emotion to enhance greeting
-        name, emotion = (None, None) if SKIP_USER_CHECK else read_recognition_result()
+
+        # Ignore identity when skipping checks
+        if SKIP_USER_CHECK:
+            name, emotion = (None, None)
+        else:
+            name, emotion = read_recognition_result()
 
         text = listen(recognizer, mic)
         if not text:
             continue
 
-        # QR during idle
+        # Allow QR while idle
         qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'
         if re.search(qr_pattern, text, re.IGNORECASE):
             await handle_qr_intent()
@@ -1135,30 +1119,26 @@ async def monitor_new():
 
         trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
         if not re.search(trigger_pattern, text, re.IGNORECASE):
-            # No wake phrase → ignore for greeting; start_loop will handle once active
-            if SESSION_ACTIVE:
-                # If a session is active, forward this utterance to start_loop by pushing into a shared queue
-                # or simply let start_loop keep listening (recommended). Do nothing here.
-                pass
+            # If session already active, start_loop is handling conversation; do not greet again
             continue
 
         if SESSION_ACTIVE:
-            # Already in session; do not greet again
+            # Avoid duplicate greetings
             continue
 
-        # Greet once, with optional camera emotion reaction
+        # Start session: greet once with optional camera/text emotion, then enter loop
         SESSION_ACTIVE = True
         chosen_emotion = extract_emotion_from_text(text) or emotion
         reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
         voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
         await asyncio.gather(reaction_task, voice_task)
 
-        # Enter conversation loop (no more introductions inside)
-        await start_loop()
+        await start_loop()  # conversation loop without additional introductions
 
-        # When start_loop returns, end session
+        # When the loop exits, reset to idle listening
         SESSION_ACTIVE = False
         normal()
+
 
 
 # ---------------------------
