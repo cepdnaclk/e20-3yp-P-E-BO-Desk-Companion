@@ -136,7 +136,7 @@ EMOTION_TERMS = [
 
 ROLE_PROMPT = (
     "Act as 'pebo', empathetic, concise, and a bit cute. Do not describe gestures or stage directions. "
-    "Never name detected emotions aloud. Keep replies ~40 tokens, supportive and friendly."
+    "Never name detected emotions aloud. Keep replies ~40 tokens, supportive and Yohanly."
 )
 
 STAGE_RE = re.compile(r'\s*\(*\b(eyes?|hands?|head|nods?|blinks?|gestures?|sighs?|smiles?)\b.*?\)*[.?!]?', re.IGNORECASE)
@@ -146,6 +146,14 @@ def sanitize_llm_text(text: str) -> str:
 
 
 # Place near TTS helpers
+# Serialize TTS so only one audio plays at a time
+speak_lock = asyncio.Lock()
+
+async def speak_once(text: str):
+    async with speak_lock:
+        await speak_text(text)  # speak_text already trims and redacts safely
+
+
 EMO_REGEX = {
     "Sad": r"\b(i('?m| am)?\s+)?(so\s+)?(very\s+)?(sad|down|blue|upset|depressed|unhappy|low)\b",
     "Angry": r"\b(angry|mad|furious|pissed|irritated|annoyed|frustrated)\b",
@@ -1048,7 +1056,7 @@ async def start_loop():
             await asyncio.to_thread(react_detected_emotion_label, detected)
 
         # LLM turn with silent context, strict format, sanitized output
-        silent_ctx = f"(user_name={CURRENT_USER_NAME or 'Friend'}) (internal_mood={LAST_MOOD or 'None'}) (topics={';'.join(LAST_TOPICS[-3:])})"
+        silent_ctx = f"(user_name={CURRENT_USER_NAME or 'Yohan'}) (internal_mood={LAST_MOOD or 'None'}) (topics={';'.join(LAST_TOPICS[-3:])})"
         full_user_input = (
             f"{ROLE_PROMPT}\n{silent_ctx}\n{user_input}\n"
             "Respond empathetically; do not name emotions or describe actions. "
@@ -1116,7 +1124,7 @@ async def monitor_for_trigger(name, emotion):
         # Greeting sequence: wave, then happy eyes, then say hi with name (once)
         await asyncio.to_thread(say_hi)
         await asyncio.to_thread(happy)
-        await speak_once(f"Hi {CURRENT_USER_NAME or 'friend'}.")
+        await speak_once(f"Hi {CURRENT_USER_NAME or 'Yohan'}.")
 
         # Enter conversation loop without re-introductions
         await start_loop()
@@ -1143,7 +1151,7 @@ async def monitor_start(name, emotion):
         # Greet: wave -> happy -> hi <name>
         await asyncio.to_thread(say_hi)
         await asyncio.to_thread(happy)
-        await speak_once(f"Hi {CURRENT_USER_NAME or 'friend'}.")
+        await speak_once(f"Hi {CURRENT_USER_NAME or 'Yohan'}.")
 
         # Conversation loop (no re-intros)
         await start_loop()
@@ -1191,7 +1199,7 @@ async def monitor_new():
         # Greeting sequence: wave -> happy -> hi <name>
         await asyncio.to_thread(say_hi)
         await asyncio.to_thread(happy)
-        await speak_once(f"Hi {CURRENT_USER_NAME or 'friend'}.")
+        await speak_once(f"Hi {CURRENT_USER_NAME or 'Yohan'}.")
 
         # Enter conversation loop
         await start_loop()
