@@ -171,7 +171,7 @@ def cleanup():
 pygame.mixer.init()
 
 # Gemini API 
-GOOGLE_API_KEY = "AIzaSyBfMyHipeG5Zt6WmtYGCqJ0HdMs-CYSHt8"
+GOOGLE_API_KEY = "AIzaSyCBkCCR63VV_HCRi_5Qjo9Akx2415eGdp4"
 
 
 
@@ -560,7 +560,7 @@ async def start_assistant_from_text(prompt_text):
     print(f"\U0001F4AC Initial Prompt: {prompt_text}")
     conversation_history.clear()
     
-    full_prompt = f"{prompt_text}\nAbove is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion based on the message's context. Provide your answer in the format emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response to my message."
+    full_prompt = f"{prompt_text}\nAbove is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion based on the message's context. Provide your answer in the format [emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response to my message."
     conversation_history.append({"role": "user", "parts": [full_prompt]})
     
     try:

@@ -809,7 +809,7 @@ def react_detected_emotion_label(label: str | None):
 # ---------------------------
 # Gemini
 # ---------------------------
-GOOGLE_API_KEY = "AIzaSyCBkCCR63VV_HCRi_5Qjo9Akx2415eGdp4"
+GOOGLE_API_KEY = "AIzaSyBfMyHipeG5Zt6WmtYGCqJ0HdMs-CYSHt8"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 try:
