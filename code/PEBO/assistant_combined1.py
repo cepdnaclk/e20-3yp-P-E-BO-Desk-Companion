@@ -1260,59 +1260,72 @@ async def monitor_start(name, emotion):
 
 # Preferred main entry; greet-once flow with optional camera recognition
 async def monitor_new():
-    global SESSION_ACTIVE, CURRENT_USER_NAME
-
-    load_memory()
     initialize_hardware()
     normal()
+    print("PEBO monitoring started.")
+    last_trigger_time = datetime.now()
 
     while True:
+        # Optional: add a session timeout or inactivity check if needed
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
-        # Optional cam result (ignored if skipping checks)
-        cam_name, cam_emotion = (None, None) if SKIP_USER_CHECK else read_recognition_result()
 
-        text = listen(recognizer, mic)
-        if not text:
-            continue
+        name, emotion = read_recognition_result()
 
-        # Allow QR during idle
-        if re.search(r"\bshow\s+(?:me\s+)?q\s*r\b|\bshow\s+q\b", text, re.IGNORECASE):
-            await handle_qr_intent()
-            continue
+        # Handle emotional states
+        if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
+            hi_task = asyncio.to_thread(hi)
+            voice_task = speak_text("Hello! I'm your PEBO.")
+            await asyncio.gather(hi_task, voice_task)
+            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
 
-        # Ignore new triggers while active
-        if SESSION_ACTIVE:
-            continue
+        else:
+            text = listen(recognizer, mic)
+            if text:
+                trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
+                qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'  # Matches "show qr"
 
-        # Wake phrase required
-        trig = r"\b((?:hi|hey|hello)\s+)?(" + "|".join(re.escape(s) for s in similar_sounds) + r")\b"
-        if not re.search(trig, text, re.IGNORECASE):
-            continue
+                if re.search(trigger_pattern, text, re.IGNORECASE):
+                    print("✔ Trigger phrase detected! Starting assistant...")
+                    print(f"Using: Name={name}, Emotion={emotion}")
+                    if name and name.lower() != "none":
+                        hi_task = asyncio.to_thread(hi)
+                        voice_task = speak_text("Hello! I'm your PEBO.")
+                        await asyncio.gather(hi_task, voice_task)
+                        if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
+                            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
+                        else:
+                            await start_assistant_from_text(f"I am {name}. I need your assist.")
+                    else:
+                        await speak_text("I can't identify you as my user")
 
-        SESSION_ACTIVE = True
-        try:
-            # Resolve/remember name (camera or speech)
-            if cam_name and str(cam_name).lower() != "none":
-                CURRENT_USER_NAME = cam_name
-            maybe = extract_name_from_text(text)
-            if maybe:
-                CURRENT_USER_NAME = maybe
-            save_memory()
+                # Check for QR code display
+                if re.search(qr_pattern, text, re.IGNORECASE):
+                    try:
+                        with open("/home/pi/pebo_config.json", 'r') as f:
+                            config = json.load(f)
+                            device_id = config.get("deviceId")
+                            if not str(device_id):
+                                await speak_text("Error: Invalid device ID in configuration")
+                                continue
+                    except Exception as e:
+                        await speak_text(f"Error reading device ID: {str(e)}")
+                        continue
 
-            # Greeting sequence: wave + happy + voice together
-            greeting = f"Hi {CURRENT_USER_NAME or 'Yohan'}, I'm Pebo, your buddy."
-            await asyncio.gather(
-                asyncio.to_thread(say_hi),
-                asyncio.to_thread(happy),
-                speak_once(greeting),
-            )
+                    await asyncio.gather(
+                        speak_text("Showing QR now, scan this using the user PEBO mobile app"),
+                        asyncio.to_thread(run_emotion, None, lambda stop_event: eyes.QR(device_id, stop_event=stop_event), duration=15)
+                    )
+                    await asyncio.to_thread(normal)
+                    continue
+                else:
+                    # No command matched, continue to listen
+                    pass
+            else:
+                # No speech detected, continue listening
+                pass
 
-            # Enter conversation loop
-            await start_loop()
-
-        finally:
-            SESSION_ACTIVE = False
-            normal()
+        print("🧹 Cleaning up in monitor_new: Clearing displays and I2C bus...")
+        # Optional: add a sleep delay here if needed, e.g., await asyncio.sleep(1)
 
 
 # ---------------------------
