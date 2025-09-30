@@ -1210,10 +1210,13 @@ async def start_loop():
 # Triggered starts
 # ---------------------------
 # monitor_for_trigger(): wake on phrase, greet once, then start_loop
+# monitor_for_trigger(): wake on phrase, greet once, then start_loop
 async def monitor_for_trigger(name, emotion):
     global SESSION_ACTIVE, CURRENT_USER_NAME
+
     initialize_hardware()
-    normal()
+    normal()  # idle eyes at boot
+
     while True:
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
         text = listen(recognizer, mic)
@@ -1221,59 +1224,67 @@ async def monitor_for_trigger(name, emotion):
             continue
 
         # Allow QR during idle
-        qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'
+        qr_pattern = r"\bshow\s+(?:me\s+)?q\s*r\b|\bshow\s+q\b"
         if re.search(qr_pattern, text, re.IGNORECASE):
             await handle_qr_intent()
             continue
 
-        # Require wake phrase to start; greet only once per session
-        trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-        if not re.search(trigger_pattern, text, re.IGNORECASE) or SESSION_ACTIVE:
+        # If already in a session, ignore further triggers
+        if SESSION_ACTIVE:
+            continue
+
+        # Require wake phrase to start
+        trigger_pattern = r"\b((?:hi|hey|hello)\s+)?(" + "|".join(re.escape(s) for s in similar_sounds) + r")\b"
+        if not re.search(trigger_pattern, text, re.IGNORECASE):
             continue
 
         SESSION_ACTIVE = True
+        try:
+            # Resolve/remember name
+            if name and str(name).lower() != "none":
+                CURRENT_USER_NAME = name
+            maybe = extract_name_from_text(text)
+            if maybe:
+                CURRENT_USER_NAME = maybe
+            save_memory()
 
-        # Resolve/remember name
-        if name and name.lower() != "none":
-            CURRENT_USER_NAME = name
-        maybe = extract_name_from_text(text)
-        if maybe:
-            CURRENT_USER_NAME = maybe
-        save_memory()
+            # Greeting: wave + happy + voice together to reduce latency
+            greeting = f"Hi {CURRENT_USER_NAME or 'friend'}, I'm Pebo, your buddy."
+            await asyncio.gather(
+                asyncio.to_thread(say_hi),
+                asyncio.to_thread(happy),
+                speak_once(greeting)
+            )
 
-        # Greeting sequence: wave, then happy eyes, then say hi with name (once)
-        await asyncio.to_thread(say_hi)
-        await asyncio.to_thread(happy)
-        await speak_once(f"Hi {CURRENT_USER_NAME or 'Yohan'}.")
+            # Conversation loop (no re-intros)
+            await start_loop()
 
-        # Enter conversation loop without re-introductions
-        await start_loop()
-
-        # Return to idle
-        SESSION_ACTIVE = False
-        normal()
+        finally:
+            SESSION_ACTIVE = False
+            normal()
 
 
 # monitor_start(): immediate greet on boot-wake, then start_loop
 async def monitor_start(name, emotion):
     global SESSION_ACTIVE, CURRENT_USER_NAME
+
     initialize_hardware()
     normal()
     try:
         print("🎧 Waiting for initial speech input...")
 
-        # Mark session; resolve name from parameter only (no wake phrase here)
         SESSION_ACTIVE = True
-        if name and name.lower() != "none":
+        if name and str(name).lower() != "none":
             CURRENT_USER_NAME = name
         save_memory()
 
-        # Greet: wave -> happy -> hi <name>
-        await asyncio.to_thread(say_hi)
-        await asyncio.to_thread(happy)
-        await speak_once(f"Hi {CURRENT_USER_NAME or 'Yohan'}.")
+        greeting = f"Hi {CURRENT_USER_NAME or 'friend'}, I'm Pebo, your buddy."
+        await asyncio.gather(
+            asyncio.to_thread(say_hi),
+            asyncio.to_thread(happy),
+            speak_once(greeting)
+        )
 
-        # Conversation loop (no re-intros)
         await start_loop()
     finally:
         SESSION_ACTIVE = False
@@ -1281,54 +1292,62 @@ async def monitor_start(name, emotion):
         print("🖥️ Cleaning up in monitor_start...")
 
 
+
 # monitor_new(): prefer this as the main entry; identical greet-once flow
+# monitor_new(): prefer this as the main entry; greet-once flow
 async def monitor_new():
     global SESSION_ACTIVE, CURRENT_USER_NAME
+
     load_memory()
     initialize_hardware()
     normal()
+
     while True:
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
         # Optional cam result (ignored if skipping checks)
-        name, emotion = (None, None) if SKIP_USER_CHECK else read_recognition_result()
+        cam_name, cam_emotion = (None, None) if SKIP_USER_CHECK else read_recognition_result()
 
         text = listen(recognizer, mic)
         if not text:
             continue
 
         # Allow QR during idle
-        if re.search(r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b', text, re.IGNORECASE):
+        if re.search(r"\bshow\s+(?:me\s+)?q\s*r\b|\bshow\s+q\b", text, re.IGNORECASE):
             await handle_qr_intent()
             continue
 
-        # Require wake phrase; greet once per session
-        trig = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-        if not re.search(trig, text, re.IGNORECASE) or SESSION_ACTIVE:
+        if SESSION_ACTIVE:
+            continue
+
+        # Wake phrase required
+        trig = r"\b((?:hi|hey|hello)\s+)?(" + "|".join(re.escape(s) for s in similar_sounds) + r")\b"
+        if not re.search(trig, text, re.IGNORECASE):
             continue
 
         SESSION_ACTIVE = True
+        try:
+            # Resolve/remember name (camera or speech)
+            if cam_name and str(cam_name).lower() != "none":
+                CURRENT_USER_NAME = cam_name
+            maybe = extract_name_from_text(text)
+            if maybe:
+                CURRENT_USER_NAME = maybe
+            save_memory()
 
-        # Resolve/remember name (camera or speech)
-        if name and name.lower() != "none":
-            CURRENT_USER_NAME = name
-        maybe = extract_name_from_text(text)
-        if maybe:
-            CURRENT_USER_NAME = maybe
-        save_memory()
+            # Greeting sequence: wave + happy + voice together
+            greeting = f"Hi {CURRENT_USER_NAME or 'friend'}, I'm Pebo, your buddy."
+            await asyncio.gather(
+                asyncio.to_thread(say_hi),
+                asyncio.to_thread(happy),
+                speak_once(greeting)
+            )
 
-        # Greeting sequence: wave + happy + voice together
-        await asyncio.gather(
-            asyncio.to_thread(say_hi),
-            asyncio.to_thread(happy),
-            speak_once(f"Hi {CURRENT_USER_NAME or 'Yohan'}, I'm pebo, your buddy.")
-        )
+            # Enter conversation loop
+            await start_loop()
 
-        # Enter conversation loop
-        await start_loop()
-
-        # Back to idle
-        SESSION_ACTIVE = False
-        normal()
+        finally:
+            SESSION_ACTIVE = False
+            normal()
 
 # ---------------------------
 # Main
