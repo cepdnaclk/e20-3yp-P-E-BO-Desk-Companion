@@ -326,7 +326,7 @@ def _redact_emotion_mentions(text: str) -> str:
             continue
         kept.append(s)
     cleaned = " ".join(kept).strip()
-    return cleaned if cleaned else "I'm Here for you."
+    return cleaned if cleaned else "HELLOO! i'M YOUR pebo. I'm Here for you."
 
 def _trim_to_tokens(text: str, max_tokens: int = MAX_SPOKEN_TOKENS) -> str:
     words = re.findall(r"\S+", text)
