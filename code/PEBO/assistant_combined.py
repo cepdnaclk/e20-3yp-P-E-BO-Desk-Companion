@@ -171,7 +171,7 @@ def cleanup():
 pygame.mixer.init()
 
 # Gemini API 
-GOOGLE_API_KEY = "AIzaSyCBkCCR63VV_HCRi_5Qjo9Akx2415eGdp4"
+GOOGLE_API_KEY = "AIzaSyBfMyHipeG5Zt6WmtYGCqJ0HdMs-CYSHt8"
 
 
 
