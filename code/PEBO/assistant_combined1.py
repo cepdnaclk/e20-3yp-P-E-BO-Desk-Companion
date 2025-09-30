@@ -144,10 +144,7 @@ def sanitize_llm_text(t: str) -> str:
     return t if t else "Here with support."
 
 
-# Once at init:
-recognizer.pause_threshold = 0.8
-recognizer.non_speaking_duration = 0.4
-recognizer.energy_threshold = 300
+
 
 # Place near TTS helpers
 # Serialize TTS so only one audio plays at a time
@@ -381,6 +378,13 @@ async def speak_text(text):
 # ---------------------------
 recognizer = sr.Recognizer()
 mic = sr.Microphone()
+
+
+# Once at init:
+recognizer.pause_threshold = 0.8
+recognizer.non_speaking_duration = 0.4
+recognizer.energy_threshold = 300
+
 
 def listen(
     recognizer: sr.Recognizer,
