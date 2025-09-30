@@ -156,7 +156,7 @@ async def speak_once(text: str):
 
 
 EMO_REGEX = {
-    "Sad": r"\b(i('?m| am)?\s+)?(so\s+)?(very\s+)?(sad|down|blue|upset|depressed|unhappy|low)\b",
+    "Sad": r"\b(sad|down|blue|upset|depressed|unhappy|low)\b",
     "Angry": r"\b(angry|mad|furious|pissed|irritated|annoyed|frustrated)\b",
     "Happy": r"\b(happy|glad|cheerful|excited|joyful|stoked|thrilled)\b",
     "Love": r"\b(love|loving|beloved|adore|affection|fond|caring|cute|adorable|sweet|charming)\b",
@@ -225,19 +225,18 @@ def hi():
     print("Expressing Hi")
     run_emotion(say_hi, eyes.Happy)
 
+# assistant_combined1.py
 def normal():
     print("Expressing Normal")
     global current_eye_thread, stop_event
-    # stop any existing loop first
-    if stop_event:
-        stop_event.set()
-    if current_eye_thread:
-        current_eye_thread.join(timeout=1.0)
+    if stop_event: stop_event.set()
+    if current_eye_thread: current_eye_thread.join(timeout=1.0)
     stop_event = threading.Event()
-    current_eye_thread = threading.Thread(target=eyes.default, args=(stop_event,))
+    # FIX: use Default (capital D), not default
+    current_eye_thread = threading.Thread(target=eyes.Default, args=(stop_event,))
     current_eye_thread.daemon = True
     current_eye_thread.start()
-    # Do NOT set stop_event = None here
+
 
 
 def happy():
@@ -694,7 +693,7 @@ def play_reminder_audio(audio_file="/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Des
         print(f"Error playing reminder audio {audio_file}: {e}")
 
 
-EMOTION_COOLDOWN_SEC = 6
+EMOTION_COOLDOWN_SEC = 10
 _last_emote_t = 0.0
 MATH_STATE = {"last_result": None}
 CONT_RE = re.compile(r"(multiply|times|x|divide|over|add|\+|plus|subtract|-|minus)\s+(?:it\s+by\s+)?([\-]?\d+(?:\.\d+)?)", re.IGNORECASE)
@@ -716,10 +715,12 @@ def should_emote(intent: str, explicit_mood: str | None) -> bool:
     now = time.time()
     if now - _last_emote_t < EMOTION_COOLDOWN_SEC:
         return False
-    if intent in {"math", "task", "command", "qr"}:
-        return explicit_mood is not None
-    _last_emote_t = now
-    return True
+    # Only allow reactions during chat, or when there is an explicit mood during non‑chat
+    allow = (intent == "chat" and explicit_mood is not None) or \
+            (intent in {"math","task","command","qr"} and explicit_mood is not None)
+    if allow:
+        _last_emote_t = now
+    return allow
 
 def safe_emotion(label: str | None, intent: str) -> str:
     if not label:
@@ -1127,7 +1128,6 @@ async def start_loop():
                 clear_reminder_file()
             failed_attempts = 0
 
-
         # Listen
         user_input = await asyncio.get_event_loop().run_in_executor(
             None, lambda: listen(recognizer, mic, timeout=12, phrase_time_limit=10, retries=2)
@@ -1140,15 +1140,18 @@ async def start_loop():
         failed_attempts = 0
 
         # Intents
-        if user_input.lower() in ["what are reminders", "list reminders", "show reminders", "tell me my reminders", "show remind", "list remind"]:
+        low = (user_input or "").lower().strip()
+        if low in ["what are reminders", "list reminders", "show reminders", "tell me my reminders", "show remind", "list remind"]:
             await handle_tasks_intent(); continue
         await handle_song_intent(user_input)
-        if user_input.lower() in ["show q r", "show me q r", "show qr", "show me qr", "show me q", "show q"]:
+        if low in ["show q r", "show me q r", "show qr", "show me qr", "show me q", "show q"]:
             await handle_qr_intent(); continue
-        if user_input == "send message":
+        if low == "send message":
             await handle_interdevice_communication(); continue
-        if user_input in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
-            await speak_once(random.choice(goodbye_messages)); normal(); break
+        if low in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
+            await speak_once(random.choice(goodbye_messages))
+            await asyncio.to_thread(normal)
+            break
 
         # Math fast-path
         ans = quick_math_answer(user_input)
@@ -1165,27 +1168,39 @@ async def start_loop():
             LAST_TOPICS.append(f"math-continue:{user_input.strip()[:30]}"); LAST_TOPICS = LAST_TOPICS[-5:]; save_memory()
             continue
 
-        # Update name/mood memory
+        # Update name/mood memory from explicit text only
         maybe = extract_name_from_text(user_input)
         if maybe: CURRENT_USER_NAME = maybe
-        detected = extract_emotion_from_text(user_input)
+        detected = extract_emotion_from_text(user_input)  # explicit sentiment words only
 
-        intent = classify_intent(user_input)
-        if not should_emote(intent, detected): detected = None
-        emo_for_anim = safe_emotion(detected, intent)
+        # Classify intent
+        intent = classify_intent(user_input)  # e.g., "chat","math","task","command","qr"
+
+        # STRICT gating: Only animate if there is an explicit emotion AND it's chat.
+        # For non-chat (math/task/command/qr), allow only if explicit emotion exists.
+        allow_anim = False
+        if detected:
+            if intent == "chat":
+                allow_anim = True
+            elif intent in {"math", "task", "command", "qr"}:
+                allow_anim = True
+
+        # Persist last mood only if explicit
         if detected:
             LAST_MOOD = detected
         save_memory()
 
-        # LLM concise turn with silent context
+        # LLM concise, stateless turn — ignore model emotion for animation
         silent_ctx = f"(user_name={CURRENT_USER_NAME or 'Yohan'}) (internal_mood={LAST_MOOD or 'None'}) (topics={';'.join(LAST_TOPICS[-3:])})"
         full_user_input = (
             f"{ROLE_PROMPT}\n{silent_ctx}\n{user_input}\n"
             "Respond empathetically; do not name emotions or describe actions. "
             "Return exactly as [emotion,answer] where emotion ∈ {Happy,Sad,Angry,Normal,Love}."
         )
-        conversation_history.append({"role": "user", "parts": [full_user_input]})
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 64})
+        response = model.generate_content(
+            [{"role": "user", "parts": [full_user_input]}],
+            generation_config={"max_output_tokens": 64}
+        )
         reply = (getattr(response, "text", "") or "").strip()
         m = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
         if not m:
@@ -1198,16 +1213,19 @@ async def start_loop():
         model_emotion, answer = (m.groups() if m else ("Normal", reply))
         answer = sanitize_llm_text(answer)
 
-        # Final emotion choice with gating
-        final_emotion = safe_emotion(detected or model_emotion, intent)
+        # Final emotion for animation: ignore model_emotion; only explicit + safe mapping
+        final_emotion = safe_emotion(detected, intent) if allow_anim else "Normal"
 
-        # React with voice at once: eyes/hands + TTS together
-        await asyncio.gather(
-            asyncio.to_thread(react_detected_emotion_label, final_emotion),
-            speak_once(answer)
-        )
+        # Speak + eyes/hands
+        if final_emotion == "Normal":
+            await asyncio.gather(asyncio.to_thread(normal), speak_once(answer))
+        else:
+            await asyncio.gather(
+                asyncio.to_thread(react_detected_emotion_label, final_emotion),
+                speak_once(answer)
+            )
 
-        # Track topic for continuity
+        # Track topic for continuity (short ring buffer)
         LAST_TOPICS.append(user_input.strip()[:50]); LAST_TOPICS = LAST_TOPICS[-5:]; save_memory()
 
 
