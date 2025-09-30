@@ -63,11 +63,12 @@ import fcntl
 import struct
 import logging
 
-SKIP_USER_CHECK = bool(int(os.getenv("PEBO_SKIP_USER_CHECK", "1")))  # 1=skip, 0=enable
-# Globals (near top)
-SESSION_ACTIVE = False  # one active session at a time
+# ==== Globals (top of assistant_combined1.py) ====
+SKIP_USER_CHECK = bool(int(os.getenv("PEBO_SKIP_USER_CHECK", "1")))  # 1=skip checks, 0=enable
+SESSION_ACTIVE: bool = False
 CURRENT_USER_NAME: str | None = None
 LAST_MOOD: str | None = None
+
 
 NAME_RE = re.compile(r"\b(my\s+name\s+is|i\s*am|i'm)\s+([A-Za-z]{2,30})\b", re.IGNORECASE)
 def extract_name_from_text(text: str) -> str | None:
@@ -152,12 +153,11 @@ def extract_emotion_from_text(text: str) -> str | None:
             return label
     return None
 
-# === Sanitizer (near TTS helpers) ===
+# Strip stage directions (before speak_text)
 STAGE_RE = re.compile(r'\s*\(*\b(eyes?|hands?|head|nods?|blinks?|gestures?|sighs?|smiles?)\b.*?\)*[.?!]?', re.IGNORECASE)
 def sanitize_llm_text(text: str) -> str:
     t = STAGE_RE.sub("", text or "").strip()
     return t if t else "Okay."
-
 
 # ---------------------------
 # Eyes/Arms Helpers
@@ -930,6 +930,7 @@ async def handle_interdevice_communication():
 # Assistant loop
 # ---------------------------
 async def start_loop():
+    global CURRENT_USER_NAME, LAST_MOOD
     try:
         if not firebase_admin._apps:
             cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
@@ -941,133 +942,111 @@ async def start_loop():
         await asyncio.to_thread(normal)
         return
 
+    # Do not hard-exit on first miss
     failed_attempts = 0
-    max_attempts = 1
+    max_attempts = 5  # was 1
 
-    while failed_attempts < max_attempts:
+    # Simple arithmetic to avoid performative LLM
+    MATH_RE = re.compile(r'^\s*(what\s+is\s+)?(-?\d+(\.\d+)?)\s*([+\-*/x])\s*(-?\d+(\.\d+)?)\s*\??\s*$', re.IGNORECASE)
+    def quick_math_answer(text: str):
+        m = MATH_RE.match(text or ""); 
+        if not m: return None
+        a = float(m.group(2)); b = float(m.group(5)); op = m.group(4).lower().replace('x','*')
+        try:
+            val = a+b if op=='+' else a-b if op=='-' else a*b if op=='*' else a/b
+            vi = int(val);  return str(vi) if abs(val-vi) < 1e-9 else f"{val:.6g}"
+        except: return None
+
+    while True:
         # Reminders
         reminder_text = read_reminder_file()
         if reminder_text:
             print(f"📝 Found reminder: {reminder_text}")
-            play_reminder_audio()
-            await speak_text(reminder_text)
-            play_reminder_audio()
-            await speak_text(reminder_text)
-            if not clear_reminder_file():
-                logger.error("Failed to clear reminder file, proceeding anyway")
+            play_reminder_audio(); await speak_text(reminder_text)
+            play_reminder_audio(); await speak_text(reminder_text)
+            if not clear_reminder_file(): logger.error("Failed to clear reminder file, proceeding anyway")
             failed_attempts = 0
         else:
             print("📝 Reminder file is empty or not found, proceeding with normal loop")
 
-        user_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
-        # user_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen_whisper())
-
-        maybe_name = extract_name_from_text(user_input)
-        if maybe_name: CURRENT_USER_NAME = maybe_name
-        detected = extract_emotion_from_text(user_input)
-        if detected:
-            LAST_MOOD = detected
-            await asyncio.gather(asyncio.to_thread({"Happy": happy, "Sad": sad, "Angry": angry, "Normal": normal, "Love": love}.get(detected, normal)),
-                         speak_text("Here with support."))
-        did_react = True
+        # Listen with slightly longer windows
+        user_input = await asyncio.get_event_loop().run_in_executor(
+            None, lambda: listen(recognizer, mic, timeout=12, phrase_time_limit=8, retries=2)
+        )
         if user_input is None:
             failed_attempts += 1
             print(f"😕 Failed attempt {failed_attempts}/{max_attempts}.")
             if failed_attempts >= max_attempts:
-                print(f"😕 No speech detected after {max_attempts} attempts. Exiting assistant.")
-                message = random.choice(goodbye_messages)
-                await speak_text(message)
-                normal()
-                break
+                print("Idle; staying in session. Say 'exit pebo' to end.")
+                failed_attempts = 0
             continue
 
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(TOUCH_PIN, GPIO.IN)
+        GPIO.setmode(GPIO.BCM); GPIO.setup(TOUCH_PIN, GPIO.IN)
         failed_attempts = 0
 
         # Intents
         if user_input.lower() in ["what are reminders", "list reminders", "show reminders", "tell me my reminders", "show remind", "list remind"]:
-            await handle_tasks_intent()
-            continue
-
+            await handle_tasks_intent(); continue
         await handle_song_intent(user_input)
-
         if user_input.lower() in ["show q r", "show me q r", "show qr", "show me qr", "show me q", "show q"]:
-            await handle_qr_intent()
-            continue
-
+            await handle_qr_intent(); continue
         if user_input == "send message":
-            await handle_interdevice_communication()
+            await handle_interdevice_communication(); continue
+        if user_input in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
+            print("👋 Exiting assistant."); message_exit = random.choice(goodbye_messages)
+            await speak_text(message_exit); normal(); break
+
+        # Quick math
+        ans = quick_math_answer(user_input)
+        if ans is not None:
+            await asyncio.gather(asyncio.to_thread(normal), speak_text(ans))
             continue
 
-        if user_input in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
-            print("👋 Exiting assistant.")
-            message_exit = random.choice(goodbye_messages)
-            await speak_text(message_exit)
-            normal()
-            break
-
-        # Mood reaction first, silently
+        # Update name/mood memory
+        maybe = extract_name_from_text(user_input)
+        if maybe: CURRENT_USER_NAME = maybe
         did_react = False
         detected = extract_emotion_from_text(user_input)
         if detected:
-            emotion_methods = {
-                "Happy": happy,
-                "Sad": sad,
-                "Angry": angry,
-                "Normal": normal,
-                "Love": love
-            }
+            LAST_MOOD = detected
             await asyncio.gather(
-                asyncio.to_thread(emotion_methods.get(detected, normal)),
+                asyncio.to_thread({"Happy": happy, "Sad": sad, "Angry": angry, "Normal": normal, "Love": love}
+                                  .get(detected, normal)),
                 speak_text("Here with support.")
             )
             did_react = True
 
-        # LLM turn: generate concise answer without naming the emotion
-    # Build LLM prompt with silent context (never spoken):
+        # LLM turn: silent context + strict, non-narrative output
         full_user_input = (
             f"{ROLE_PROMPT}\n"
             f"(user_name={CURRENT_USER_NAME or 'Friend'}) (internal_mood={LAST_MOOD or 'None'})\n"
             f"{user_input}\n"
-            "Respond empathetically without naming emotions or describing actions. "
-            "Return exactly as [emotion,answer] with emotion in {Happy,Sad,Angry,Normal,Love}."
+            "Respond empathetically; do not name emotions or describe actions. "
+            "Return exactly as [emotion,answer] where emotion ∈ {Happy,Sad,Angry,Normal,Love}."
         )
-
         conversation_history.append({"role": "user", "parts": [full_user_input]})
         response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
         reply = (getattr(response, "text", "") or "").strip()
-        emotion = "Normal"
-        answer = reply
-        try:
-            match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
-            if match:
-                emotion, answer = match.groups()
-                print(f"{emotion}: {answer}")
-            else:
-                print(f"Gemini: {reply} (No emotion detected, assuming Normal)")
-        except Exception as e:
-            print(f"Error parsing Gemini response: {e}")
+        m = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
+        if not m:
+            retry = model.generate_content([{"role": "user", "parts": [full_user_input + "\nSTRICT: Output only [emotion,answer]."]}],
+                                           generation_config={"max_output_tokens": 20})
+            reply = (getattr(retry, "text", "") or "").strip()
+            m = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
+        emotion, answer = (m.groups() if m else ("Normal", reply))
+        answer = sanitize_llm_text(answer)
 
-        valid_emotions = {"Happy", "Sad", "Angry", "Normal", "Love"}
-        chosen_emotion = emotion if emotion in valid_emotions else "Normal"
-
+        # Animate once and speak concise reply
         if did_react:
-            await speak_text(answer)  # already animated; only speak
+            await speak_text(answer)
         else:
-            emotion_methods = {
-                "Happy": happy,
-                "Sad": sad,
-                "Angry": angry,
-                "Normal": normal,
-                "Love": love
-            }
             await asyncio.gather(
-                asyncio.to_thread(emotion_methods.get(chosen_emotion, normal)),
+                asyncio.to_thread({"Happy": happy, "Sad": sad, "Angry": angry, "Normal": normal, "Love": love}
+                                  .get(emotion, normal)),
                 speak_text(answer)
             )
-
         conversation_history.append({"role": "model", "parts": [prepare_spoken_text(answer)]})
+
 
     # Cleanup firebase and devices
     try:
@@ -1117,9 +1096,8 @@ async def monitor_start(name, emotion):
 
 
 # monitor_new(): require wake phrase to start, greet once, then hand over to start_loop()
-# === monitor_new (greet once on wake) ===
 async def monitor_new():
-    global SESSION_ACTIVE, CURRENT_USER_NAME
+    global SESSION_ACTIVE, CURRENT_USER_NAME, LAST_MOOD
     initialize_hardware(); normal()
     while True:
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
@@ -1127,21 +1105,20 @@ async def monitor_new():
         text = listen(recognizer, mic)
         if not text: continue
 
-        # Allow QR while idle
+        # QR while idle
         if re.search(r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b', text, re.IGNORECASE):
             await handle_qr_intent(); continue
 
-        # Wake phrase required to start session
+        # Require wake phrase to start
         trig = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
         if not re.search(trig, text, re.IGNORECASE) or SESSION_ACTIVE:
             continue
 
         SESSION_ACTIVE = True
-        # Remember user if available
-        CURRENT_USER_NAME = (name or CURRENT_USER_NAME) if (name and name.lower() != "none") else CURRENT_USER_NAME
-        # Optional: pick up name from speech
-        maybe = extract_name_from_text(text);  CURRENT_USER_NAME = maybe or CURRENT_USER_NAME
-
+        # Remember who this is if available
+        if name and name.lower() != "none": CURRENT_USER_NAME = name
+        maybe = extract_name_from_text(text)
+        if maybe: CURRENT_USER_NAME = maybe
         chosen = extract_emotion_from_text(text) or emotion
         await asyncio.gather(
             asyncio.to_thread(react_detected_emotion_label, chosen),
