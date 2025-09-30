@@ -135,15 +135,19 @@ EMOTION_TERMS = [
 ]
 
 ROLE_PROMPT = (
-    "Act as 'pebo', empathetic, concise, and a bit cute. Do not describe gestures or stage directions. "
-    "Never name detected emotions aloud. Keep replies ~40 tokens, supportive and Yohanly."
+  "Act as 'pebo', empathetic, concise, a bit cute. Do not describe gestures or stage directions. "
+  "Never name detected emotions aloud. Keep replies ~40 tokens, supportive and friendly."
 )
-
 STAGE_RE = re.compile(r'\s*\(*\b(eyes?|hands?|head|nods?|blinks?|gestures?|sighs?|smiles?)\b.*?\)*[.?!]?', re.IGNORECASE)
-def sanitize_llm_text(text: str) -> str:
-    t = STAGE_RE.sub("", text or "").strip()
+def sanitize_llm_text(t: str) -> str:
+    t = STAGE_RE.sub("", t or "").strip()
     return t if t else "Here with support."
 
+
+# Once at init:
+recognizer.pause_threshold = 0.8
+recognizer.non_speaking_duration = 0.4
+recognizer.energy_threshold = 300
 
 # Place near TTS helpers
 # Serialize TTS so only one audio plays at a time
@@ -382,8 +386,8 @@ def listen(
     recognizer: sr.Recognizer,
     mic: sr.Microphone,
     *,
-    timeout: float = 8,
-    phrase_time_limit: float = 6,
+    timeout: float = 12,
+    phrase_time_limit: float = 10,
     retries: int = 2,
     language: str = "en-US",
     calibrate_duration: float = 0.5,
@@ -648,6 +652,47 @@ def play_reminder_audio(audio_file="/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Des
         print(f"🎵 Played reminder audio {audio_file} twice")
     except Exception as e:
         print(f"❌ Error playing reminder audio {audio_file}: {e}")
+
+
+EMOTION_COOLDOWN_SEC = 6
+_last_emote_t = 0.0
+
+def classify_intent(text: str) -> str:
+    t = (text or "").lower()
+    if re.search(r'\b(show\s+qr|show\s+q\s*r)\b', t): return "qr"
+    if re.search(r'\b(reminder|task|todo)\b', t):     return "task"
+    if re.search(r'^\s*(what\s+is\s+)?-?\d+(\.\d+)?\s*[+\-*/x/]\s*-?\d+(\.\d+)?', t) or CONT_RE.match(t): return "math"
+    if re.search(r'\b(play|send message|volume|brightness)\b', t): return "command"
+    return "chat"
+
+def should_emote(intent: str, explicit_mood: str|None) -> bool:
+    global _last_emote_t
+    now = time.time()
+    if now - _last_emote_t < EMOTION_COOLDOWN_SEC: return False
+    if intent in ("math","task","command","qr"):    return explicit_mood is not None
+    _last_emote_t = now
+    return True
+
+def safe_emotion(label: str|None, intent: str) -> str:
+    if not label: return "Normal"
+    if intent in ("math","task","command","qr") and label=="Love": return "Normal"
+    return label
+
+
+
+MATH_STATE = {"last_result": None, "last_expr": None}
+
+CONT_RE = re.compile(r'^\s*(multiply|times|x|divide|over|/|add|\+|plus|subtract|-|minus)\s+(it|by)?\s*(-?\d+(\.\d+)?)\s*$', re.IGNORECASE)
+
+def math_continue(text: str):
+    m = CONT_RE.match(text or "")
+    if not m or MATH_STATE["last_result"] is None: return None
+    op_word, _, num, _ = m.groups()
+    x = float(num); a = float(MATH_STATE["last_result"])
+    op = op_word.lower()
+    val = a*x if op in ("multiply","times","x") else a/x if op in ("divide","over","/") else a+x if op in ("add","+","plus") else a-x
+    MATH_STATE["last_result"] = val
+    return str(int(val)) if abs(val-int(val))<1e-9 else f"{val:.6g}"
 
 # ---------------------------
 # Trigger phrases
@@ -1004,6 +1049,43 @@ async def start_loop():
             vi = int(val);  return str(vi) if abs(val-vi) < 1e-9 else f"{val:.6g}"
         except: return None
 
+    # Math continuation (e.g., "multiply it by two")
+    MATH_STATE = {"last_result": None}
+    CONT_RE = re.compile(r'^\s*(multiply|times|x|divide|over|/|add|\+|plus|subtract|-|minus)\s+(it|by)?\s*(-?\d+(\.\d+)?)\s*$', re.IGNORECASE)
+    def math_continue(text: str):
+        m = CONT_RE.match(text or "")
+        if not m or MATH_STATE["last_result"] is None: return None
+        op_word, _, num, _ = m.groups()
+        x = float(num); a = float(MATH_STATE["last_result"])
+        op = op_word.lower()
+        try:
+            val = a*x if op in ("multiply","times","x") else a/x if op in ("divide","over","/") else a+x if op in ("add","+","plus") else a-x
+            MATH_STATE["last_result"] = val
+            return str(int(val)) if abs(val-int(val))<1e-9 else f"{val:.6g}"
+        except: return None
+
+    # Intent classification and emotion gating
+    EMOTION_COOLDOWN_SEC = 6
+    _last_emote_t = 0.0
+    def classify_intent(text: str) -> str:
+        t = (text or "").lower()
+        if re.search(r'\b(show\s+qr|show\s+q\s*r)\b', t): return "qr"
+        if re.search(r'\b(reminder|task|todo)\b', t):     return "task"
+        if re.search(r'^\s*(what\s+is\s+)?-?\d+(\.\d+)?\s*[+\-*/x/]\s*-?\d+(\.\d+)?', t) or CONT_RE.match(t): return "math"
+        if re.search(r'\b(play|send message|volume|brightness)\b', t): return "command"
+        return "chat"
+    def should_emote(intent: str, explicit_mood: str|None) -> bool:
+        nonlocal _last_emote_t
+        now = time.time()
+        if now - _last_emote_t < EMOTION_COOLDOWN_SEC: return False
+        if intent in ("math","task","command","qr"):    return explicit_mood is not None
+        _last_emote_t = now
+        return True
+    def safe_emotion(label: str|None, intent: str) -> str:
+        if not label: return "Normal"
+        if intent in ("math","task","command","qr") and label == "Love": return "Normal"
+        return label
+
     while True:
         # Reminders
         reminder_text = read_reminder_file()
@@ -1015,7 +1097,7 @@ async def start_loop():
 
         # Listen
         user_input = await asyncio.get_event_loop().run_in_executor(
-            None, lambda: listen(recognizer, mic, timeout=12, phrase_time_limit=8, retries=2)
+            None, lambda: listen(recognizer, mic, timeout=12, phrase_time_limit=10, retries=2)
         )
         if user_input is None:
             failed_attempts += 1
@@ -1038,25 +1120,32 @@ async def start_loop():
         # Math fast-path
         ans = quick_math_answer(user_input)
         if ans is not None:
+            MATH_STATE["last_result"] = float(ans) if re.match(r'^-?\d+(\.0+)?$', ans) else None
             await asyncio.gather(asyncio.to_thread(normal), speak_once(ans))
             LAST_TOPICS.append(f"math:{user_input.strip()[:30]}"); LAST_TOPICS = LAST_TOPICS[-5:]; save_memory()
             continue
 
+        # Math continuation
+        cont = math_continue(user_input)
+        if cont is not None:
+            await asyncio.gather(asyncio.to_thread(normal), speak_once(cont))
+            LAST_TOPICS.append(f"math-continue:{user_input.strip()[:30]}"); LAST_TOPICS = LAST_TOPICS[-5:]; save_memory()
+            continue
+
         # Update name/mood memory
         maybe = extract_name_from_text(user_input)
-        if maybe:
-            CURRENT_USER_NAME = maybe
+        if maybe: CURRENT_USER_NAME = maybe
         detected = extract_emotion_from_text(user_input)
+
+        intent = classify_intent(user_input)
+        if not should_emote(intent, detected): detected = None
+        emo_for_anim = safe_emotion(detected, intent)
         if detected:
             LAST_MOOD = detected
         save_memory()
 
-        # React eyes/hands silently (no early speech to avoid duplication)
-        if detected:
-            await asyncio.to_thread(react_detected_emotion_label, detected)
-
-        # LLM turn with silent context, strict format, sanitized output
-        silent_ctx = f"(user_name={CURRENT_USER_NAME or 'Yohan'}) (internal_mood={LAST_MOOD or 'None'}) (topics={';'.join(LAST_TOPICS[-3:])})"
+        # LLM concise turn with silent context
+        silent_ctx = f"(user_name={CURRENT_USER_NAME or 'Friend'}) (internal_mood={LAST_MOOD or 'None'}) (topics={';'.join(LAST_TOPICS[-3:])})"
         full_user_input = (
             f"{ROLE_PROMPT}\n{silent_ctx}\n{user_input}\n"
             "Respond empathetically; do not name emotions or describe actions. "
@@ -1073,17 +1162,20 @@ async def start_loop():
             )
             reply = (getattr(retry, "text", "") or "").strip()
             m = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
-        emotion, answer = (m.groups() if m else ("Normal", reply))
+        model_emotion, answer = (m.groups() if m else ("Normal", reply))
         answer = sanitize_llm_text(answer)
 
-        # Animate if not already, then speak once
-        if not detected:
-            await asyncio.to_thread(react_detected_emotion_label, emotion)
-        await speak_once(answer)
+        # Final emotion choice with gating
+        final_emotion = safe_emotion(detected or model_emotion, intent)
+
+        # React with voice at once: eyes/hands + TTS together
+        await asyncio.gather(
+            asyncio.to_thread(react_detected_emotion_label, final_emotion),
+            speak_once(answer)
+        )
 
         # Track topic for continuity
         LAST_TOPICS.append(user_input.strip()[:50]); LAST_TOPICS = LAST_TOPICS[-5:]; save_memory()
-
 
 
 # ---------------------------
@@ -1196,10 +1288,12 @@ async def monitor_new():
             CURRENT_USER_NAME = maybe
         save_memory()
 
-        # Greeting sequence: wave -> happy -> hi <name>
-        await asyncio.to_thread(say_hi)
-        await asyncio.to_thread(happy)
-        await speak_once(f"Hi {CURRENT_USER_NAME or 'Yohan'}.")
+        # Greeting sequence: wave + happy + voice together
+        await asyncio.gather(
+            asyncio.to_thread(say_hi),
+            asyncio.to_thread(happy),
+            speak_once(f"Hi {CURRENT_USER_NAME or 'Yohan'}, I'm pebo, your buddy.")
+        )
 
         # Enter conversation loop
         await start_loop()
