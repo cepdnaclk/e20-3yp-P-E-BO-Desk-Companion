@@ -8,7 +8,7 @@ Integrated with standalone functions for arm and eye movements.
 Includes song playback functionality triggered by 'play song' commands.
 Updated to:
 - Never speak emotion labels aloud; react via eyes/arms instead.
-- Cap spoken replies to ~40 tokens and redact emotion/forbidden phrases.
+- Cap spoken replies to ~25 tokens and redact emotion/forbidden phrases.
 - Maintain implicit empathetic persona in all replies.
 """
 
@@ -123,7 +123,7 @@ JSON_CONFIG_PATH = "/home/pi/pebo_config.json"
 # Persona / TTS safety
 # ---------------------------
 ASSISTANT_NAME = "pebo"
-MAX_SPOKEN_TOKENS = 40
+MAX_SPOKEN_TOKENS = 25
 
 FORBIDDEN_PHRASES = [
     "emotional companion", "therapist", "psychologist"
@@ -136,7 +136,7 @@ EMOTION_TERMS = [
 
 ROLE_PROMPT = (
   "Act as 'pebo', empathetic, concise, a bit cute. Do not describe gestures or stage directions. "
-  "Never name detected emotions aloud. Keep replies ~40 tokens, supportive and Yohanly."
+  "Never name detected emotions aloud. Keep replies ~25 tokens, supportive and Yohanly."
 )
 STAGE_RE = re.compile(r'\s*\(*\b(eyes?|hands?|head|nods?|blinks?|gestures?|sighs?|smiles?)\b.*?\)*[.?!]?', re.IGNORECASE)
 def sanitize_llm_text(t: str) -> str:
@@ -837,10 +837,10 @@ async def start_assistant_from_text(prompt_text):
     conversation_history.append({"role": "user", "parts": [prompt_text]})
 
     try:
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 40})
+        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 25})
     except gcore_exceptions.NotFound as e:
         print(f"Model not found: {e}. Check for deprecation and update model name.")
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 40})
+        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 25})
 
     reply = (getattr(response, "text", "") or "").strip()
     emotion = "Normal"
