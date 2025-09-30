@@ -113,7 +113,7 @@ except Exception as e:
     print(f"[audio] pygame init failed, running degraded: {e}")
 
 # Gemini
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "").strip()
+GOOGLE_API_KEY = "AIzaSyBKg8IdfjkCDd4pr_c2lw9wp4S2of_kQo4"
 if not GOOGLE_API_KEY:
     logger.warning("GOOGLE_API_KEY not set; configure environment for Gemini access")
 genai.configure(api_key=GOOGLE_API_KEY or "DUMMY")
@@ -126,7 +126,7 @@ except Exception as e:
 # ---------------------------
 # Persona / safety / parsing
 # ---------------------------
-MAX_SPOKEN_TOKENS = 25
+MAX_SPOKEN_TOKENS = 30
 FORBIDDEN_PHRASES = [
     "emotional companion", "therapist", "psychologist",
 ]
@@ -744,6 +744,33 @@ def react_detected_emotion_label(label: Optional[str]):
         func()
     except Exception as e:
         print(f"[emote] error running {key}: {e}")
+
+
+# ---------------------------
+# Triggers / phrases
+# ---------------------------
+similar_sounds = [
+    "pebo","vivo","tivo","bibo","pepo","pipo","bebo","tibo","fibo","mibo",
+    "sibo","nibo","vevo","rivo","zivo","pavo","kibo","dibo","lipo","gibo",
+    "zepo","ripo","jibo","wipo","hipo","qivo","xivo","yibo","civo","kivo",
+    "nivo","livo","sivo","cepo","veto","felo","melo","nero","selo","telo",
+    "dedo","vepo","bepo","tepo","ribo","fivo","gepo","pobo","pibo","google",
+    "tune","tv","pillow","people","keyboard","pihu","be bo","de do","video",
+    "pi lo","pilo",
+]
+exit_phrases = ["exit", "shutup", "stop", "shut up"]
+exit_pattern = r'\b(goodbye|bye)\s+(' + '|'.join(similar_sounds) + r')\b'
+goodbye_messages = [
+    "Bye-bye for now! Just whisper my name if needed!",
+    "Toodles! I'm just a call away!",
+    "Catch you later! I'm only a 'hey PEBO' away!",
+    "See ya! I'll be right here if needed!",
+    "Bye for now! Ping me anytime!",
+    "Going quiet now! Say my name and I'll pop back!",
+    "Snuggling into sleep mode... call me if you want to play!",
+    "Goodbye for now! Call on me anytime, I'm always listening.",
+    "Logging off! Give me a shout and I'll be right there!",
+]
 
 # ---------------------------
 # Intent and math helpers
