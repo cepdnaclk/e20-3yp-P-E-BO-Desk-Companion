@@ -113,7 +113,7 @@ except Exception as e:
     print(f"[audio] pygame init failed, running degraded: {e}")
 
 # Gemini
-GOOGLE_API_KEY = "AIzaSyBKg8IdfjkCDd4pr_c2lw9wp4S2of_kQo4"
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "").strip()
 if not GOOGLE_API_KEY:
     logger.warning("GOOGLE_API_KEY not set; configure environment for Gemini access")
 genai.configure(api_key=GOOGLE_API_KEY or "DUMMY")
@@ -126,7 +126,7 @@ except Exception as e:
 # ---------------------------
 # Persona / safety / parsing
 # ---------------------------
-MAX_SPOKEN_TOKENS = 30
+MAX_SPOKEN_TOKENS = 25
 FORBIDDEN_PHRASES = [
     "emotional companion", "therapist", "psychologist",
 ]
@@ -134,26 +134,15 @@ EMOTION_TERMS = [
     "happy", "sad", "angry", "love", "normal", "fear", "confused",
     "emotion", "mood", "feeling", "feelings", "you look", "you sound",
 ]
-
-emotion_methods = {
-    "Happy": happy,
-    "Sad": sad,
-    "Angry": angry,
-    "Normal": normal,
-    "Love": love
-}
-
-
-
 EMOTION_COOLDOWN_SEC = 10
 _last_emote_t = 0.0
 
 ROLE_PROMPT_NEUTRAL = (
-    "Act as 'pebo'—concise and neutral; avoid stage directions; "
+    "Act as 'pebo'â€”concise and neutral; avoid stage directions; "
     "do not use emotional language; answer directly in <=25 tokens."
 )
 ROLE_PROMPT_EMPATH = (
-    "Act as 'pebo'—briefly supportive; avoid stage directions; "
+    "Act as 'pebo'â€”briefly supportive; avoid stage directions; "
     "never name emotions; reply in <=25 tokens with gentle encouragement."
 )
 JSON_INSTRUCTION = (
@@ -161,25 +150,6 @@ JSON_INSTRUCTION = (
     "No extra text."
 )
 STAGE_RE = re.compile(r"\s*\(*\b(eyes?|hands?|head|nods?|blinks?|gestures?|sighs?|smiles?)\b.*?\)*[.?!]?", re.IGNORECASE)
-
-
-
-conversation_history = deque(maxlen=20)
-
-def clear_conversation_history():
-    """Clear the conversation history deque."""
-    conversation_history.clear()
-
-def add_to_conversation(role: str, parts: list):
-    """Add a new exchange to the conversation history."""
-    conversation_history.append({
-        "role": role,
-        "parts": parts
-    })
-
-def get_conversation():
-    """Retrieve the current conversation history."""
-    return list(conversation_history)
 
 def sanitize_llm_text(t: str) -> str:
     t = STAGE_RE.sub("", t or "").strip()
@@ -203,13 +173,13 @@ def _redact_emotion_mentions(text: str) -> str:
             continue
         kept.append(s)
     cleaned = " ".join(kept).strip()
-    return cleaned if cleaned else "Hi, I'm Your PEBO."
+    return cleaned if cleaned else "Okay."
 
 def _trim_to_tokens(text: str, max_tokens: int = MAX_SPOKEN_TOKENS) -> str:
     words = re.findall(r"\S+", text or "")
     if len(words) <= max_tokens:
         return (text or "").strip()
-    return " ".join(words[:max_tokens]).rstrip(",.;:") + "…"
+    return " ".join(words[:max_tokens]).rstrip(",.;:") + "â€¦"
 
 def prepare_spoken_text(text: str) -> str:
     text = _remove_forbidden_phrases(text)
@@ -235,7 +205,7 @@ async def speak_text(text: str):
         print(f"[speak] (no audio) {safe_text}")
         return
 
-    # pad ultra‑short content so Edge returns audio
+    # pad ultraâ€‘short content so Edge returns audio
     if len(re.findall(r"\w", safe_text)) < 2:
         safe_text = f"The answer is {safe_text}."
 
@@ -324,7 +294,7 @@ def listen(
         try:
             with mic as source:
                 recognizer.adjust_for_ambient_noise(source, duration=calibrate_duration)
-                print("🎤 Listening… (attempt", attempt + 1, ")")
+                print("ðŸŽ¤ Listeningâ€¦ (attempt", attempt + 1, ")")
                 GPIO.output(LED_PIN, GPIO.HIGH)
                 audio = recognizer.listen(source, timeout=timeout, phrase_time_limit=phrase_time_limit)
                 GPIO.output(LED_PIN, GPIO.LOW)
@@ -333,33 +303,33 @@ def listen(
                 text = recognizer.recognize_google(audio, language=language)
                 text = (text or "").strip().lower()
                 if text:
-                    print(f"🗣️ You said: {text}")
+                    print(f"ðŸ—£ï¸ You said: {text}")
                     GPIO.cleanup()
                     return text
             except sr.UnknownValueError:
-                print("🤔 Sorry—couldn’t understand that.")
+                print("ðŸ¤” Sorryâ€”couldnâ€™t understand that.")
             except sr.RequestError as e:
-                print(f"⚠️ Google speech service error ({e}). Falling back to offline engine…")
+                print(f"âš ï¸ Google speech service error ({e}). Falling back to offline engineâ€¦")
                 try:
                     text = recognizer.recognize_sphinx(audio, language=language)
                     text = (text or "").strip().lower()
                     if text:
-                        print(f"🗣️ (Offline) You said: {text}")
+                        print(f"ðŸ—£ï¸ (Offline) You said: {text}")
                         GPIO.cleanup()
                         return text
                 except Exception as sphinx_err:
-                    print(f"❌ Offline engine failed: {sphinx_err}")
+                    print(f"âŒ Offline engine failed: {sphinx_err}")
         except sr.WaitTimeoutError:
-            print("⏳ Timed out waiting for speech.")
+            print("â³ Timed out waiting for speech.")
             GPIO.output(LED_PIN, GPIO.LOW)
         except Exception as mic_err:
-            print(f"🎤 Mic/Audio error: {mic_err}")
+            print(f"ðŸŽ¤ Mic/Audio error: {mic_err}")
             GPIO.output(LED_PIN, GPIO.LOW)
 
         if attempt < retries:
             time.sleep(0.5)
 
-    print("😕 No intelligible speech captured.")
+    print("ðŸ˜• No intelligible speech captured.")
     GPIO.output(LED_PIN, GPIO.LOW)
     GPIO.cleanup()
     return None
@@ -368,7 +338,7 @@ def listen(
 whisper_model = whisper.load_model("base")
 
 def listen_whisper(duration=1, sample_rate=16000) -> Optional[str]:
-    print("🎤 Listening with Whisper…")
+    print("ðŸŽ¤ Listening with Whisperâ€¦")
     audio_path = None
     try:
         recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype="int16")
@@ -379,13 +349,13 @@ def listen_whisper(duration=1, sample_rate=16000) -> Optional[str]:
         result = whisper_model.transcribe(audio_path)
         text = (result.get("text", "") or "").strip().lower()
         if text:
-            print(f"🗣️ You said (Whisper): {text}")
+            print(f"ðŸ—£ï¸ You said (Whisper): {text}")
             return text
         else:
-            print("🤔 No intelligible speech detected.")
+            print("ðŸ¤” No intelligible speech detected.")
             return None
     except Exception as e:
-        print(f"❌ Whisper error: {e}")
+        print(f"âŒ Whisper error: {e}")
         return None
     finally:
         try:
@@ -475,7 +445,7 @@ def qr(device_id):
 
 def cleanup():
     global i2c, eyes, current_eye_thread, stop_event
-    print("🖥️ Cleaning up resources...")
+    print("ðŸ–¥ï¸ Cleaning up resources...")
     try:
         if stop_event:
             stop_event.set()
@@ -488,15 +458,15 @@ def cleanup():
         reset_to_neutral()
         eyes.display_left.fill(0); eyes.display_left.show()
         eyes.display_right.fill(0); eyes.display_right.show()
-        print("🖥️ Displays cleared")
+        print("ðŸ–¥ï¸ Displays cleared")
     except Exception as e:
-        print(f"🖥️ Error clearing displays: {e}")
+        print(f"ðŸ–¥ï¸ Error clearing displays: {e}")
     try:
         i2c.deinit()
-        print("🖥️ I2C bus deinitialized")
+        print("ðŸ–¥ï¸ I2C bus deinitialized")
     except Exception as e:
-        print(f"🖥️ Error deinitializing I2C bus: {e}")
-    print("🖥️ Cleanup complete")
+        print(f"ðŸ–¥ï¸ Error deinitializing I2C bus: {e}")
+    print("ðŸ–¥ï¸ Cleanup complete")
 
 # ---------------------------
 # Memory / name extraction
@@ -550,20 +520,20 @@ def read_recognition_result(file_path=RECOG_FILE):
             if name and emotion:
                 return name, emotion
             else:
-                print(f"⚠️ Missing Name or Emotion in {file_path}. Using defaults.")
+                print(f"âš ï¸ Missing Name or Emotion in {file_path}. Using defaults.")
                 return None, None
         except FileNotFoundError:
-            print(f"⚠️ File {file_path} not found. Using defaults.")
+            print(f"âš ï¸ File {file_path} not found. Using defaults.")
             return None, None
         except IOError as e:
             if e.errno in (errno.EACCES, errno.EBUSY) and attempt < max_read_retries - 1:
                 print(f"File busy, retrying in {delay}s ({attempt + 1}/{max_read_retries})")
                 time.sleep(delay)
             else:
-                print(f"⚠️ Error reading {file_path} after {max_read_retries} attempts: {e}. Using defaults.")
+                print(f"âš ï¸ Error reading {file_path} after {max_read_retries} attempts: {e}. Using defaults.")
                 return None, None
         except Exception as e:
-            print(f"⚠️ Error reading {file_path}: {e}. Using defaults.")
+            print(f"âš ï¸ Error reading {file_path}: {e}. Using defaults.")
             return None, None
 
 def read_reminder_file(file_path=REMINDER_FILE):
@@ -575,17 +545,17 @@ def read_reminder_file(file_path=REMINDER_FILE):
                 content = file.read().strip()
                 return content if content else None
         except FileNotFoundError:
-            print(f"⚠️ Reminder file {file_path} not found.")
+            print(f"âš ï¸ Reminder file {file_path} not found.")
             return None
         except IOError as e:
             if e.errno in (errno.EACCES, errno.EBUSY) and attempt < max_read_retries - 1:
                 print(f"Reminder file busy, retrying in {delay}s ({attempt + 1}/{max_read_retries})")
                 time.sleep(delay)
             else:
-                print(f"⚠️ Error reading {file_path} after {max_read_retries} attempts: {e}.")
+                print(f"âš ï¸ Error reading {file_path} after {max_read_retries} attempts: {e}.")
                 return None
         except Exception as e:
-            print(f"⚠️ Error reading {file_path}: {e}.")
+            print(f"âš ï¸ Error reading {file_path}: {e}.")
             return None
 
 def clear_reminder_file(file_path=REMINDER_FILE):
@@ -595,17 +565,17 @@ def clear_reminder_file(file_path=REMINDER_FILE):
         try:
             with open(file_path, "w") as file:
                 file.write("")
-            print(f"📝 Cleared reminder file {file_path}")
+            print(f"ðŸ“ Cleared reminder file {file_path}")
             return True
         except IOError as e:
             if e.errno in (errno.EACCES, errno.EBUSY) and attempt < max_write_retries - 1:
                 print(f"Reminder file busy, retrying clear in {delay}s ({attempt + 1}/{max_write_retries})")
                 time.sleep(delay)
             else:
-                print(f"⚠️ Error clearing {file_path} after {max_write_retries} attempts: {e}.")
+                print(f"âš ï¸ Error clearing {file_path} after {max_write_retries} attempts: {e}.")
                 return False
         except Exception as e:
-            print(f"⚠️ Error clearing {file_path}: {e}.")
+            print(f"âš ï¸ Error clearing {file_path}: {e}.")
             return False
 
 def play_reminder_audio(audio_file=REMINDER_WAV):
@@ -775,33 +745,6 @@ def react_detected_emotion_label(label: Optional[str]):
     except Exception as e:
         print(f"[emote] error running {key}: {e}")
 
-
-# ---------------------------
-# Triggers / phrases
-# ---------------------------
-similar_sounds = [
-    "pebo","vivo","tivo","bibo","pepo","pipo","bebo","tibo","fibo","mibo",
-    "sibo","nibo","vevo","rivo","zivo","pavo","kibo","dibo","lipo","gibo",
-    "zepo","ripo","jibo","wipo","hipo","qivo","xivo","yibo","civo","kivo",
-    "nivo","livo","sivo","cepo","veto","felo","melo","nero","selo","telo",
-    "dedo","vepo","bepo","tepo","ribo","fivo","gepo","pobo","pibo","google",
-    "tune","tv","pillow","people","keyboard","pihu","be bo","de do","video",
-    "pi lo","pilo",
-]
-exit_phrases = ["exit", "shutup", "stop", "shut up"]
-exit_pattern = r'\b(goodbye|bye)\s+(' + '|'.join(similar_sounds) + r')\b'
-goodbye_messages = [
-    "Bye-bye for now! Just whisper my name if needed!",
-    "Toodles! I'm just a call away!",
-    "Catch you later! I'm only a 'hey PEBO' away!",
-    "See ya! I'll be right here if needed!",
-    "Bye for now! Ping me anytime!",
-    "Going quiet now! Say my name and I'll pop back!",
-    "Snuggling into sleep mode... call me if you want to play!",
-    "Goodbye for now! Call on me anytime, I'm always listening.",
-    "Logging off! Give me a shout and I'll be right there!",
-]
-
 # ---------------------------
 # Intent and math helpers
 # ---------------------------
@@ -815,7 +758,7 @@ def classify_intent(text: str) -> str:
         return "qr"
     if re.search(r"reminder|task|todo", t):
         return "task"
-    if re.search(r"what\s+is\s+.*?(\+|\-|x|×|/)|\d+\s*(\+|\-|x|×|/)\s*\d+", t) or CONT_RE.match(t):
+    if re.search(r"what\s+is\s+.*?(\+|\-|x|Ã—|/)|\d+\s*(\+|\-|x|Ã—|/)\s*\d+", t) or CONT_RE.match(t):
         return "math"
     if re.search(r"\b(play|send message|volume|brightness)\b", t):
         return "command"
@@ -1019,120 +962,7 @@ async def handle_qr_intent():
         asyncio.to_thread(run_emotion, None, lambda se: eyes.QR(device_id, stop_event=se), 15)
     )
     await asyncio.to_thread(normal)
-async def start_assistant_from_text(prompt_text):
-    """Starts Gemini assistant with initial prompt and controls robot emotions."""
-    print(f"\U0001F4AC Initial Prompt: {prompt_text}")
-    conversation_history.clear()
 
-    full_prompt = (
-        f"{prompt_text}\n"
-        "Above is my message. What is your emotion for that message "
-        "(Happy, Sad, Angry, Normal, or Love)? If my message includes words "
-        "like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', "
-        "'adorable', 'sweet', or 'charming', or if the overall sentiment feels "
-        "loving or cute, set your emotion to Love. Otherwise, determine the "
-        "appropriate emotion based on the message's context. Provide your answer "
-        "in the format [emotion, reply], where 'emotion' is one of the specified "
-        "emotions and 'reply' is your response to my message."
-    )
-    conversation_history.append({"role": "user", "parts": [full_prompt]})
-
-    try:
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
-    except google.api_core.exceptions.NotFound as e:
-        print(f"Model not found: {e}. Check for deprecation and update model name.")
-        return
-
-    reply = response.text.strip()
-
-    emotion = "Normal"
-    answer = reply
-    try:
-        match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
-        if match:
-            emotion, answer = match.groups()
-            print(f"{emotion}: {answer}")
-        else:
-            print(f"Gemini: {reply} (No emotion detected, assuming Normal)")
-    except Exception as e:
-        print(f"Error parsing Gemini response: {e}")
-
-    emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
-    emotion_task = asyncio.to_thread(emotion_method)
-    voice_task = speak_text(answer)
-    await asyncio.gather(emotion_task, voice_task)
-
-    conversation_history.append({"role": "model", "parts": [answer]})
-
-    # Initialize Firebase
-    try:
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
-            firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
-            logger.info("Firebase initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize Firebase: {str(e)}")
-        await speak_text("Sorry, I couldn't connect to the device database.")
-        await asyncio.to_thread(normal)
-        return
-
-    failed_attempts = 0
-    max_attempts = 1
-    positive_responses = ["yes", "yeah", "yep", "correct", "right", "ok", "okay"]
-    negative_responses = ["no", "nope", "not", "wrong", "incorrect"]
-
-    while failed_attempts < max_attempts:
-        reminder_text = read_reminder_file()
-        if reminder_text:
-            print(f"📝 Found reminder: {reminder_text}")
-            play_reminder_audio()
-            await speak_text(reminder_text)
-            play_reminder_audio()
-            await speak_text(reminder_text)
-            if not clear_reminder_file():
-                logger.error("Failed to clear reminder file, proceeding anyway")
-            failed_attempts = 0  # Reset after processing reminder
-        else:
-            print("📝 Reminder file is empty or not found, proceeding with normal loop")
-
-        user_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
-
-        if user_input is None:
-            failed_attempts += 1
-            print(f"\U0001F615 Failed attempt {failed_attempts}/{max_attempts}.")
-            if failed_attempts >= max_attempts:
-                print(f"\U0001F615 No speech detected after {max_attempts} attempts. Exiting assistant.")
-                message = random.choice(goodbye_messages)
-                await speak_text(message)
-                normal()
-                break
-
-        # GPIO setup reinitialization
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(TOUCH_PIN, GPIO.IN)
-        failed_attempts = 0  # Reset on valid input
-
-        # Handle task reminders, music playing, QR code commands, interdevice communication, and exit commands here
-        # (implementation continues as in your full function)
-
-        # Example for task reminder check:
-        if user_input.lower() in ["what are reminders", "list reminders", "show reminders"]:
-            # (Fetch and speak tasks)
-
-            continue
-
-        # Example for playing song, showing QR, inter-device communication, etc.
-
-    # Clean up Firebase app and assistant
-    try:
-        firebase_admin.delete_app(firebase_admin.get_app())
-        logger.info("Firebase app cleaned up")
-    except Exception as e:
-        logger.error(f"Error cleaning up Firebase app: {str(e)}")
-
-    cleanup()
-    print("Assistant shutdown complete")
-    await asyncio.sleep(1)
 async def handle_interdevice_communication():
     try:
         with open(JSON_CONFIG_PATH, 'r') as config_file:
@@ -1333,7 +1163,7 @@ async def start_loop():
         emo_from_model, answer = await llm_emotion_and_answer(user_input, neutral=neutral_mode)
         answer = sanitize_llm_text(answer)
 
-        # Final animation uses explicit user sentiment, not model’s
+        # Final animation uses explicit user sentiment, not modelâ€™s
         final_emotion = safe_emotion(detected, intent) if allow_anim else "Normal"
 
         if final_emotion == "Normal":
@@ -1355,7 +1185,7 @@ async def monitor_for_trigger(name, emotion):
     initialize_hardware()
     normal()
     while True:
-        print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
+        print("ðŸŽ§ Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
         text = listen(recognizer, mic)
         if not text:
             continue
@@ -1407,7 +1237,7 @@ async def monitor_start(name, emotion):
     initialize_hardware()
     normal()
     try:
-        print("🎧 Waiting for initial speech input...")
+        print("ðŸŽ§ Waiting for initial speech input...")
 
         SESSION_ACTIVE = True
         if name and str(name).lower() != "none":
@@ -1425,77 +1255,64 @@ async def monitor_start(name, emotion):
     finally:
         SESSION_ACTIVE = False
         normal()
-        print("🖥️ Cleaning up in monitor_start...")
+        print("ðŸ–¥ï¸ Cleaning up in monitor_start...")
 
 
 # Preferred main entry; greet-once flow with optional camera recognition
 async def monitor_new():
+    global SESSION_ACTIVE, CURRENT_USER_NAME
+
+    load_memory()
     initialize_hardware()
     normal()
-    print("PEBO monitoring started.")
-    last_trigger_time = datetime.now()
 
     while True:
-        # Optional: add a session timeout or inactivity check if needed
-        print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
+        print("ðŸŽ§ Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
+        # Optional cam result (ignored if skipping checks)
+        cam_name, cam_emotion = (None, None) if SKIP_USER_CHECK else read_recognition_result()
 
-        name, emotion = read_recognition_result()
+        text = listen(recognizer, mic)
+        if not text:
+            continue
 
-        # Handle emotional states
-        if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
-            hi_task = asyncio.to_thread(hi)
-            voice_task = speak_text("Hello! I'm your PEBO.")
-            await asyncio.gather(hi_task, voice_task)
-            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
+        # Allow QR during idle
+        if re.search(r"\bshow\s+(?:me\s+)?q\s*r\b|\bshow\s+q\b", text, re.IGNORECASE):
+            await handle_qr_intent()
+            continue
 
-        else:
-            text = listen(recognizer, mic)
-            if text:
-                trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-                qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'  # Matches "show qr"
+        # Ignore new triggers while active
+        if SESSION_ACTIVE:
+            continue
 
-                if re.search(trigger_pattern, text, re.IGNORECASE):
-                    print("✔ Trigger phrase detected! Starting assistant...")
-                    print(f"Using: Name={name}, Emotion={emotion}")
-                    if name and name.lower() != "none":
-                        hi_task = asyncio.to_thread(hi)
-                        voice_task = speak_text("Hello! I'm your PEBO.")
-                        await asyncio.gather(hi_task, voice_task)
-                        if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
-                            await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
-                        else:
-                            await start_assistant_from_text(f"I am {name}. I need your assist.")
-                    else:
-                        await speak_text("I can't identify you as my user")
+        # Wake phrase required
+        trig = r"\b((?:hi|hey|hello)\s+)?(" + "|".join(re.escape(s) for s in similar_sounds) + r")\b"
+        if not re.search(trig, text, re.IGNORECASE):
+            continue
 
-                # Check for QR code display
-                if re.search(qr_pattern, text, re.IGNORECASE):
-                    try:
-                        with open("/home/pi/pebo_config.json", 'r') as f:
-                            config = json.load(f)
-                            device_id = config.get("deviceId")
-                            if not str(device_id):
-                                await speak_text("Error: Invalid device ID in configuration")
-                                continue
-                    except Exception as e:
-                        await speak_text(f"Error reading device ID: {str(e)}")
-                        continue
+        SESSION_ACTIVE = True
+        try:
+            # Resolve/remember name (camera or speech)
+            if cam_name and str(cam_name).lower() != "none":
+                CURRENT_USER_NAME = cam_name
+            maybe = extract_name_from_text(text)
+            if maybe:
+                CURRENT_USER_NAME = maybe
+            save_memory()
 
-                    await asyncio.gather(
-                        speak_text("Showing QR now, scan this using the user PEBO mobile app"),
-                        asyncio.to_thread(run_emotion, None, lambda stop_event: eyes.QR(device_id, stop_event=stop_event), duration=15)
-                    )
-                    await asyncio.to_thread(normal)
-                    continue
-                else:
-                    # No command matched, continue to listen
-                    pass
-            else:
-                # No speech detected, continue listening
-                pass
+            # Greeting sequence: wave + happy + voice together
+            greeting = f"Hi {CURRENT_USER_NAME or 'Yohan'}, I'm Pebo, your buddy."
+            await asyncio.gather(
+                asyncio.to_thread(say_hi),
+                asyncio.to_thread(happy),
+                speak_once(greeting),
+            )
 
-        print("🧹 Cleaning up in monitor_new: Clearing displays and I2C bus...")
-        # Optional: add a sleep delay here if needed, e.g., await asyncio.sleep(1)
+            # Enter conversation loop
+            await start_loop()
+
+        finally:
+            SESSION_ACTIVE = False
+            normal()
 
 
 # ---------------------------
