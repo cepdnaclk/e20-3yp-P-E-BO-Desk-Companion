@@ -134,6 +134,17 @@ EMOTION_TERMS = [
     "happy", "sad", "angry", "love", "normal", "fear", "confused",
     "emotion", "mood", "feeling", "feelings", "you look", "you sound",
 ]
+
+emotion_methods = {
+    "Happy": happy,
+    "Sad": sad,
+    "Angry": angry,
+    "Normal": normal,
+    "Love": love
+}
+
+
+
 EMOTION_COOLDOWN_SEC = 10
 _last_emote_t = 0.0
 
