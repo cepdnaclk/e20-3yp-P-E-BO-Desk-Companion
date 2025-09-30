@@ -27,46 +27,68 @@ class RobotController:
         self.current_eye_thread = None
         self.stop_event = None
 
-    def run_emotion(self, arm_func, eye_func):
-        """Run arm movement and eye expression simultaneously, then return to normal mode"""
-        # Create a new stop event for this expression
-        self.stop_event = threading.Event()
-        
-        # Start eye expression in a separate thread
-        self.current_eye_thread = threading.Thread(target=eye_func, args=(self.stop_event,))
-        self.current_eye_thread.daemon = True  # Ensure thread exits when main program does
-        self.current_eye_thread.start()
-        
-        # Run arm movement in the main thread
-        arm_func()
-        
-        # Wait for 10 seconds total (including arm movement time)
-        time.sleep(1)
-        
-        # Stop the current eye expression
-        self.stop_event.set()
-        if self.current_eye_thread:
-            self.current_eye_thread.join(timeout=1.0)  # Wait for thread to terminate
-            self.current_eye_thread = None
-        self.stop_event = None
-        
-        # Return to normal mode
-        self.normal()
+    # Eye loop lifecycle
+    current_eye_thread: threading.Thread | None = None
+    stop_event: threading.Event | None = None
+
+    def _start_eye_loop(loop_fn):
+        global current_eye_thread, stop_event
+        _stop_eye_loop()
+        stop_event = threading.Event()
+        current_eye_thread = threading.Thread(target=loop_fn, args=(stop_event,))
+        current_eye_thread.daemon = True
+        current_eye_thread.start()
+
+    def _stop_eye_loop(timeout: float = 1.0):
+        global current_eye_thread, stop_event
+        if stop_event is not None:
+            stop_event.set()
+        if current_eye_thread is not None:
+            current_eye_thread.join(timeout=timeout)
+        current_eye_thread = None
+        stop_event = None
+
+    def run_emotion(arm_func=None, eye_func=None, duration: float = 1.0):
+        if eye_func is not None:
+            _start_eye_loop(eye_func)
+        if arm_func is not None:
+            try:
+                arm_func()
+            except Exception as e:
+                print(f"[arms] arm_func error: {e}")
+        time.sleep(duration)
+        _stop_eye_loop()
+        normal()
+
+    def normal():
+        _start_eye_loop(eyes.Default)
+
+    def cleanup():
+        global i2c, eyes
+        print("Cleaning up resources...")
+        _stop_eye_loop()
+        try:
+            resettoneutral()
+        except Exception:
+            pass
+        try:
+            eyes.displayleft.fill(0); eyes.displayleft.show()
+            eyes.displayright.fill(0); eyes.displayright.show()
+        except Exception as e:
+            print(f"[cleanup] display clear error: {e}")
+        try:
+            i2c.deinit()
+            print("I2C bus deinitialized, SCL and SDA cleared")
+        except Exception as e:
+            print(f"[cleanup] I2C deinit error: {e}")
+        print("Cleanup complete")
+
 
     def hi(self):
         print("Expressing Hi")
         self.run_emotion(say_hi, self.eyes.Happy)
 
-    def normal(self):
-        print("Expressing Normal")
-        # Run both arms and eyes for normal mode
-        self.stop_event = threading.Event()
-        self.current_eye_thread = threading.Thread(target=self.eyes.Default, args=(self.stop_event,))
-        self.current_eye_thread.daemon = True
-        self.current_eye_thread.start()
-        # Normal mode persists until next command, so don't stop the eye thread
-        # Clear stop event but keep thread running
-        self.stop_event = None
+
 
     def happy(self):
         print("Expressing Happy")
@@ -90,33 +112,7 @@ class RobotController:
         print(f"Expressing QR with device ID: {device_id}")
         self.run_emotion(None, self.eyes.QR(device_id))
         
-    def cleanup(self):
-        """Clean up resources, clear displays, and deinitialize I2C bus to clear SCL and SDA."""
-        print("🖥️ Cleaning up RobotController resources...")
-        # Stop any running eye thread
-        if self.stop_event:
-            self.stop_event.set()
-        if self.current_eye_thread:
-            self.current_eye_thread.join(timeout=1.0)
-            self.current_eye_thread = None
-        # Reset arms and clear displays
-        try:
-            reset_to_neutral()
-            self.eyes.display_left.fill(0)
-            self.eyes.display_left.show()
-            self.eyes.display_right.fill(0)
-            self.eyes.display_right.show()
-            print("🖥️ Displays cleared")
-        except Exception as e:
-            print(f"🖥️ Error clearing displays: {e}")
-        # Deinitialize I2C bus to clear SCL and SDA
-        try:
-            self.i2c.deinit()
-            print("🖥️ I2C bus deinitialized, SCL and SDA cleared")
-        except Exception as e:
-            print(f"🖥️ Error deinitializing I2C bus: {e}")
-        print("🖥️ RobotController cleanup complete")
-
+    
 def main():
     try:
         print("\n🤖 Integrated Robot Control System 🤖")

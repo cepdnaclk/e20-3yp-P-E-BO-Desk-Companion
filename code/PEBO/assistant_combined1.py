@@ -174,22 +174,6 @@ def extract_emotion_from_text(text: str) -> str | None:
             return label
     return None
 
-
-def react_detected_emotion_label(label: str):
-    label_up = (label or "").upper()
-    mapping = {
-        "HAPPY": happy,
-        "SAD": sad,
-        "ANGRY": angry,
-        "LOVE": love,
-        "NORMAL": normal,
-        "TIRED": lambda: run_emotion(express_tired, eyes.Tired),
-        "CONFUSED": normal,
-        "FEAR": sad,
-        "STRESSED": sad,
-        "EXCITED": happy,
-    }
-    (mapping.get(label_up, normal))()
 # ---------------------------
 # Eyes/Arms Helpers
 # ---------------------------
@@ -304,7 +288,14 @@ def cleanup():
 # ---------------------------
 # Audio / pygame
 # ---------------------------
-pygame.mixer.init()
+# Audio init guard
+HAS_AUDIO = True
+try:
+    pygame.mixer.init()
+except Exception as e:
+    HAS_AUDIO = False
+    print(f"[audio] pygame init failed, running degraded: {e}")
+
 
 def amplify_audio(input_file, output_file, gain_db=10):
     subprocess.run([
@@ -335,7 +326,7 @@ def _redact_emotion_mentions(text: str) -> str:
             continue
         kept.append(s)
     cleaned = " ".join(kept).strip()
-    return cleaned if cleaned else "Here for you."
+    return cleaned if cleaned else "I'm Here for you."
 
 def _trim_to_tokens(text: str, max_tokens: int = MAX_SPOKEN_TOKENS) -> str:
     words = re.findall(r"\S+", text)
@@ -350,6 +341,9 @@ def prepare_spoken_text(text: str) -> str:
     return text
 
 async def speak_text(text):
+    if not HAS_AUDIO:
+        print(f"[speak] (no audio) {prepare_spoken_text(text)}")
+        return
     """Speak using Edge TTS with emotion redaction and ~40-token cap."""
     # voice = "en-US-SoniaNeural"
     # voice = "en-US-AnaNeural"
@@ -644,59 +638,75 @@ def clear_reminder_file(file_path="/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk
             return False
 
 def play_reminder_audio(audio_file="/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminders/reminder.wav"):
-    """Play the reminder audio file twice."""
+    if not HAS_AUDIO:
+        print("[reminder] (no audio) chime skipped")
+        return
     try:
         pygame.mixer.music.load(audio_file)
         pygame.mixer.music.set_volume(1.0)
-        for _ in range(2):
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                time.sleep(0.25)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            time.sleep(0.25)
         pygame.mixer.music.unload()
-        print(f"🎵 Played reminder audio {audio_file} twice")
     except Exception as e:
-        print(f"❌ Error playing reminder audio {audio_file}: {e}")
+        print(f"Error playing reminder audio {audio_file}: {e}")
 
 
 EMOTION_COOLDOWN_SEC = 6
 _last_emote_t = 0.0
+MATH_STATE = {"last_result": None}
+CONT_RE = re.compile(r"(multiply|times|x|divide|over|add|\+|plus|subtract|-|minus)\s+(?:it\s+by\s+)?([\-]?\d+(?:\.\d+)?)", re.IGNORECASE)
 
 def classify_intent(text: str) -> str:
     t = (text or "").lower()
-    if re.search(r'\b(show\s+qr|show\s+q\s*r)\b', t): return "qr"
-    if re.search(r'\b(reminder|task|todo)\b', t):     return "task"
-    if re.search(r'^\s*(what\s+is\s+)?-?\d+(\.\d+)?\s*[+\-*/x/]\s*-?\d+(\.\d+)?', t) or CONT_RE.match(t): return "math"
-    if re.search(r'\b(play|send message|volume|brightness)\b', t): return "command"
+    if re.search(r"show\s+qr|show\s+q\s*r", t):
+        return "qr"
+    if re.search(r"reminder|task|todo", t):
+        return "task"
+    if re.search(r"what\s+is\s+.*?(\+|\-|x|×|/)|\d+\s*(\+|\-|x|×|/)\s*\d+", t) or CONT_RE.match(t):
+        return "math"
+    if re.search(r"play|send message|volume|brightness", t):
+        return "command"
     return "chat"
 
-def should_emote(intent: str, explicit_mood: str|None) -> bool:
+def should_emote(intent: str, explicit_mood: str | None) -> bool:
     global _last_emote_t
     now = time.time()
-    if now - _last_emote_t < EMOTION_COOLDOWN_SEC: return False
-    if intent in ("math","task","command","qr"):    return explicit_mood is not None
+    if now - _last_emote_t < EMOTION_COOLDOWN_SEC:
+        return False
+    if intent in {"math", "task", "command", "qr"}:
+        return explicit_mood is not None
     _last_emote_t = now
     return True
 
-def safe_emotion(label: str|None, intent: str) -> str:
-    if not label: return "Normal"
-    if intent in ("math","task","command","qr") and label=="Love": return "Normal"
+def safe_emotion(label: str | None, intent: str) -> str:
+    if not label:
+        return "Normal"
+    if intent in {"math", "task", "command", "qr"} and label == "Love":
+        return "Normal"
     return label
 
-
-
-MATH_STATE = {"last_result": None, "last_expr": None}
-
-CONT_RE = re.compile(r'^\s*(multiply|times|x|divide|over|/|add|\+|plus|subtract|-|minus)\s+(it|by)?\s*(-?\d+(\.\d+)?)\s*$', re.IGNORECASE)
-
-def math_continue(text: str):
+def math_continue(text: str) -> str | None:
     m = CONT_RE.match(text or "")
-    if not m or MATH_STATE["last_result"] is None: return None
-    op_word, _, num, _ = m.groups()
-    x = float(num); a = float(MATH_STATE["last_result"])
-    op = op_word.lower()
-    val = a*x if op in ("multiply","times","x") else a/x if op in ("divide","over","/") else a+x if op in ("add","+","plus") else a-x
+    if not m or MATH_STATE["last_result"] is None:
+        return None
+    op_word, num = m.groups()
+    a = float(MATH_STATE["last_result"])
+    x = float(num)
+    ow = op_word.lower()
+    if ow in {"multiply", "times", "x"}:
+        val = a * x
+    elif ow in {"divide", "over"}:
+        if abs(x) < 1e-12:
+            return "Infinity"
+        val = a / x
+    elif ow in {"add", "+", "plus"}:
+        val = a + x
+    else:
+        val = a - x
     MATH_STATE["last_result"] = val
-    return str(int(val)) if abs(val-int(val))<1e-9 else f"{val:.6g}"
+    iv = int(val)
+    return str(iv) if abs(val - iv) < 1e-9 else f"{val:.6g}"
 
 # ---------------------------
 # Trigger phrases
@@ -729,20 +739,30 @@ goodbye_messages = [
 # ---------------------------
 # Emotion reaction mapping
 # ---------------------------
-def react_detected_emotion_label(label: str):
-    label_up = (label or "").upper()
-    mapping = {
-        "HAPPY": happy,
-        "SAD": sad,
-        "ANGRY": angry,
-        "CONFUSED": normal,
-        "FEAR": sad,
-        "LOVE": love,
-        "NORMAL": normal,
-    }
-    func = mapping.get(label_up, normal)
-    func()
 
+# Unified emotion actions
+
+def normal():
+    reset_to_neutral()
+
+# Unified emotion actions
+EMO_ACTIONS = {
+    "HAPPY":    ("happy",  lambda: run_emotion(express_happy, eyes.Happy)),
+    "SAD":      ("sad",    lambda: run_emotion(express_sad,   eyes.Tired)),
+    "ANGRY":    ("angry",  lambda: run_emotion(express_angry, eyes.Angry)),
+    "LOVE":     ("love",   lambda: run_emotion(express_happy, eyes.Love)),
+    "NORMAL":   ("normal", lambda: normal()),
+    "TIRED":    ("tired",  lambda: run_emotion(express_tired, eyes.Tired)),
+    "CONFUSED": ("normal", lambda: normal()),
+    "FEAR":     ("sad",    lambda: run_emotion(express_sad,   eyes.Tired)),
+    "STRESSED": ("sad",    lambda: run_emotion(express_sad,   eyes.Tired)),
+    "EXCITED":  ("happy",  lambda: run_emotion(express_happy, eyes.Happy)),
+}
+
+def react_detected_emotion_label(label: str | None):
+    key = (label or "NORMAL").upper()
+    _, func = EMO_ACTIONS.get(key, EMO_ACTIONS["NORMAL"])
+    return func()
 # ---------------------------
 # Gemini
 # ---------------------------
@@ -804,7 +824,7 @@ async def start_assistant_from_text(prompt_text):
     emotion_task = asyncio.to_thread(emotion_method)
     # Before speaking the LLM answer:
     answer = sanitize_llm_text(answer)
-    await speak_text(answer)
+
     voice_task = speak_text(answer)
     await asyncio.gather(emotion_task, voice_task)
     conversation_history.append({"role": "model", "parts": [prepare_spoken_text(answer)]})
@@ -868,7 +888,8 @@ async def handle_song_intent(user_input: str):
                     break
             confirmation = confirmation.lower()
             if any(pos in confirmation for pos in ["yes", "yeah", "yep", "correct", "right", "ok", "okay"]):
-                await play_music(song_input, None, TOUCH_PIN)
+            # when confirmation is positive and a song should play:
+                await asyncio.to_thread(play_music, song_input, None, TOUCH_PIN)
                 await asyncio.to_thread(normal)
                 break
             elif any(neg in confirmation for neg in ["no", "nope", "not", "wrong", "incorrect"]):
@@ -1002,16 +1023,16 @@ async def handle_interdevice_communication():
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(TOUCH_PIN, GPIO.IN)
 
-            audio_thread = threading.Thread(
+            audiothread = threading.Thread(
                 target=start_audio_node,
-                args=(8888, selected_device['ip_address'], 8889, TOUCH_PIN)
+                args=(8888, selected_device["ip_address"], 8889, TOUCH_PIN),
+                daemon=True
             )
-            audio_thread.daemon = True
-            audio_thread.start()
-            audio_thread.join()
-
+            audiothread.start()
+            await asyncio.to_thread(audiothread.join)
             await speak_text("Communication stopped. Anything else?")
             await asyncio.to_thread(normal)
+
         else:
             await speak_text("Sorry, I couldn't find a device in that location. Let's try something else.")
             await asyncio.to_thread(normal)
@@ -1053,51 +1074,17 @@ async def start_loop():
             vi = int(val);  return str(vi) if abs(val-vi) < 1e-9 else f"{val:.6g}"
         except: return None
 
-    # Math continuation (e.g., "multiply it by two")
-    MATH_STATE = {"last_result": None}
-    CONT_RE = re.compile(r'^\s*(multiply|times|x|divide|over|/|add|\+|plus|subtract|-|minus)\s+(it|by)?\s*(-?\d+(\.\d+)?)\s*$', re.IGNORECASE)
-    def math_continue(text: str):
-        m = CONT_RE.match(text or "")
-        if not m or MATH_STATE["last_result"] is None: return None
-        op_word, _, num, _ = m.groups()
-        x = float(num); a = float(MATH_STATE["last_result"])
-        op = op_word.lower()
-        try:
-            val = a*x if op in ("multiply","times","x") else a/x if op in ("divide","over","/") else a+x if op in ("add","+","plus") else a-x
-            MATH_STATE["last_result"] = val
-            return str(int(val)) if abs(val-int(val))<1e-9 else f"{val:.6g}"
-        except: return None
-
-    # Intent classification and emotion gating
-    EMOTION_COOLDOWN_SEC = 6
-    _last_emote_t = 0.0
-    def classify_intent(text: str) -> str:
-        t = (text or "").lower()
-        if re.search(r'\b(show\s+qr|show\s+q\s*r)\b', t): return "qr"
-        if re.search(r'\b(reminder|task|todo)\b', t):     return "task"
-        if re.search(r'^\s*(what\s+is\s+)?-?\d+(\.\d+)?\s*[+\-*/x/]\s*-?\d+(\.\d+)?', t) or CONT_RE.match(t): return "math"
-        if re.search(r'\b(play|send message|volume|brightness)\b', t): return "command"
-        return "chat"
-    def should_emote(intent: str, explicit_mood: str|None) -> bool:
-        nonlocal _last_emote_t
-        now = time.time()
-        if now - _last_emote_t < EMOTION_COOLDOWN_SEC: return False
-        if intent in ("math","task","command","qr"):    return explicit_mood is not None
-        _last_emote_t = now
-        return True
-    def safe_emotion(label: str|None, intent: str) -> str:
-        if not label: return "Normal"
-        if intent in ("math","task","command","qr") and label == "Love": return "Normal"
-        return label
-
     while True:
         # Reminders
         reminder_text = read_reminder_file()
         if reminder_text:
-            play_reminder_audio(); await speak_once(reminder_text)
-            play_reminder_audio(); await speak_once(reminder_text)
-            clear_reminder_file()
+            try:
+                play_reminder_audio()
+                await speak_once(reminder_text)
+            finally:
+                clear_reminder_file()
             failed_attempts = 0
+
 
         # Listen
         user_input = await asyncio.get_event_loop().run_in_executor(
