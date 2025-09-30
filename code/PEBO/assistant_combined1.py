@@ -344,28 +344,65 @@ async def speak_text(text):
     if not HAS_AUDIO:
         print(f"[speak] (no audio) {prepare_spoken_text(text)}")
         return
-    """Speak using Edge TTS with emotion redaction and ~40-token cap."""
-    # voice = "en-US-SoniaNeural"
-    # voice = "en-US-AnaNeural"
-    voice = "en-US-JennyNeural"
+
+    # Prepare and pad ultra‑short utterances so Edge TTS always returns audio
+    safe_text = prepare_spoken_text(text)
+    # If there are fewer than 2 word characters (e.g., "4"), pad to a sentence
+    if len(re.findall(r"\w", safe_text)) < 2:
+        safe_text = f"The answer is {safe_text}."
+
+    voices = ["en-US-JennyNeural", "en-US-GuyNeural", "en-GB-LibbyNeural"]
     filename = "response.mp3"
     boosted_file = "boosted_response.mp3"
 
-    safe_text = prepare_spoken_text(text)
+    last_err = None
+    for voice in voices:
+        try:
+            tts = edge_tts.Communicate(safe_text, voice)
+            await tts.save(filename)
+            amplify_audio(filename, boosted_file, gain_db=20)
+            pygame.mixer.music.load(boosted_file)
+            pygame.mixer.music.set_volume(1.0)
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                await asyncio.sleep(0.25)
+            pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
+            try:
+                os.remove(filename)
+                os.remove(boosted_file)
+            except Exception:
+                pass
+            return
+        except edge_tts.exceptions.NoAudioReceived as e:
+            last_err = e
+            await asyncio.sleep(0.3)
+            continue
+        except Exception as e:
+            last_err = e
+            await asyncio.sleep(0.3)
+            continue
 
-    tts = edge_tts.Communicate(safe_text, voice)
-    await tts.save(filename)
-    amplify_audio(filename, boosted_file, gain_db=20)
+    # Fallback: offline TTS to guarantee the assistant continues speaking
+    try:
+        fallback_wav = "fallback_tts.wav"
+        # espeak must be installed on the device; adjust voice/rate as desired
+        subprocess.run(["espeak", "-ven+f3", "-s", "170", safe_text, "-w", fallback_wav], check=True)
+        pygame.mixer.music.load(fallback_wav)
+        pygame.mixer.music.set_volume(1.0)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            await asyncio.sleep(0.25)
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
+        try:
+            os.remove(fallback_wav)
+        except Exception:
+            pass
+    except Exception as e2:
+        # As a last resort, log the failure so the session does not crash
+        print(f"[tts] All TTS attempts failed: {last_err} | Fallback error: {e2} | text={safe_text!r}")
 
-    pygame.mixer.music.load(boosted_file)
-    pygame.mixer.music.set_volume(1.0)
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        await asyncio.sleep(0.25)
-    pygame.mixer.music.stop()
-    pygame.mixer.music.unload()
-    os.remove(filename)
-    os.remove(boosted_file)
 
 # ---------------------------
 # Speech recognition
