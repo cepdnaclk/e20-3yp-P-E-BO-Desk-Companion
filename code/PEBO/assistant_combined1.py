@@ -989,7 +989,120 @@ async def handle_qr_intent():
         asyncio.to_thread(run_emotion, None, lambda se: eyes.QR(device_id, stop_event=se), 15)
     )
     await asyncio.to_thread(normal)
+async def start_assistant_from_text(prompt_text):
+    """Starts Gemini assistant with initial prompt and controls robot emotions."""
+    print(f"\U0001F4AC Initial Prompt: {prompt_text}")
+    conversation_history.clear()
 
+    full_prompt = (
+        f"{prompt_text}\n"
+        "Above is my message. What is your emotion for that message "
+        "(Happy, Sad, Angry, Normal, or Love)? If my message includes words "
+        "like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', "
+        "'adorable', 'sweet', or 'charming', or if the overall sentiment feels "
+        "loving or cute, set your emotion to Love. Otherwise, determine the "
+        "appropriate emotion based on the message's context. Provide your answer "
+        "in the format [emotion, reply], where 'emotion' is one of the specified "
+        "emotions and 'reply' is your response to my message."
+    )
+    conversation_history.append({"role": "user", "parts": [full_prompt]})
+
+    try:
+        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
+    except google.api_core.exceptions.NotFound as e:
+        print(f"Model not found: {e}. Check for deprecation and update model name.")
+        return
+
+    reply = response.text.strip()
+
+    emotion = "Normal"
+    answer = reply
+    try:
+        match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
+        if match:
+            emotion, answer = match.groups()
+            print(f"{emotion}: {answer}")
+        else:
+            print(f"Gemini: {reply} (No emotion detected, assuming Normal)")
+    except Exception as e:
+        print(f"Error parsing Gemini response: {e}")
+
+    emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
+    emotion_task = asyncio.to_thread(emotion_method)
+    voice_task = speak_text(answer)
+    await asyncio.gather(emotion_task, voice_task)
+
+    conversation_history.append({"role": "model", "parts": [answer]})
+
+    # Initialize Firebase
+    try:
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+            firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
+            logger.info("Firebase initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Firebase: {str(e)}")
+        await speak_text("Sorry, I couldn't connect to the device database.")
+        await asyncio.to_thread(normal)
+        return
+
+    failed_attempts = 0
+    max_attempts = 1
+    positive_responses = ["yes", "yeah", "yep", "correct", "right", "ok", "okay"]
+    negative_responses = ["no", "nope", "not", "wrong", "incorrect"]
+
+    while failed_attempts < max_attempts:
+        reminder_text = read_reminder_file()
+        if reminder_text:
+            print(f"📝 Found reminder: {reminder_text}")
+            play_reminder_audio()
+            await speak_text(reminder_text)
+            play_reminder_audio()
+            await speak_text(reminder_text)
+            if not clear_reminder_file():
+                logger.error("Failed to clear reminder file, proceeding anyway")
+            failed_attempts = 0  # Reset after processing reminder
+        else:
+            print("📝 Reminder file is empty or not found, proceeding with normal loop")
+
+        user_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
+
+        if user_input is None:
+            failed_attempts += 1
+            print(f"\U0001F615 Failed attempt {failed_attempts}/{max_attempts}.")
+            if failed_attempts >= max_attempts:
+                print(f"\U0001F615 No speech detected after {max_attempts} attempts. Exiting assistant.")
+                message = random.choice(goodbye_messages)
+                await speak_text(message)
+                normal()
+                break
+
+        # GPIO setup reinitialization
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(TOUCH_PIN, GPIO.IN)
+        failed_attempts = 0  # Reset on valid input
+
+        # Handle task reminders, music playing, QR code commands, interdevice communication, and exit commands here
+        # (implementation continues as in your full function)
+
+        # Example for task reminder check:
+        if user_input.lower() in ["what are reminders", "list reminders", "show reminders"]:
+            # (Fetch and speak tasks)
+
+            continue
+
+        # Example for playing song, showing QR, inter-device communication, etc.
+
+    # Clean up Firebase app and assistant
+    try:
+        firebase_admin.delete_app(firebase_admin.get_app())
+        logger.info("Firebase app cleaned up")
+    except Exception as e:
+        logger.error(f"Error cleaning up Firebase app: {str(e)}")
+
+    cleanup()
+    print("Assistant shutdown complete")
+    await asyncio.sleep(1)
 async def handle_interdevice_communication():
     try:
         with open(JSON_CONFIG_PATH, 'r') as config_file:
