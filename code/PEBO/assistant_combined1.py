@@ -136,7 +136,7 @@ EMOTION_TERMS = [
 
 ROLE_PROMPT = (
   "Act as 'pebo', empathetic, concise, a bit cute. Do not describe gestures or stage directions. "
-  "Never name detected emotions aloud. Keep replies ~40 tokens, supportive and friendly."
+  "Never name detected emotions aloud. Keep replies ~40 tokens, supportive and Yohanly."
 )
 STAGE_RE = re.compile(r'\s*\(*\b(eyes?|hands?|head|nods?|blinks?|gestures?|sighs?|smiles?)\b.*?\)*[.?!]?', re.IGNORECASE)
 def sanitize_llm_text(t: str) -> str:
@@ -219,7 +219,6 @@ def run_emotion(arm_func, eye_func, duration=1):
     if current_eye_thread:
         current_eye_thread.join(timeout=1.0)
     current_eye_thread = None
-    stop_event = None
     normal()
 
 def hi():
@@ -229,11 +228,17 @@ def hi():
 def normal():
     print("Expressing Normal")
     global current_eye_thread, stop_event
+    # stop any existing loop first
+    if stop_event:
+        stop_event.set()
+    if current_eye_thread:
+        current_eye_thread.join(timeout=1.0)
     stop_event = threading.Event()
-    current_eye_thread = threading.Thread(target=eyes.Default, args=(stop_event,))
+    current_eye_thread = threading.Thread(target=eyes.default, args=(stop_event,))
     current_eye_thread.daemon = True
     current_eye_thread.start()
-    stop_event = None
+    # Do NOT set stop_event = None here
+
 
 def happy():
     print("Expressing Happy")
@@ -763,14 +768,14 @@ exit_pattern = r'\b(goodbye|bye)\s+(' + '|'.join(similar_sounds) + r')\b'
 
 goodbye_messages = [
     "Bye-bye for now! Just whisper my name if needed!",
-    "Toodles! I’m just a call away!",
-    "Catch you later! I’m only a ‘hey PEBO’ away!",
-    "See ya! I’ll be right here if needed!",
+    "Toodles! I'm just a call away!",
+    "Catch you later! I'm only a 'hey PEBO' away!",
+    "See ya! I'll be right here if needed!",
     "Bye for now! Ping me anytime!",
-    "Going quiet now! Say my name and I’ll pop back!",
+    "Going quiet now! Say my name and I'll pop back!",
     "Snuggling into sleep mode... call me if you want to play!",
-    "Goodbye for now! Call on me anytime, I’m always listening.",
-    "Logging off! Give me a shout and I’ll be right there!"
+    "Goodbye for now! Call on me anytime, I'm always listening.",
+    "Logging off! Give me a shout and I'll be right there!"
 ]
 
 # ---------------------------
@@ -819,16 +824,16 @@ async def start_assistant_from_text(prompt_text):
     print(f"💬 Initial Prompt: {prompt_text}")
     conversation_history.clear()
 
-    preface = f"{ROLE_PROMPT}\n\n"
-    full_prompt = (
-        preface
-        + f"{prompt_text}\n"
-        + "Above is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? "
-          "If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', "
-          "or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion. "
-          "Provide your answer in the format [emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response."
+    preface = (
+    f"{ROLE_PROMPT}\n"
+    "Above is my message. What is your emotion for that message "
+    "Happy, Sad, Angry, Normal, or Love? "
+    "Only set Love when there is explicit affection toward PEBO "
+    "Otherwise choose Happy instead of Love. don't give emojis. "
+    "Provide your answer in the format emotion, reply."
     )
-    conversation_history.append({"role": "user", "parts": [full_prompt]})
+
+    conversation_history.append({"role": "user", "parts": [prompt_text]})
 
     try:
         response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 40})
@@ -1173,7 +1178,7 @@ async def start_loop():
         save_memory()
 
         # LLM concise turn with silent context
-        silent_ctx = f"(user_name={CURRENT_USER_NAME or 'Friend'}) (internal_mood={LAST_MOOD or 'None'}) (topics={';'.join(LAST_TOPICS[-3:])})"
+        silent_ctx = f"(user_name={CURRENT_USER_NAME or 'Yohan'}) (internal_mood={LAST_MOOD or 'None'}) (topics={';'.join(LAST_TOPICS[-3:])})"
         full_user_input = (
             f"{ROLE_PROMPT}\n{silent_ctx}\n{user_input}\n"
             "Respond empathetically; do not name emotions or describe actions. "
@@ -1249,7 +1254,7 @@ async def monitor_for_trigger(name, emotion):
             save_memory()
 
             # Greeting: wave + happy + voice together to reduce latency
-            greeting = f"Hi {CURRENT_USER_NAME or 'friend'}, I'm Pebo, your buddy."
+            greeting = f"Hi {CURRENT_USER_NAME or 'Yohan'}, I'm your Pebo, how's it going?"
             await asyncio.gather(
                 asyncio.to_thread(say_hi),
                 asyncio.to_thread(happy),
@@ -1278,7 +1283,7 @@ async def monitor_start(name, emotion):
             CURRENT_USER_NAME = name
         save_memory()
 
-        greeting = f"Hi {CURRENT_USER_NAME or 'friend'}, I'm Pebo, your buddy."
+        greeting = f"Hi {CURRENT_USER_NAME or 'Yohan'}, I'm Pebo, your buddy."
         await asyncio.gather(
             asyncio.to_thread(say_hi),
             asyncio.to_thread(happy),
@@ -1335,7 +1340,7 @@ async def monitor_new():
             save_memory()
 
             # Greeting sequence: wave + happy + voice together
-            greeting = f"Hi {CURRENT_USER_NAME or 'friend'}, I'm Pebo, your buddy."
+            greeting = f"Hi {CURRENT_USER_NAME or 'Yohan'}, I'm Pebo, your buddy."
             await asyncio.gather(
                 asyncio.to_thread(say_hi),
                 asyncio.to_thread(happy),
