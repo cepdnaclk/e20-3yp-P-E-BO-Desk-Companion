@@ -66,7 +66,13 @@ import logging
 SKIP_USER_CHECK = bool(int(os.getenv("PEBO_SKIP_USER_CHECK", "1")))  # 1=skip, 0=enable
 # Globals (near top)
 SESSION_ACTIVE = False  # one active session at a time
+CURRENT_USER_NAME: str | None = None
+LAST_MOOD: str | None = None
 
+NAME_RE = re.compile(r"\b(my\s+name\s+is|i\s*am|i'm)\s+([A-Za-z]{2,30})\b", re.IGNORECASE)
+def extract_name_from_text(text: str) -> str | None:
+    m = NAME_RE.search(text or "")
+    return m.group(2).strip().title() if m else None
 # ---------------------------
 # Logging
 # ---------------------------
@@ -125,9 +131,8 @@ EMOTION_TERMS = [
 ]
 
 ROLE_PROMPT = (
-    "Act as 'pebo', an empathetic, non-diagnostic companion. "
-    "Never name detected emotions aloud; instead, react with facial/eye/hand animations. "
-    "Keep spoken replies concise, targeting ~40 tokens."
+    "Act as 'pebo', empathetic and concise. Do not describe gestures, stage directions, "
+    "or internal thoughts. Never name detected emotions aloud. Keep replies ~40 tokens."
 )
 
 # Place near TTS helpers
@@ -146,6 +151,12 @@ def extract_emotion_from_text(text: str) -> str | None:
         if re.search(pattern, t, re.IGNORECASE):
             return label
     return None
+
+# === Sanitizer (near TTS helpers) ===
+STAGE_RE = re.compile(r'\s*\(*\b(eyes?|hands?|head|nods?|blinks?|gestures?|sighs?|smiles?)\b.*?\)*[.?!]?', re.IGNORECASE)
+def sanitize_llm_text(text: str) -> str:
+    t = STAGE_RE.sub("", text or "").strip()
+    return t if t else "Okay."
 
 
 # ---------------------------
@@ -665,10 +676,10 @@ async def start_assistant_from_text(prompt_text):
     conversation_history.append({"role": "user", "parts": [full_prompt]})
 
     try:
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 30})
+        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 40})
     except gcore_exceptions.NotFound as e:
         print(f"Model not found: {e}. Check for deprecation and update model name.")
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 30})
+        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 40})
 
     reply = (getattr(response, "text", "") or "").strip()
     emotion = "Normal"
@@ -693,6 +704,9 @@ async def start_assistant_from_text(prompt_text):
     }
     emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
     emotion_task = asyncio.to_thread(emotion_method)
+    # Before speaking the LLM answer:
+    answer = sanitize_llm_text(answer)
+    await speak_text(answer)
     voice_task = speak_text(answer)
     await asyncio.gather(emotion_task, voice_task)
     conversation_history.append({"role": "model", "parts": [prepare_spoken_text(answer)]})
@@ -948,6 +962,14 @@ async def start_loop():
         user_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen(recognizer, mic))
         # user_input = await asyncio.get_event_loop().run_in_executor(None, lambda: listen_whisper())
 
+        maybe_name = extract_name_from_text(user_input)
+        if maybe_name: CURRENT_USER_NAME = maybe_name
+        detected = extract_emotion_from_text(user_input)
+        if detected:
+            LAST_MOOD = detected
+            await asyncio.gather(asyncio.to_thread({"Happy": happy, "Sad": sad, "Angry": angry, "Normal": normal, "Love": love}.get(detected, normal)),
+                         speak_text("Here with support."))
+        did_react = True
         if user_input is None:
             failed_attempts += 1
             print(f"😕 Failed attempt {failed_attempts}/{max_attempts}.")
@@ -1003,14 +1025,15 @@ async def start_loop():
             did_react = True
 
         # LLM turn: generate concise answer without naming the emotion
+    # Build LLM prompt with silent context (never spoken):
         full_user_input = (
-            f"{ROLE_PROMPT}\n\n"
+            f"{ROLE_PROMPT}\n"
+            f"(user_name={CURRENT_USER_NAME or 'Friend'}) (internal_mood={LAST_MOOD or 'None'})\n"
             f"{user_input}\n"
-            "Above is my conversation part. What is your emotion for that conversation (Happy, Sad, Angry, Normal, or Love)? "
-            "If my conversation includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', "
-            "or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion. "
-            "Your emotion is [emotion] and your answer for above conversation is [answer]. Give your answer as [emotion,answer]"
+            "Respond empathetically without naming emotions or describing actions. "
+            "Return exactly as [emotion,answer] with emotion in {Happy,Sad,Angry,Normal,Love}."
         )
+
         conversation_history.append({"role": "user", "parts": [full_user_input]})
         response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
         reply = (getattr(response, "text", "") or "").strip()
@@ -1094,48 +1117,37 @@ async def monitor_start(name, emotion):
 
 
 # monitor_new(): require wake phrase to start, greet once, then hand over to start_loop()
+# === monitor_new (greet once on wake) ===
 async def monitor_new():
-    global SESSION_ACTIVE
-    initialize_hardware()
-    normal()
+    global SESSION_ACTIVE, CURRENT_USER_NAME
+    initialize_hardware(); normal()
     while True:
         print("🎧 Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...")
-
-        # Ignore identity when skipping checks
-        if SKIP_USER_CHECK:
-            name, emotion = (None, None)
-        else:
-            name, emotion = read_recognition_result()
-
+        name, emotion = (None, None) if SKIP_USER_CHECK else read_recognition_result()
         text = listen(recognizer, mic)
-        if not text:
-            continue
+        if not text: continue
 
         # Allow QR while idle
-        qr_pattern = r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b'
-        if re.search(qr_pattern, text, re.IGNORECASE):
-            await handle_qr_intent()
+        if re.search(r'\bshow\s+(me\s+)?q\s*r\b|\bshow\s+q\b', text, re.IGNORECASE):
+            await handle_qr_intent(); continue
+
+        # Wake phrase required to start session
+        trig = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
+        if not re.search(trig, text, re.IGNORECASE) or SESSION_ACTIVE:
             continue
 
-        trigger_pattern = r'\b((?:hi|hey|hello)\s+)?(' + '|'.join(re.escape(s) for s in similar_sounds) + r')\b'
-        if not re.search(trigger_pattern, text, re.IGNORECASE):
-            # If session already active, start_loop is handling conversation; do not greet again
-            continue
-
-        if SESSION_ACTIVE:
-            # Avoid duplicate greetings
-            continue
-
-        # Start session: greet once with optional camera/text emotion, then enter loop
         SESSION_ACTIVE = True
-        chosen_emotion = extract_emotion_from_text(text) or emotion
-        reaction_task = asyncio.to_thread(react_detected_emotion_label, chosen_emotion)
-        voice_task = speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
-        await asyncio.gather(reaction_task, voice_task)
+        # Remember user if available
+        CURRENT_USER_NAME = (name or CURRENT_USER_NAME) if (name and name.lower() != "none") else CURRENT_USER_NAME
+        # Optional: pick up name from speech
+        maybe = extract_name_from_text(text);  CURRENT_USER_NAME = maybe or CURRENT_USER_NAME
 
-        await start_loop()  # conversation loop without additional introductions
-
-        # When the loop exits, reset to idle listening
+        chosen = extract_emotion_from_text(text) or emotion
+        await asyncio.gather(
+            asyncio.to_thread(react_detected_emotion_label, chosen),
+            speak_text(f"Hello! I'm {ASSISTANT_NAME}.")
+        )
+        await start_loop()
         SESSION_ACTIVE = False
         normal()
 
