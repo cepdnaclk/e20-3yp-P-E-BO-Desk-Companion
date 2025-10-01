@@ -1,190 +1,260 @@
+// ------------------------------
 // Smooth Scroll for Navigation Links with Offset
+// ------------------------------
 document.querySelectorAll("a.nav-link").forEach((link) => {
-  link.addEventListener("click", function (e) {
+  link.addEventListener("click", (e) => {
+    const href = link.getAttribute("href");
+    if (!href || !href.startsWith("#")) return; // allow external links
     e.preventDefault();
-    const target = document.querySelector(this.getAttribute("href"));
-    if (target) {
-      const offset = window.innerWidth < 768 ? 70 : 0; // Adjust offset for mobile
-      const targetPosition =
-        target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top: targetPosition, behavior: "smooth" });
-    }
+    const target = document.querySelector(href);
+    if (!target) return;
+    const offset = window.innerWidth < 768 ? 70 : 0; // Adjust offset for mobile
+    const targetPosition =
+      target.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: targetPosition, behavior: "smooth" });
   });
 });
 
-// Function to open modal
-function openModal() {
-  var modal = document.getElementById("myModal");
-  var modalImg = document.getElementById("img01");
-  
-  // Get the image that was clicked
-  var img = document.querySelector("#solution-architecture img");
-  
-  // Set the source of the modal image to be the clicked image
-  modal.style.display = "block";
-  modalImg.src = img.src;
-}
-
-// Function to close modal
-function closeModal() {
-  var modal = document.getElementById("myModal");
-  modal.style.display = "none";
-}
-
-// Close modal when clicked outside of the image
-window.onclick = function(event) {
-  var modal = document.getElementById("myModal");
-  if (event.target == modal) {
-    closeModal();
-  }
-}
-
-// Dark Mode Toggle with Animation
+// ------------------------------
+// Dark Mode Toggle with Animation + Persistence
+// ------------------------------
 const toggleDarkMode = () => {
   const body = document.body;
   body.classList.toggle("dark-mode");
 
   if (body.classList.contains("dark-mode")) {
     localStorage.setItem("theme", "dark");
-
-    // Add a fade-in effect for dark mode
     body.animate(
       [
-        { backgroundColor: "#fff", color: "#000" }, // From light
-        { backgroundColor: "#121212", color: "#fff" }, // To dark
+        { backgroundColor: "#fff", color: "#000" },
+        { backgroundColor: "#121212", color: "#fff" },
       ],
       { duration: 500, easing: "ease-in-out" }
     );
   } else {
     localStorage.setItem("theme", "light");
-
-    // Add a fade-out effect for light mode
     body.animate(
       [
-        { backgroundColor: "#121212", color: "#fff" }, // From dark
-        { backgroundColor: "#fff", color: "#000" }, // To light
+        { backgroundColor: "#121212", color: "#fff" },
+        { backgroundColor: "#fff", color: "#000" },
       ],
       { duration: 500, easing: "ease-in-out" }
     );
   }
 };
 
-// Persist Dark Mode
 document.addEventListener("DOMContentLoaded", () => {
   const theme = localStorage.getItem("theme");
-  if (theme === "dark") {
-    document.body.classList.add("dark-mode");
-  }
+  if (theme === "dark") document.body.classList.add("dark-mode");
 });
 
-// Scroll Animation for Elements on Scroll
+// ------------------------------
+// IntersectionObserver: .animate-on-scroll
+// ------------------------------
 const animatedElements = document.querySelectorAll(".animate-on-scroll");
 
 const observeElements = new IntersectionObserver(
   (entries, observer) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        entry.target.classList.add("visible"); // Trigger animation
-        observer.unobserve(entry.target); // Stop observing once animated
+        entry.target.classList.add("visible");
+        observer.unobserve(entry.target);
       }
     });
   },
-  { threshold: 0.2 } // Trigger when 20% of the element is visible
+  { threshold: 0.2 }
 );
 
-animatedElements.forEach((element) => observeElements.observe(element));
+animatedElements.forEach((el) => observeElements.observe(el));
 
-// Example: Adding animation classes dynamically
+// Auto-mark .fade-in so it gets observed
 document.querySelectorAll(".fade-in").forEach((el) => {
-  el.classList.add("animate-on-scroll"); // Ensure it's observed
+  el.classList.add("animate-on-scroll");
 });
 
-// Example for adding animations using GSAP (optional)
+// ------------------------------
+// Optional GSAP usage if present
+// ------------------------------
 if (window.gsap) {
   document.querySelectorAll(".animate-gsap").forEach((el) => {
     gsap.fromTo(
       el,
-      { opacity: 0, y: 50 }, // Start state
+      { opacity: 0, y: 50 },
       {
         opacity: 1,
         y: 0,
         duration: 1,
         scrollTrigger: {
           trigger: el,
-          start: "top 80%", // Trigger animation when 80% of the viewport height
+          start: "top 80%",
         },
       }
     );
   });
 }
 
-// Mobile Menu Animation
-const mobileMenuButton = document.querySelector(".navbar-toggler");
-const navbarMenu = document.querySelector(".navbar-collapse");
+// ------------------------------
+// Mobile Menu Animation (guarded for nulls)
+// ------------------------------
+(() => {
+  const mobileMenuButton = document.querySelector(".navbar-toggler");
+  const navbarMenu = document.querySelector(".navbar-collapse");
+  if (!mobileMenuButton || !navbarMenu) return;
 
-mobileMenuButton.addEventListener("click", () => {
-  if (navbarMenu.classList.contains("show")) {
-    navbarMenu.animate(
-      [
-        { opacity: 1, transform: "translateY(0)" },
-        { opacity: 0, transform: "translateY(-10px)" },
-      ],
-      { duration: 300, easing: "ease-in-out" }
-    );
-  } else {
-    navbarMenu.animate(
-      [
-        { opacity: 0, transform: "translateY(-10px)" },
-        { opacity: 1, transform: "translateY(0)" },
-      ],
-      { duration: 300, easing: "ease-in-out" }
-    );
-  }
-});
+  mobileMenuButton.addEventListener("click", () => {
+    const showing = navbarMenu.classList.contains("show");
+    if (showing) {
+      navbarMenu.animate(
+        [
+          { opacity: 1, transform: "translateY(0)" },
+          { opacity: 0, transform: "translateY(-10px)" },
+        ],
+        { duration: 300, easing: "ease-in-out" }
+      );
+    } else {
+      navbarMenu.animate(
+        [
+          { opacity: 0, transform: "translateY(-10px)" },
+          { opacity: 1, transform: "translateY(0)" },
+        ],
+        { duration: 300, easing: "ease-in-out" }
+      );
+    }
+  });
+})();
+
+// ------------------------------
+// Responsive description font size
+// ------------------------------
 const adjustFontSize = () => {
   const descriptions = document.querySelectorAll(".description");
   const isMobile = window.innerWidth < 768;
-
   descriptions.forEach((desc) => {
-    if (isMobile) {
-      desc.style.fontSize = "14px"; // Smaller font for mobile
-    } else {
-      desc.style.fontSize = "16px"; // Default size for larger screens
-    }
+    desc.style.fontSize = isMobile ? "14px" : "16px";
   });
 };
 
 window.addEventListener("resize", adjustFontSize);
 document.addEventListener("DOMContentLoaded", adjustFontSize);
-// Add scroll event listener
-window.addEventListener("scroll", () => {
-  const hero = document.getElementById("hero");
-  const scrollY = window.scrollY;
 
-  if (scrollY > 50) {
-    hero.classList.add("shrink");
-  } else {
-    hero.classList.remove("shrink");
-  }
-});
+// ------------------------------
+// Hero shrink on scroll (guarded)
+// ------------------------------
+window.addEventListener(
+  "scroll",
+  () => {
+    const hero = document.getElementById("hero");
+    if (!hero) return;
+    const scrollY = window.scrollY;
+    if (scrollY > 50) {
+      hero.classList.add("shrink");
+    } else {
+      hero.classList.remove("shrink");
+    }
+  },
+  { passive: true }
+);
+
+// ------------------------------
+// Image Modal (single, consistent API)
+// HTML must define:
+// <div id="imageModal"> <img id="img01"> <div id="caption"></div> ... </div>
+// ------------------------------
 function openModal(img) {
   const modal = document.getElementById("imageModal");
   const modalImg = document.getElementById("img01");
   const caption = document.getElementById("caption");
+  if (!modal || !modalImg) return;
 
   modal.style.display = "block";
-  modalImg.src = img.src;
-  caption.innerHTML = img.alt;
+  modalImg.src = img?.src || "";
+  if (caption) caption.textContent = img?.alt || "";
 }
 
 function closeModal() {
-  document.getElementById("imageModal").style.display = "none";
+  const modal = document.getElementById("imageModal");
+  if (modal) modal.style.display = "none";
 }
 
-// Close when clicking outside
-window.onclick = function (event) {
+window.addEventListener("click", (evt) => {
   const modal = document.getElementById("imageModal");
-  if (event.target === modal) {
-    modal.style.display = "none";
-  }
-};
+  if (evt.target === modal) closeModal();
+});
+
+window.addEventListener("keydown", (evt) => {
+  if (evt.key === "Escape") closeModal();
+});
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const scroller = document.querySelector(".scroller");
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  if (!scroller || !backBtn || !nextBtn) return;
+
+  // Helper: how far to scroll per click
+  const pageSize = () => Math.max(scroller.clientWidth * 0.9, 300);
+
+  // Translate vertical wheel to horizontal scroll (smooth)
+  scroller.addEventListener(
+    "wheel",
+    (evt) => {
+      // Only hijack when vertical intent is stronger
+      if (Math.abs(evt.deltaY) > Math.abs(evt.deltaX)) {
+        evt.preventDefault();
+        scroller.scrollBy({ left: evt.deltaY, behavior: "smooth" });
+      }
+    },
+    { passive: false }
+  );
+
+  // Prev/Next buttons
+  nextBtn.addEventListener("click", () => {
+    scroller.scrollBy({ left: pageSize(), behavior: "smooth" });
+  });
+  backBtn.addEventListener("click", () => {
+    scroller.scrollBy({ left: -pageSize(), behavior: "smooth" });
+  });
+
+  // Arrow keys when scroller is focused
+  scroller.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight")
+      scroller.scrollBy({ left: pageSize(), behavior: "smooth" });
+    if (e.key === "ArrowLeft")
+      scroller.scrollBy({ left: -pageSize(), behavior: "smooth" });
+  });
+});
+document.addEventListener("DOMContentLoaded", () => {
+  const scroller = document.getElementById("gallery-scroller");
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  if (!scroller) return;
+
+  const page = () => Math.max(scroller.clientWidth * 0.9, 300);
+
+  scroller.addEventListener(
+    "wheel",
+    (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        scroller.scrollBy({ left: e.deltaY, behavior: "smooth" });
+      }
+    },
+    { passive: false }
+  );
+
+  nextBtn?.addEventListener("click", () =>
+    scroller.scrollBy({ left: page(), behavior: "smooth" })
+  );
+  backBtn?.addEventListener("click", () =>
+    scroller.scrollBy({ left: -page(), behavior: "smooth" })
+  );
+
+  scroller.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight")
+      scroller.scrollBy({ left: page(), behavior: "smooth" });
+    if (e.key === "ArrowLeft")
+      scroller.scrollBy({ left: -page(), behavior: "smooth" });
+  });
+});
