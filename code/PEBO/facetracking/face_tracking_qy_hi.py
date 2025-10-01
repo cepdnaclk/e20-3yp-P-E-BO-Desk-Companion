@@ -46,8 +46,7 @@ class CombinedFaceTracking:
         "Hello there!",
         "Hi, nice to see you!",
         "Hey, what's up?",
-        "Greetings, friend!",
-        "Yo, high five!",
+        "Yo, hi!",
         "Nice to meet you!",
         "Hey, hello!"
     ]

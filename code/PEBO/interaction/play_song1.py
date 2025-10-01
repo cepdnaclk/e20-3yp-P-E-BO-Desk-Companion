@@ -100,19 +100,12 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
     else:
         emotion_task = asyncio.sleep(0)  # No-op if no controller
 
-    voice = "en-GB-SoniaNeural"
+    voice = "en-US-AnaNeural" 
     filename = "response.mp3"
-    boosted_file = "boosted_response.mp3"
     tts = edge_tts.Communicate(f"Playing {song} now!", voice)
     await tts.save(filename)
 
-    # Amplify voice feedback
-    subprocess.run(
-        ["ffmpeg", "-y", "-i", filename, "-filter:a", "volume=20dB", boosted_file],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
-
-    pygame.mixer.music.load(boosted_file)
+    pygame.mixer.music.load(filename)
     pygame.mixer.music.set_volume(1.0)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
@@ -120,7 +113,6 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
     pygame.mixer.music.stop()
     pygame.mixer.music.unload()
     os.remove(filename)
-    os.remove(boosted_file)
 
     # Run yt-dlp to get audio URL
     print(f"Searching YouTube for '{song}'...")
@@ -139,11 +131,8 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
                     await asyncio.to_thread(controller.sad)
                     tts = edge_tts.Communicate(f"Sorry, I couldn't find {song}.", voice)
                     await tts.save(filename)
-                    subprocess.run(
-                        ["ffmpeg", "-y", "-i", filename, "-filter:a", "volume=20dB", boosted_file],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-                    )
-                    pygame.mixer.music.load(boosted_file)
+                    
+                    pygame.mixer.music.load(filename)
                     pygame.mixer.music.set_volume(1.0)
                     pygame.mixer.music.play()
                     while pygame.mixer.music.get_busy():
@@ -151,7 +140,7 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
                     pygame.mixer.music.stop()
                     pygame.mixer.music.unload()
                     os.remove(filename)
-                    os.remove(boosted_file)
+                    
                 return False
             audio_url = info['entries'][0]['url']
     except Exception as e:
@@ -160,11 +149,8 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
             await asyncio.to_thread(controller.sad)
             tts = edge_tts.Communicate(f"Error searching for {song}.", voice)
             await tts.save(filename)
-            subprocess.run(
-                ["ffmpeg", "-y", "-i", filename, "-filter:a", "volume=20dB", boosted_file],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
-            pygame.mixer.music.load(boosted_file)
+          
+            pygame.mixer.music.load(filename)
             pygame.mixer.music.set_volume(1.0)
             pygame.mixer.music.play()
             while pygame.mixer.music.get_busy():
@@ -172,7 +158,6 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
             pygame.mixer.music.stop()
             pygame.mixer.music.unload()
             os.remove(filename)
-            os.remove(boosted_file)
         return False
 
     print(f"Now playing: {song} , double tap to stop song")
@@ -217,11 +202,8 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
         
         tts = edge_tts.Communicate(message, voice)
         await tts.save(filename)
-        subprocess.run(
-            ["ffmpeg", "-y", "-i", filename, "-filter:a", "volume=20dB", boosted_file],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-        pygame.mixer.music.load(boosted_file)
+        
+        pygame.mixer.music.load(filename)
         pygame.mixer.music.set_volume(1.0)
         pygame.mixer.music.play()
         while pygame.mixer.music.get_busy():
@@ -229,7 +211,7 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
         os.remove(filename)
-        os.remove(boosted_file)
+        
         await asyncio.gather(emotion_task, asyncio.sleep(0))
         return not stop_music_flag  # Return True if completed naturally, False if stopped
     except Exception as e:
@@ -240,11 +222,8 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
             await asyncio.to_thread(controller.sad)
             tts = edge_tts.Communicate(f"Error playing {song}.", voice)
             await tts.save(filename)
-            subprocess.run(
-                ["ffmpeg", "-y", "-i", filename, "-filter:a", "volume=20dB", boosted_file],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
-            pygame.mixer.music.load(boosted_file)
+            
+            pygame.mixer.music.load(filename)
             pygame.mixer.music.set_volume(1.0)
             pygame.mixer.music.play()
             while pygame.mixer.music.get_busy():
@@ -252,7 +231,6 @@ async def play_music(song="Perfect Ed Sheeran", controller=None, touch_pin=17):
             pygame.mixer.music.stop()
             pygame.mixer.music.unload()
             os.remove(filename)
-            os.remove(boosted_file)
         return False
 
 if __name__ == "__main__":

@@ -11756,3 +11756,24 @@ lgpio.error: 'unknown handle'
 2025-09-30 22:42:16,519 - INFO - Firebase initialized successfully
 2025-10-01 00:41:01,230 - INFO - Firebase initialized successfully
 >>>>>>> 1413434c6f84465892b8175ab096d0e7a5b9a101
+2025-10-01 19:31:11,138 - INFO - Firebase initialized successfully
+2025-10-01 19:32:42,461 - INFO - Firebase app cleaned up
+2025-10-01 19:40:38,671 - INFO - Firebase initialized successfully
+2025-10-01 20:30:15,097 - INFO - Main controller started at 2025-10-01 20:30:15
+2025-10-01 20:30:15,112 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-10-01 20:30:15,171 - INFO - Initialization successful.
+2025-10-01 20:30:15,172 - INFO - Camera now open.
+2025-10-01 20:30:15,181 - INFO - Configuration successful!
+2025-10-01 20:30:15,309 - INFO - Camera started
+2025-10-01 20:30:27,767 - INFO - Camera stopped
+2025-10-01 20:30:27,971 - INFO - Camera closed successfully.
+2025-10-01 20:32:48,227 - INFO - Firebase initialized successfully
+2025-10-01 20:34:19,217 - INFO - Firebase app cleaned up
+2025-10-01 20:34:46,414 - INFO - Firebase initialized successfully
+2025-10-01 20:41:22,409 - INFO - Firebase app cleaned up
+2025-10-01 20:41:59,246 - INFO - Firebase initialized successfully
+2025-10-01 20:43:45,577 - INFO - Firebase app cleaned up
+2025-10-01 20:44:13,653 - INFO - Firebase initialized successfully
+2025-10-01 20:46:19,823 - INFO - Firebase app cleaned up
+2025-10-01 23:02:26,165 - INFO - Firebase initialized successfully
+2025-10-01 23:04:59,778 - INFO - Firebase app cleaned up

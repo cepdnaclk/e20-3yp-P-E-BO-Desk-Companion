@@ -14,7 +14,7 @@ from facetracking.face_tracking_qr import CombinedFaceTracking
 from interaction.touch_sensor import detect_continuous_touch
 from arms.arms_pwm import say_hi
 from recognition.person_recognition import recognize_image 
-from assistant_combined1 import monitor_for_trigger, monitor_start, monitor_new
+from assistant_combined import monitor_for_trigger, monitor_start, monitor_new
 from ipconfig.qr_reader import run_qr_scanner
 from reminders.reminders_1 import reminder_loop
 from edge_tts.exceptions import NoAudioReceived  # add this with your imports

@@ -109,11 +109,11 @@ def run_emotion(arm_func, eye_func, duration=1):
     normal()
 
 def hi():
-    print("Expressing Hi")
+    # ~ print("Expressing Hi")
     run_emotion(say_hi, eyes.Happy)
 
 def normal():
-    print("Expressing Normal")
+    # ~ print("Expressing Normal")
     global current_eye_thread, stop_event
     stop_event = threading.Event()
     current_eye_thread = threading.Thread(target=eyes.Default, args=(stop_event,))
@@ -122,30 +122,30 @@ def normal():
     stop_event = None
 
 def happy():
-    print("Expressing Happy")
+    # ~ print("Expressing Happy")
     run_emotion(express_happy, eyes.Happy)
 
 def sad():
-    print("Expressing Sad")
+    # ~ print("Expressing Sad")
     run_emotion(express_sad, eyes.Tired)
 
 def angry():
-    print("Expressing Angry")
+    # ~ print("Expressing Angry")
     run_emotion(express_angry, eyes.Angry)
 
 def love():
-    print("Expressing Love")
+    # ~ print("Expressing Love")
     run_emotion(express_happy, eyes.Love)
     
 def qr(device_id):
     """Express QR code with the specified device ID"""
-    print(f"Expressing QR with device ID: {device_id}")
+    # ~ print(f"Expressing QR with device ID: {device_id}")
     run_emotion(None, lambda stop_event: eyes.QR(device_id, stop_event=stop_event), duration=15)
 
 def cleanup():
     """Clean up resources, clear displays, and deinitialize I2C bus."""
     global i2c, eyes, current_eye_thread, stop_event
-    print("🖥️ Cleaning up resources...")
+    print("Cleaning up resources...")
     if stop_event:
         stop_event.set()
     if current_eye_thread:
@@ -157,15 +157,15 @@ def cleanup():
         eyes.display_left.show()
         eyes.display_right.fill(0)
         eyes.display_right.show()
-        print("🖥️ Displays cleared")
+        print("Displays cleared")
     except Exception as e:
-        print(f"🖥️ Error clearing displays: {e}")
+        print(f"Error clearing displays: {e}")
     try:
         i2c.deinit()
-        print("🖥️ I2C bus deinitialized, SCL and SDA cleared")
+        print("️I2C bus deinitialized, SCL and SDA cleared")
     except Exception as e:
-        print(f"🖥️ Error deinitializing I2C bus: {e}")
-    print("🖥️ Cleanup complete")
+        print(f"Error deinitializing I2C bus: {e}")
+    print("Cleanup complete")
 
 # Initialize pygame
 pygame.mixer.init()
@@ -173,16 +173,8 @@ pygame.mixer.init()
 # Gemini API 
 GOOGLE_API_KEY = "AIzaSyDlpxPAgmv5rHPs4hkVoKFiUdCCXuhakbY"
 
-# ~ client = genai.Client(api_key=GOOGLE_API_KEY)
-
-# ~ response = client.models.generate_content(
-    # ~ model="gemini-2.0-flash",
-    # ~ contents="Explain how AI works in a few words",
-# ~ )
-# ~ print(response.text)
-
 genai.configure(api_key=GOOGLE_API_KEY)
-# model = genai.GenerativeModel("gemini-1.5-flash")
+
 try:
     model = genai.GenerativeModel("gemini-2.0-flash")
 except Exception as e:
@@ -315,11 +307,11 @@ def play_reminder_audio(audio_file="/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Des
             while pygame.mixer.music.get_busy():
                 time.sleep(0.25)
         pygame.mixer.music.unload()
-        print(f"🎵 Played reminder audio {audio_file} twice")
+        print(f"Played reminder audio {audio_file} twice")
     except Exception as e:
         print(f"❌ Error playing reminder audio {audio_file}: {e}")
 
-def amplify_audio(input_file, output_file, gain_db=10):
+def amplify_audio(input_file, output_file, gain_db=2):
     subprocess.run([
         "ffmpeg", "-y",
         "-i", input_file,
@@ -329,18 +321,19 @@ def amplify_audio(input_file, output_file, gain_db=10):
 
 async def speak_text(text):
     """Speak using Edge TTS."""
-    # ~ voice = "en-US-SoniaNeural"
-    # ~ voice = "en-US-AnaNeural"
-    voice = "en-US-JennyNeural"
+    # ~ voice = "en-US-SoniaNeural" #error voicec
+    voice = "en-US-AnaNeural"  # child voice
+    # ~ voice = "en-US-JennyNeural" #female voice
     filename = "response.mp3"
-    boosted_file = "boosted_response.mp3"
+    # ~ boosted_file = "boosted_response.mp3"
 
     tts = edge_tts.Communicate(text, voice)
     await tts.save(filename)
 
-    amplify_audio(filename, boosted_file, gain_db=20)
-
-    pygame.mixer.music.load(boosted_file)
+    # ~ amplify_audio(filename, boosted_file, gain_db=20)
+    # ~ pygame.mixer.music.load(boosted_file)
+    
+    pygame.mixer.music.load(filename)
     pygame.mixer.music.set_volume(1.0)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
@@ -350,7 +343,7 @@ async def speak_text(text):
     pygame.mixer.music.unload()
 
     os.remove(filename)
-    os.remove(boosted_file)
+    # ~ os.remove(boosted_file)
 
 def listen(
         recognizer: sr.Recognizer,
@@ -369,25 +362,11 @@ def listen(
     GPIO.output(LED_PIN, GPIO.LOW)  # Ensure LED is off initially
 
     for attempt in range(retries + 1):
-        # ~ reminder_text = read_reminder_file()
-        # ~ if reminder_text:
-            # ~ print(f"📝 Found reminder: {reminder_text}")
-            # ~ # Speak the reminder text
-            # ~ speak_text(reminder_text)
-            # ~ # Play reminder audio twice
-            # ~ play_reminder_audio()
-            # ~ # Clear the reminder file
-            # ~ if not clear_reminder_file():
-                # ~ logger.error("Failed to clear reminder file, proceeding anyway")
-            # ~ # Continue with the loop
-            # ~ failed_attempts = 0  # Reset failed attempts after processing reminder
-        # ~ else:
-            # ~ print("📝 Reminder file is empty or not found")
 
         try:
             with mic as source:
                 recognizer.adjust_for_ambient_noise(source, duration=calibrate_duration)
-                print("\U0001F3A4 Listening… (attempt", attempt + 1, ")")
+                print("Listening… (attempt", attempt + 1, ")")
                 GPIO.output(LED_PIN, GPIO.HIGH)  # Turn on LED
                 audio = recognizer.listen(source,
                                           timeout=timeout,
@@ -398,71 +377,37 @@ def listen(
                 text = recognizer.recognize_google(audio, language=language)
                 text = text.strip().lower()
                 if text:
-                    print(f"\U0001F5E3️ You said: {text}")
+                    print(f"You said: {text}")
                     GPIO.cleanup()  # Clean up GPIO
                     return text
             except sr.UnknownValueError:
-                print("\U0001F914 Sorry—couldn’t understand that.")
+                print("Sorry—couldn’t understand that.")
             except sr.RequestError as e:
-                print(f"\u26A0\uFE0F Google speech service error ({e}). Falling back to offline engine…")
+                print(f"Google speech service error ({e}). Falling back to offline engine…")
                 try:
                     text = recognizer.recognize_sphinx(audio, language=language)
                     text = text.strip().lower()
                     if text:
-                        print(f"\U0001F5E3️ (Offline) You said: {text}")
+                        print(f"(Offline) You said: {text}")
                         GPIO.cleanup()  # Clean up GPIO
                         return text
                 except Exception as sphinx_err:
-                    print(f"\u274C Offline engine failed: {sphinx_err}")
+                    print(f"Offline engine failed: {sphinx_err}")
 
         except sr.WaitTimeoutError:
-            print("\u231B Timed out waiting for speech.")
+            print("Timed out waiting for speech.")
             GPIO.output(LED_PIN, GPIO.LOW)  # Turn off LED on timeout
         except Exception as mic_err:
-            print(f"\U0001F3A4 Mic/Audio error: {mic_err}")
+            print(f"Mic/Audio error: {mic_err}")
             GPIO.output(LED_PIN, GPIO.LOW)  # Turn off LED on error
 
         if attempt < retries:
             time.sleep(0.5)
 
-    print("\U0001F615 No intelligible speech captured.")
+    print("No intelligible speech captured.")
     GPIO.output(LED_PIN, GPIO.LOW)  # Ensure LED is off
     GPIO.cleanup()  # Clean up GPIO
     return None
-
-# Load the Whisper model once
-whisper_model = whisper.load_model("base")
-
-def listen_whisper(duration=1, sample_rate=16000) -> str | None:
-    """Capture audio and transcribe using Whisper."""
-    print("🎤 Listening with Whisper…")
-
-    try:
-        recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
-        sd.wait()
-
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
-            scipy.io.wavfile.write(tmpfile.name, sample_rate, recording)
-            audio_path = tmpfile.name
-
-        result = whisper_model.transcribe(audio_path)
-        text = result.get("text", "").strip().lower()
-
-        if text:
-            print(f"🗣️ You said (Whisper): {text}")
-            return text
-        else:
-            print("🤔 No intelligible speech detected.")
-            return None
-
-    except Exception as e:
-        print(f"❌ Whisper error: {e}")
-        return None
-    finally:
-        try:
-            os.remove(audio_path)
-        except:
-            pass
 
 # Get IP address of a network interface
 def get_ip_address(ifname='wlan0'):
@@ -627,7 +572,7 @@ Provide your answer in the format [emotion, reply], where 'emotion' is one of th
                 generation_config={"max_output_tokens": max_tokens}
             )
             reply = response.text.strip()
-            print(f"DEBUG: Raw Gemini response: '{reply}'")  # Log raw response for debugging
+            # ~ print(f"DEBUG: Raw Gemini response: '{reply}'")  # Log raw response for debugging
             break  # Exit retry loop on successful response
         except google.api_core.exceptions.NotFound as e:
             print(f"Model not found: {e}. Check for deprecation and update model name.")
@@ -650,7 +595,7 @@ Provide your answer in the format [emotion, reply], where 'emotion' is one of th
     answer = reply
     try:
         # Match [emotion, reply] with optional closing bracket
-        print(f"Reply Debug:{reply}")
+        # ~ print(f"Reply Debug:{reply}")
         match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),\s*([^\]]*?)(?:\]|$)', reply, re.DOTALL)
         if match:
             emotion, answer = match.groups()
@@ -658,7 +603,7 @@ Provide your answer in the format [emotion, reply], where 'emotion' is one of th
             if not reply.endswith(']'):
                 print("Warning: Response missing closing bracket. Parsed anyway.")
         else:
-            print(f"Gemini: {reply} (No emotion detected, assuming Normal)")
+            # ~ print(f"Gemini: {reply} (No emotion detected, assuming Normal)")
             if not reply.startswith('['):
                 print("Warning: Response format invalid. Expected [emotion, reply].")
     except Exception as e:
@@ -686,9 +631,6 @@ Provide your answer in the format [emotion, reply], where 'emotion' is one of th
     # Append the full response to conversation history
     conversation_history.append({"role": "model", "parts": [reply]})
 
-    # ~ return emotion, answer  # Optional: return for further processing
-
-##########################
 
     # Initialize Firebase
     try:
@@ -711,7 +653,7 @@ Provide your answer in the format [emotion, reply], where 'emotion' is one of th
         # Check reminder file
         reminder_text = read_reminder_file()
         if reminder_text:
-            print(f"📝 Found reminder: {reminder_text}")
+            print(f"Found reminder: {reminder_text}")
             # Speak the reminder text
             play_reminder_audio()
             await speak_text(reminder_text)
@@ -732,9 +674,9 @@ Provide your answer in the format [emotion, reply], where 'emotion' is one of th
 
         if user_input is None:
             failed_attempts += 1
-            print(f"\U0001F615 Failed attempt {failed_attempts}/{max_attempts}.")
+            print(f"Failed attempt {failed_attempts}/{max_attempts}.")
             if failed_attempts >= max_attempts:
-                print(f"\U0001F615 No speech detected after {max_attempts} attempts. Exiting assistant.")
+                print(f"No speech detected after {max_attempts} attempts. Exiting assistant.")
                 message = random.choice(goodbye_messages)
                 await speak_text(message)
                 normal()
@@ -977,7 +919,7 @@ Provide your answer in the format [emotion, reply], where 'emotion' is one of th
             continue
 
         if user_input in exit_phrases or re.search(exit_pattern, user_input, re.IGNORECASE):
-            print("\U0001F44B Exiting assistant.")
+            print("Exiting assistant.")
             message_exit = random.choice(goodbye_messages)
             await speak_text(message_exit)
             normal()
