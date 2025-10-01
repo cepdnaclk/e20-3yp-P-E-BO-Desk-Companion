@@ -11655,3 +11655,20 @@ RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GP
 2025-09-30 21:05:03,344 - WARNING - Retrying (Retry(total=9, connect=1, read=0, redirect=None, status=4)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app', port=443): Read timed out. (read timeout=120)")': /users/4tmHxRsiiod99F1eeKb3FU5zqos1/peboDevices/-OVln4t7GO7z1aY2Jq1t.json?print=silent
 2025-09-30 21:05:28,437 - INFO - Checking for reminders...
 2025-09-30 21:06:28,719 - INFO - Checking for reminders...
+2025-09-30 21:25:12,533 - INFO - Firebase initialized successfully
+2025-09-30 21:27:56,824 - INFO - Firebase initialized successfully
+2025-09-30 21:28:42,721 - INFO - Firebase app cleaned up
+2025-09-30 21:30:56,057 - INFO - Firebase initialized successfully
+2025-09-30 21:40:33,718 - INFO - Firebase initialized successfully
+2025-09-30 21:41:50,402 - INFO - Firebase app cleaned up
+2025-09-30 21:42:15,927 - INFO - Firebase initialized successfully
+2025-09-30 21:46:41,091 - INFO - Firebase initialized successfully
+2025-09-30 21:51:02,635 - INFO - Firebase initialized successfully
+2025-09-30 21:52:23,211 - INFO - Firebase initialized successfully
+2025-09-30 22:01:56,070 - INFO - Firebase initialized successfully
+2025-09-30 22:04:33,569 - INFO - Firebase initialized successfully
+2025-09-30 22:07:32,730 - INFO - Firebase initialized successfully
+2025-09-30 22:11:01,532 - INFO - Firebase initialized successfully
+2025-09-30 22:14:52,934 - INFO - Firebase initialized successfully
+2025-10-01 19:16:31,992 - INFO - Firebase initialized successfully
+2025-10-01 19:23:45,813 - INFO - Firebase initialized successfully

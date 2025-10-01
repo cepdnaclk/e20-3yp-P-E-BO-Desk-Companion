@@ -171,9 +171,7 @@ def cleanup():
 pygame.mixer.init()
 
 # Gemini API 
-GOOGLE_API_KEY = "AIzaSyCBkCCR63VV_HCRi_5Qjo9Akx2415eGdp4"
-
-
+GOOGLE_API_KEY = "AIzaSyDlpxPAgmv5rHPs4hkVoKFiUdCCXuhakbY"
 
 # ~ client = genai.Client(api_key=GOOGLE_API_KEY)
 
@@ -346,7 +344,7 @@ async def speak_text(text):
     pygame.mixer.music.set_volume(1.0)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
-        await asyncio.sleep(0.25)
+        await asyncio.sleep(0.05)
 
     pygame.mixer.music.stop()
     pygame.mixer.music.unload()
@@ -555,33 +553,117 @@ def fetch_user_tasks(user_id):
         logger.error(f"Error fetching tasks for user {user_id}: {str(e)}")
         return "Sorry, I couldn't retrieve your tasks due to an error."
 
+# ~ async def start_assistant_from_text(prompt_text):
+    # ~ """Starts Gemini assistant with initial text prompt and controls robot emotions."""
+    # ~ print(f"\U0001F4AC Initial Prompt: {prompt_text}")
+    # ~ conversation_history.clear()
+    
+    # ~ full_prompt = f"{prompt_text}\nAbove is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion based on the message's context. Provide your answer in the format [emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response to my message."
+    # ~ conversation_history.append({"role": "user", "parts": [full_prompt]})
+    
+    # ~ try:
+        # ~ response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
+    # ~ except google.api_core.exceptions.NotFound as e:
+        # ~ print(f"Model not found: {e}. Check for deprecation and update model name.")
+    # ~ # Add retry logic or fallback prompt
+    # ~ # response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
+    # ~ reply = response.text.strip()
+
+    # ~ emotion = "Normal"
+    # ~ answer = reply
+    # ~ try:
+        # ~ match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
+        # ~ match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),\s*([^\]]*?)(?:\]|$)', reply, re.DOTALL))
+        # ~ if match:
+            # ~ emotion, answer = match.groups()
+            # ~ print(f"{emotion}: {answer}")
+        # ~ else:
+            # ~ print(f"Gemini: {reply} (No emotion detected, assuming Normal)")
+    # ~ except Exception as e:
+        # ~ print(f"Error parsing Gemini response: {e}")
+
+    # ~ valid_emotions = {"Happy", "Sad", "Angry", "Normal", "Love"}
+    # ~ emotion_methods = {
+        # ~ "Happy": happy,
+        # ~ "Sad": sad,
+        # ~ "Angry": angry,
+        # ~ "Normal": normal,
+        # ~ "Love": love
+    # ~ }
+    # ~ emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
+    
+    # ~ emotion_task = asyncio.to_thread(emotion_method)
+    # ~ voice_task = speak_text(answer)
+    # ~ await asyncio.gather(emotion_task, voice_task)
+    
+    # ~ conversation_history.append({"role": "model", "parts": [answer]})
+
+import google.api_core.exceptions
+
 async def start_assistant_from_text(prompt_text):
     """Starts Gemini assistant with initial text prompt and controls robot emotions."""
-    print(f"\U0001F4AC Initial Prompt: {prompt_text}")
+    print(f"Initial Prompt: {prompt_text}")
     conversation_history.clear()
     
-    full_prompt = f"{prompt_text}\nAbove is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', or if the overall sentiment feels loving or cute, set your emotion to Love. Otherwise, determine the appropriate emotion based on the message's context. Provide your answer in the format [emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response to my message."
+    full_prompt = f"""
+{prompt_text}
+Above is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? 
+If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', 
+or if the overall sentiment feels loving or cute, set your emotion to Love. 
+Otherwise, determine the appropriate emotion based on the message's context. 
+Provide your answer in the format [emotion, reply], where 'emotion' is one of the specified emotions and 'reply' is your response to my message. Ensure the response is complete with a closing bracket ].
+"""
     conversation_history.append({"role": "user", "parts": [full_prompt]})
     
-    try:
-        response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
-    except google.api_core.exceptions.NotFound as e:
-        print(f"Model not found: {e}. Check for deprecation and update model name.")
-    # Add retry logic or fallback prompt
-    # response = model.generate_content(conversation_history, generation_config={"max_output_tokens": 20})
-    reply = response.text.strip()
+    max_tokens = 20  # Increased to prevent truncation
+    retry_attempts = 3
+    attempt = 0
+    reply = None
+    
+    while attempt < retry_attempts:
+        try:
+            response = model.generate_content(
+                conversation_history,
+                generation_config={"max_output_tokens": max_tokens}
+            )
+            reply = response.text.strip()
+            print(f"DEBUG: Raw Gemini response: '{reply}'")  # Log raw response for debugging
+            break  # Exit retry loop on successful response
+        except google.api_core.exceptions.NotFound as e:
+            print(f"Model not found: {e}. Check for deprecation and update model name.")
+            return
+        except Exception as e:
+            print(f"Error generating response (attempt {attempt + 1}/{retry_attempts}): {e}")
+            attempt += 1
+            max_tokens += 50  # Increase token limit for retry
+            if attempt == retry_attempts:
+                print("Max retries reached. Falling back to Normal emotion.")
+                reply = "[Normal, Could not process the response due to an error.]"
+                break
+            time.sleep(0.5)  # Brief delay before retry
+
+    if reply is None:
+        print("No response received from Gemini. Falling back to Normal emotion.")
+        reply = "[Normal, No response from assistant.]"
 
     emotion = "Normal"
     answer = reply
     try:
-        match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
+        # Match [emotion, reply] with optional closing bracket
+        print(f"Reply Debug:{reply}")
+        match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),\s*([^\]]*?)(?:\]|$)', reply, re.DOTALL)
         if match:
             emotion, answer = match.groups()
             print(f"{emotion}: {answer}")
+            if not reply.endswith(']'):
+                print("Warning: Response missing closing bracket. Parsed anyway.")
         else:
             print(f"Gemini: {reply} (No emotion detected, assuming Normal)")
+            if not reply.startswith('['):
+                print("Warning: Response format invalid. Expected [emotion, reply].")
     except Exception as e:
         print(f"Error parsing Gemini response: {e}")
+        print(f"Raw response: {reply}")
 
     valid_emotions = {"Happy", "Sad", "Angry", "Normal", "Love"}
     emotion_methods = {
@@ -593,11 +675,20 @@ async def start_assistant_from_text(prompt_text):
     }
     emotion_method = emotion_methods.get(emotion if emotion in valid_emotions else "Normal")
     
-    emotion_task = asyncio.to_thread(emotion_method)
-    voice_task = speak_text(answer)
-    await asyncio.gather(emotion_task, voice_task)
-    
-    conversation_history.append({"role": "model", "parts": [answer]})
+    # Run emotion and voice tasks
+    try:
+        emotion_task = asyncio.to_thread(emotion_method)
+        voice_task = speak_text(answer)
+        await asyncio.gather(emotion_task, voice_task)
+    except Exception as e:
+        print(f"Error executing emotion or voice task: {e}")
+
+    # Append the full response to conversation history
+    conversation_history.append({"role": "model", "parts": [reply]})
+
+    # ~ return emotion, answer  # Optional: return for further processing
+
+##########################
 
     # Initialize Firebase
     try:
@@ -900,7 +991,7 @@ async def start_assistant_from_text(prompt_text):
         emotion = "Normal"
         answer = reply
         try:
-            match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),(.+?)\]', reply)
+            match = re.match(r'\[(Happy|Sad|Angry|Normal|Love),\s*([^\]]*?)(?:\]|$)', reply)
             if match:
                 emotion, answer = match.groups()
                 print(f"{emotion}: {answer}")
@@ -925,7 +1016,7 @@ async def start_assistant_from_text(prompt_text):
     
     cleanup()
     print("this in assistant")
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.5)
 
 async def monitor_for_trigger(name, emotion):
     initialize_hardware()
