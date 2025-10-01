@@ -5,7 +5,7 @@
 Main controller for PEBO
 
 - Starts face tracking, periodic recognition, voice assistant loop, touch-to-shutdown, and reminders.
-- Writes recognition_result.txt for assistant to react silently with eyes/arms while TTS stays ~40 tokens.
+- Writes recognition_result.txt for assistant to react silently with eyes/arms while TTS stays ~25 tokens.
 - Uses safe cleanup for PWM, I2C, and GPIO even if errors occur.
 """
 

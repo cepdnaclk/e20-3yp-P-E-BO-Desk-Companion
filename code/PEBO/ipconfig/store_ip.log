@@ -11655,6 +11655,7 @@ RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GP
 2025-09-30 21:05:03,344 - WARNING - Retrying (Retry(total=9, connect=1, read=0, redirect=None, status=4)) after connection broken by 'ReadTimeoutError("HTTPSConnectionPool(host='pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app', port=443): Read timed out. (read timeout=120)")': /users/4tmHxRsiiod99F1eeKb3FU5zqos1/peboDevices/-OVln4t7GO7z1aY2Jq1t.json?print=silent
 2025-09-30 21:05:28,437 - INFO - Checking for reminders...
 2025-09-30 21:06:28,719 - INFO - Checking for reminders...
+<<<<<<< HEAD
 2025-09-30 21:25:12,533 - INFO - Firebase initialized successfully
 2025-09-30 21:27:56,824 - INFO - Firebase initialized successfully
 2025-09-30 21:28:42,721 - INFO - Firebase app cleaned up
@@ -11672,3 +11673,86 @@ RuntimeError: Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GP
 2025-09-30 22:14:52,934 - INFO - Firebase initialized successfully
 2025-10-01 19:16:31,992 - INFO - Firebase initialized successfully
 2025-10-01 19:23:45,813 - INFO - Firebase initialized successfully
+=======
+2025-09-30 21:07:29,406 - INFO - Checking for reminders...
+2025-09-30 21:08:29,777 - INFO - Checking for reminders...
+2025-09-30 21:09:30,297 - INFO - Checking for reminders...
+2025-09-30 21:10:40,621 - WARNING - Retrying (Retry(total=9, connect=1, read=0, redirect=None, status=4)) after connection broken by 'ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))': /users/4tmHxRsiiod99F1eeKb3FU5zqos1/tasks.json
+2025-09-30 21:11:42,163 - INFO - Checking for reminders...
+2025-09-30 21:11:42,274 - WARNING - Retrying (Retry(total=9, connect=1, read=0, redirect=None, status=4)) after connection broken by 'ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))': /users/4tmHxRsiiod99F1eeKb3FU5zqos1/tasks.json
+2025-09-30 21:12:42,991 - INFO - Checking for reminders...
+2025-09-30 21:13:43,353 - INFO - Checking for reminders...
+2025-09-30 21:14:47,379 - INFO - Main controller started at 2025-09-30 21:14:47
+2025-09-30 21:14:47,391 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-30 21:14:47,443 - INFO - Initialization successful.
+2025-09-30 21:14:47,444 - INFO - Camera now open.
+2025-09-30 21:14:47,456 - INFO - Configuration successful!
+2025-09-30 21:14:47,516 - INFO - Camera started
+2025-09-30 21:15:07,393 - INFO - Starting reminder loop
+2025-09-30 21:15:07,405 - INFO - Using existing Firebase app
+2025-09-30 21:15:07,409 - INFO - Checking for reminders...
+2025-09-30 21:16:09,726 - INFO - Checking for reminders...
+2025-09-30 21:17:10,079 - INFO - Checking for reminders...
+2025-09-30 21:18:10,428 - INFO - Checking for reminders...
+2025-09-30 21:19:14,982 - INFO - Checking for reminders...
+2025-09-30 21:20:15,468 - INFO - Checking for reminders...
+2025-09-30 21:21:17,386 - INFO - Checking for reminders...
+2025-09-30 21:51:10,852 - INFO - Main controller started at 2025-09-30 21:51:10
+2025-09-30 21:51:10,860 - INFO - Main controller launching worker threads...
+2025-09-30 21:51:10,864 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-30 21:51:10,917 - INFO - Initialization successful.
+2025-09-30 21:51:10,919 - INFO - Camera now open.
+2025-09-30 21:51:10,927 - INFO - Configuration successful!
+2025-09-30 21:51:10,979 - INFO - Camera started
+2025-09-30 21:51:30,865 - INFO - Starting reminder loop
+2025-09-30 21:51:30,869 - INFO - Using existing Firebase app
+2025-09-30 21:51:30,871 - INFO - Checking for reminders...
+2025-09-30 21:51:33,835 - ERROR - shutdown_on_touch loop failed: 'unknown handle'
+Traceback (most recent call last):
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/main_controller1.py", line 208, in shutdown_on_touch
+    if detect_continuous_touch(duration=5):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/interaction/touch_sensor.py", line 19, in detect_continuous_touch
+    if GPIO.input(TOUCH_PIN) == GPIO.HIGH:  # Touch detected
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 722, in input
+    if not _in_use(gpio):
+           ^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/RPi/GPIO/__init__.py", line 408, in _in_use
+    return bool(_check(lgpio.gpio_get_mode(_chip, gpio)) & _LG_MODES)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 732, in gpio_get_mode
+    return _u2i(_lgpio._gpio_get_mode(handle&0xffff, gpio))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/lgpio.py", line 458, in _u2i
+    raise error(error_text(v))
+lgpio.error: 'unknown handle'
+2025-09-30 21:52:33,020 - INFO - Checking for reminders...
+2025-09-30 21:53:33,340 - INFO - Checking for reminders...
+2025-09-30 21:54:41,177 - INFO - Checking for reminders...
+2025-09-30 21:55:41,820 - INFO - Checking for reminders...
+2025-09-30 21:56:42,148 - INFO - Checking for reminders...
+2025-09-30 21:57:42,417 - INFO - Checking for reminders...
+2025-09-30 21:58:43,372 - INFO - Checking for reminders...
+2025-09-30 21:59:28,062 - INFO - Firebase initialized successfully
+2025-09-30 22:00:12,662 - INFO - Firebase app cleaned up
+2025-09-30 22:19:31,720 - INFO - Firebase initialized successfully
+2025-09-30 22:27:32,968 - INFO - Main controller started at 2025-09-30 22:27:32
+2025-09-30 22:27:33,007 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-09-30 22:27:33,089 - INFO - Initialization successful.
+2025-09-30 22:27:33,090 - INFO - Camera now open.
+2025-09-30 22:27:33,097 - INFO - Configuration successful!
+2025-09-30 22:27:33,187 - INFO - Camera started
+2025-09-30 22:27:53,010 - INFO - Starting reminder loop
+2025-09-30 22:27:53,011 - INFO - Using existing Firebase app
+2025-09-30 22:27:53,016 - INFO - Checking for reminders...
+2025-09-30 22:28:54,812 - INFO - Checking for reminders...
+2025-09-30 22:29:55,093 - INFO - Checking for reminders...
+2025-09-30 22:30:55,332 - INFO - Checking for reminders...
+2025-09-30 22:30:55,392 - WARNING - Retrying (Retry(total=9, connect=1, read=0, redirect=None, status=4)) after connection broken by 'ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))': /users/4tmHxRsiiod99F1eeKb3FU5zqos1/tasks.json
+2025-09-30 22:32:50,867 - INFO - Firebase initialized successfully
+2025-09-30 22:33:41,190 - INFO - Firebase app cleaned up
+2025-09-30 22:37:42,462 - INFO - Firebase initialized successfully
+2025-09-30 22:42:16,519 - INFO - Firebase initialized successfully
+2025-10-01 00:41:01,230 - INFO - Firebase initialized successfully
+>>>>>>> 1413434c6f84465892b8175ab096d0e7a5b9a101
