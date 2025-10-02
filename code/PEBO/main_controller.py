@@ -10,7 +10,7 @@ import os
 from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo
 from display.eyes import RoboEyesDual
-from facetracking.face_tracking_qr import CombinedFaceTracking
+from facetracking.face_tracking_qr_hi import CombinedFaceTracking
 from interaction.touch_sensor import detect_continuous_touch
 from arms.arms_pwm import say_hi
 from recognition.person_recognition import recognize_image 

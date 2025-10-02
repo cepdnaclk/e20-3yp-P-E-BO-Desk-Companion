@@ -311,7 +311,7 @@ def play_reminder_audio(audio_file="/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Des
     except Exception as e:
         print(f"❌ Error playing reminder audio {audio_file}: {e}")
 
-def amplify_audio(input_file, output_file, gain_db=2):
+def amplify_audio(input_file, output_file, gain_db=10):
     subprocess.run([
         "ffmpeg", "-y",
         "-i", input_file,
@@ -332,8 +332,8 @@ async def speak_text(text):
 
     # ~ amplify_audio(filename, boosted_file, gain_db=20)
     # ~ pygame.mixer.music.load(boosted_file)
-    
     pygame.mixer.music.load(filename)
+    
     pygame.mixer.music.set_volume(1.0)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
@@ -552,7 +552,7 @@ async def start_assistant_from_text(prompt_text):
     
     full_prompt = f"""
 {prompt_text}
-Above is my message. What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? 
+Above is my message. Your name is "PEBO". If my message above you, say you are "PEBO". What is your emotion for that message (Happy, Sad, Angry, Normal, or Love)? 
 If my message includes words like 'love', 'loving', 'beloved', 'adore', 'affection', 'cute', 'adorable', 'sweet', or 'charming', 
 or if the overall sentiment feels loving or cute, set your emotion to Love. 
 Otherwise, determine the appropriate emotion based on the message's context. 
@@ -974,7 +974,7 @@ async def monitor_for_trigger(name, emotion):
                 print(f"Using: Name={name}, Emotion={emotion}")
                 if name and name.lower() != "none":
                     hi_task = asyncio.to_thread(hi)
-                    voice_task = speak_text("Hello! I'm your pebo.")
+                    voice_task = speak_text("Hello!")
                     await asyncio.gather(hi_task, voice_task)
                     if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
                         await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
@@ -998,7 +998,7 @@ async def monitor_start():
         print(f"Using: Name={name}, Emotion={emotion}")
         if name and name.lower() != "none":
             hi_task = asyncio.to_thread(hi)
-            voice_task = speak_text("Hello! I'm your pebo.")
+            voice_task = speak_text("Hello!")
             await asyncio.gather(hi_task, voice_task)
             await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
             
@@ -1020,7 +1020,7 @@ async def monitor_new():
         
         if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
             hi_task = asyncio.to_thread(hi)
-            voice_task = speak_text("Hello! I'm your pebo.")
+            voice_task = speak_text("Hello!")
             await asyncio.gather(hi_task, voice_task)
             await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")
                 
@@ -1035,7 +1035,7 @@ async def monitor_new():
                     print(f"Using: Name={name}, Emotion={emotion}")
                     if name and name.lower() != "none":
                         hi_task = asyncio.to_thread(hi)
-                        voice_task = speak_text("Hello! I'm your pebo.")
+                        voice_task = speak_text("Hello! ")
                         await asyncio.gather(hi_task, voice_task)
                         if emotion.upper() in {"SAD", "HAPPY", "CONFUSED", "FEAR", "ANGRY"}:
                             await start_assistant_from_text(f"I am {name}. I look {emotion}. Ask why.")

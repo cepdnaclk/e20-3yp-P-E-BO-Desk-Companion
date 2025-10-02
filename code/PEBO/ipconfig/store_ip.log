@@ -11777,3 +11777,325 @@ lgpio.error: 'unknown handle'
 2025-10-01 20:46:19,823 - INFO - Firebase app cleaned up
 2025-10-01 23:02:26,165 - INFO - Firebase initialized successfully
 2025-10-01 23:04:59,778 - INFO - Firebase app cleaned up
+2025-10-02 22:23:55,705 - INFO - Firebase initialized successfully
+2025-10-02 22:25:19,917 - INFO - Firebase app cleaned up
+2025-10-02 22:26:35,803 - INFO - Firebase initialized successfully
+2025-10-02 22:29:04,076 - INFO - Firebase app cleaned up
+2025-10-02 22:31:33,786 - INFO - Firebase initialized successfully
+2025-10-02 23:02:32,340 - INFO - Main controller started at 2025-10-02 23:02:32
+2025-10-02 23:02:32,361 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-10-02 23:02:33,495 - INFO - Initialization successful.
+2025-10-02 23:02:33,496 - INFO - Camera now open.
+2025-10-02 23:02:33,507 - INFO - Configuration successful!
+2025-10-02 23:02:33,639 - INFO - Camera started
+2025-10-02 23:02:52,364 - INFO - Starting reminder loop
+2025-10-02 23:02:52,368 - ERROR - Firebase app not initialized. Ensure CombinedFaceTracking initializes Firebase.
+2025-10-02 23:03:05,145 - INFO - Firebase initialized successfully
+2025-10-02 23:03:35,087 - INFO - Firebase app cleaned up
+2025-10-02 23:03:48,918 - INFO - Main controller stopped via KeyboardInterrupt at 2025-10-02 23:03:48
+2025-10-02 23:03:48,964 - INFO - Camera stopped
+2025-10-02 23:03:49,172 - INFO - Camera closed successfully.
+2025-10-02 23:04:49,332 - INFO - Firebase initialized successfully
+2025-10-02 23:05:35,669 - INFO - Main controller started at 2025-10-02 23:05:35
+2025-10-02 23:05:35,686 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-10-02 23:05:36,742 - INFO - Initialization successful.
+2025-10-02 23:05:36,743 - INFO - Camera now open.
+2025-10-02 23:05:36,752 - INFO - Configuration successful!
+2025-10-02 23:05:36,882 - INFO - Camera started
+2025-10-02 23:05:55,690 - INFO - Starting reminder loop
+2025-10-02 23:05:55,692 - ERROR - Firebase app not initialized. Ensure CombinedFaceTracking initializes Firebase.
+2025-10-02 23:06:24,264 - INFO - Firebase initialized successfully
+2025-10-02 23:06:43,134 - INFO - Firebase app cleaned up
+2025-10-02 23:07:16,312 - INFO - Main controller stopped via KeyboardInterrupt at 2025-10-02 23:07:16
+2025-10-02 23:07:16,355 - INFO - Camera stopped
+2025-10-02 23:07:16,568 - INFO - Camera closed successfully.
+2025-10-02 23:32:49,547 - INFO - Firebase initialized successfully
+2025-10-03 00:08:47,578 - INFO - Main controller started at 2025-10-03 00:08:47
+2025-10-03 00:08:48,016 - INFO - Starting main controller
+2025-10-03 00:08:48,020 - INFO - Monitoring touch sensor for responses and shutdown
+2025-10-03 00:08:48,021 - INFO - Waiting 20 seconds for Firebase initialization
+2025-10-03 00:08:49,111 - INFO - Initialization successful.
+2025-10-03 00:08:49,113 - INFO - Camera now open.
+2025-10-03 00:08:49,125 - INFO - Configuration successful!
+2025-10-03 00:08:49,281 - INFO - Camera started
+2025-10-03 00:09:08,023 - INFO - Starting reminder loop
+2025-10-03 00:09:08,029 - ERROR - Firebase app not initialized. Ensure CombinedFaceTracking initializes Firebase.
+2025-10-03 00:09:08,663 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:08,773 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:08,875 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:08,976 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,077 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,177 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,278 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,379 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,485 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,587 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,689 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,791 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,892 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:09,994 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,097 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,198 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,300 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,401 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,502 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,605 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,707 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,809 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:10,910 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,012 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,113 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,214 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,315 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,416 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,516 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,619 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,720 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,822 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:11,924 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,025 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,128 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,229 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,331 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,438 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,540 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,646 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,749 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,856 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:12,964 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,073 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,178 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,308 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,414 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,515 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,616 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,719 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,819 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:13,921 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,023 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,127 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,229 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,331 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,436 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,540 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,641 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,743 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,845 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:14,946 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,047 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,148 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,249 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,350 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,451 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,563 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,671 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,778 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,883 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:15,983 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,086 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,200 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,303 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,404 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,505 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,605 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,706 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,809 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:16,914 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,015 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,128 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,250 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,352 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,453 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,554 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,654 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,757 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,858 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:17,959 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,060 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,162 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,263 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,363 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,464 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,565 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,668 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,768 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,869 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:18,970 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,071 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,172 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,273 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,374 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,474 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,575 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,676 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,778 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,880 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:19,981 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,082 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,183 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,284 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,386 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,488 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,593 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,697 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,797 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,898 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:20,999 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,101 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,202 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,303 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,407 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,509 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,612 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,714 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,818 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:21,918 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,019 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,122 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,235 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,340 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,447 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,548 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,649 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,750 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,853 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:22,955 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,061 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,162 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,263 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,364 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,465 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,566 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,667 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,767 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,868 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:23,969 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,069 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,170 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,271 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,371 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,473 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,576 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,679 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,780 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,881 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:24,983 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,085 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,186 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,287 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,389 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,491 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,593 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,695 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,797 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:25,899 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,000 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,101 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,203 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,304 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,405 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,506 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,610 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,715 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,819 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:26,927 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,034 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,135 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,236 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,337 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,439 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,540 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,641 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,745 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,847 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:27,951 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,051 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,152 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,253 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,353 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,455 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,557 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,659 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,761 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,863 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:28,965 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,066 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,167 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,270 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,373 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,474 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,547 - INFO - Exiting via KeyboardInterrupt at 2025-10-03 00:09:29
+2025-10-03 00:09:29,547 - INFO - Returning servos to safe positions
+2025-10-03 00:09:29,577 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,678 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,780 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,882 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:29,983 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,084 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,187 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,290 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,391 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,420 - INFO - Servo channel 0 moved to safe position 90°
+2025-10-03 00:09:30,498 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,604 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,706 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,807 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:30,908 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:31,009 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:31,111 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:31,214 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:31,315 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:31,344 - INFO - Servo channel 1 moved to safe position 90°
+2025-10-03 00:09:31,411 - INFO - Camera stopped
+2025-10-03 00:09:31,418 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:31,520 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:31,614 - INFO - Camera closed successfully.
+2025-10-03 00:09:31,630 - ERROR - Error in touch monitoring: You must setup() the GPIO channel first
+2025-10-03 00:09:49,965 - INFO - Main controller started at 2025-10-03 00:09:49
+2025-10-03 00:10:29,431 - INFO - Main controller started at 2025-10-03 00:10:29
+2025-10-03 00:10:29,447 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-10-03 00:27:13,186 - INFO - Firebase initialized successfully
+2025-10-03 00:28:15,730 - INFO - Firebase initialized successfully
+2025-10-03 00:31:37,834 - INFO - Main controller started at 2025-10-03 00:31:37
+2025-10-03 00:31:37,853 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-10-03 00:31:38,999 - INFO - Initialization successful.
+2025-10-03 00:31:39,000 - INFO - Camera now open.
+2025-10-03 00:31:39,010 - INFO - Configuration successful!
+2025-10-03 00:31:39,146 - INFO - Camera started
+2025-10-03 00:31:57,855 - INFO - Starting reminder loop
+2025-10-03 00:31:57,859 - ERROR - Firebase app not initialized. Ensure CombinedFaceTracking initializes Firebase.
+2025-10-03 00:32:03,809 - INFO - Main controller stopped via KeyboardInterrupt at 2025-10-03 00:32:03
+2025-10-03 00:32:03,862 - INFO - Camera stopped
+2025-10-03 00:32:04,065 - INFO - Camera closed successfully.
+2025-10-03 00:32:39,986 - INFO - Firebase initialized successfully
+2025-10-03 00:39:27,618 - INFO - Main controller started at 2025-10-03 00:39:27
+2025-10-03 00:39:27,636 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-10-03 00:39:27,704 - INFO - Initialization successful.
+2025-10-03 00:39:27,705 - INFO - Camera now open.
+2025-10-03 00:39:27,715 - INFO - Configuration successful!
+2025-10-03 00:39:27,853 - INFO - Camera started
+2025-10-03 00:39:47,641 - INFO - Starting reminder loop
+2025-10-03 00:39:47,647 - ERROR - Firebase app not initialized. Ensure CombinedFaceTracking initializes Firebase.
+2025-10-03 00:39:59,198 - INFO - Main controller stopped via KeyboardInterrupt at 2025-10-03 00:39:59
+2025-10-03 00:39:59,236 - INFO - Camera stopped
+2025-10-03 00:39:59,441 - INFO - Camera closed successfully.
+2025-10-03 00:55:07,235 - INFO - Main controller started at 2025-10-03 00:55:07
+2025-10-03 00:55:07,257 - INFO - Waiting 20 seconds for Firebase initialization before starting reminder loop
+2025-10-03 00:55:07,333 - INFO - Initialization successful.
+2025-10-03 00:55:07,334 - INFO - Camera now open.
+2025-10-03 00:55:07,341 - INFO - Configuration successful!
+2025-10-03 00:55:07,473 - INFO - Camera started
+2025-10-03 00:55:27,260 - INFO - Starting reminder loop
+2025-10-03 00:55:27,262 - ERROR - Firebase app not initialized. Ensure CombinedFaceTracking initializes Firebase.
+2025-10-03 00:55:57,005 - INFO - Firebase initialized successfully
+2025-10-03 00:56:13,406 - INFO - Main controller stopped via KeyboardInterrupt at 2025-10-03 00:56:13
+2025-10-03 00:56:27,917 - INFO - Camera stopped
+2025-10-03 00:56:28,121 - INFO - Camera closed successfully.
+2025-10-03 01:00:46,030 - INFO - Firebase initialized successfully
+2025-10-03 01:03:30,509 - INFO - Firebase initialized successfully
+2025-10-03 01:10:05,151 - INFO - Firebase initialized successfully
+2025-10-03 01:22:46,079 - INFO - Firebase initialized successfully
+2025-10-03 01:24:16,916 - INFO - Firebase initialized successfully
+2025-10-03 01:27:16,533 - INFO - Firebase initialized successfully
+2025-10-03 01:27:52,174 - INFO - Firebase app cleaned up
+2025-10-03 01:28:18,837 - INFO - Firebase initialized successfully

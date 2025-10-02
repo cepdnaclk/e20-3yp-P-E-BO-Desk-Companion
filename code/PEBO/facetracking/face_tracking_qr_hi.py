@@ -3,8 +3,8 @@
 Combined face tracking with photo capture, QR code scanning, and palm detection.
 Captures and saves cropped face image as captured.jpg.enc (encrypted) when a person is detected.
 Connects to Wi-Fi from QR code, deletes other profiles except 'preconfigured' if connection succeeds.
-Face tracking continues during and after QR code processing.
-Displays and speaks a random greeting when a palm is detected, calls hi from arms_eyes.py in parallel.
+On palm detection, triggers arm movement (say_hi) and speaks a greeting.
+All actions run in parallel with a 5-second cooldown between palm detections.
 """
 
 import cv2
@@ -20,7 +20,6 @@ import queue
 import os
 import sys
 import random
-import importlib.util
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import base64
 import pyzbar.pyzbar as pyzbar
@@ -37,11 +36,13 @@ import edge_tts
 import pygame
 import asyncio
 
+# Adjust sys.path for imports
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from arms.arms_pwm import say_hi
+
 class CombinedFaceTracking:
-    # Fixed name for preconfigured Wi-Fi profile (defined at class level)
     PRECONFIGURED_PROFILE = "preconfigured"
-    
-    # List of suitable greetings for palm detection
     GREETINGS = [
         "Hello there!",
         "Hi, nice to see you!",
@@ -55,13 +56,12 @@ class CombinedFaceTracking:
         # Setup I2C and PCA9685 PWM controller
         self.i2c = busio.I2C(board.SCL, board.SDA)
         self.pwm = PCA9685(self.i2c)
-        self.pwm.frequency = 50  # Standard servo frequency (50Hz)
+        self.pwm.frequency = 50
         
         # Setup servos
         self.h_servo_channel = 7
         self.v_servo_channel = 6
         self.center_servo_channel = 5
-        
         self.h_servo = servo.Servo(self.pwm.channels[self.h_servo_channel])
         self.v_servo = servo.Servo(self.pwm.channels[self.v_servo_channel])
         self.center_servo = servo.Servo(self.pwm.channels[self.center_servo_channel])
@@ -84,8 +84,9 @@ class CombinedFaceTracking:
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5
         )
+        self.mp_drawing = mp.solutions.drawing_utils
         
-        # Initialize pygame mixer for audio playback
+        # Initialize pygame mixer
         pygame.mixer.init()
         
         # Frame dimensions
@@ -100,9 +101,9 @@ class CombinedFaceTracking:
         self.greeting_lock = threading.Lock()
         self.shared_face_data = None
         self.last_detection_time = time.time()
-        self.qr_processed = False  # Flag to process QR code only once
+        self.qr_processed = False
         self.last_palm_time = 0
-        self.palm_greeting_interval = 5.0  # 5-second delay between palm detections
+        self.palm_greeting_interval = 5.0
         self.current_greeting = None
         
         # Control flags
@@ -164,100 +165,15 @@ class CombinedFaceTracking:
         self.SERVICE_ACCOUNT_PATH = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/ipconfig/firebase_config.json'
         self.DATABASE_URL = 'https://pebo-task-manager-767f3-default-rtdb.asia-southeast1.firebasedatabase.app'
         
-        # Path to arms_eyes.py in parent directory
-        self.ARMS_EYES_PATH = '/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/arms_eyes.py'
-        
-        # Initialize hi function from arms_eyes.py
-        self.hi_func = self.load_hi_function()
-        
         # Initialize Firebase
         self.initialize_firebase()
 
-    def load_hi_function(self):
-        """Dynamically load the hi function from arms_eyes.py in the parent directory."""
-        try:
-            current_dir = os.getcwd()
-            parent_dir = os.path.dirname(current_dir)
-            arms_eyes_path = self.ARMS_EYES_PATH
-            
-            if not os.path.exists(arms_eyes_path):
-                print(f"arms_eyes.py not found at {arms_eyes_path}")
-                return None
-            
-            # Add parent directory to sys.path temporarily
-            sys.path.insert(0, parent_dir)
-            spec = importlib.util.spec_from_file_location("arms_eyes", arms_eyes_path)
-            arms_eyes = importlib.util.module_from_spec(spec)
-            sys.modules["arms_eyes"] = arms_eyes
-            spec.loader.exec_module(arms_eyes)
-            
-            # Get the hi function
-            hi = getattr(arms_eyes, "hi", None)
-            if not callable(hi):
-                print("hi function not found in arms_eyes.py or is not callable")
-                return None
-            
-            print("Successfully loaded hi function from arms_eyes.py")
-            return hi
-        except Exception as e:
-            print(f"Error loading hi from arms_eyes.py: {e}")
-            return None
-        finally:
-            # Restore original sys.path
-            if parent_dir in sys.path:
-                sys.path.remove(parent_dir)
-
-    async def speak_text(self, text):
-        """Speak using Edge TTS."""
-        voice = "en-US-AnaNeural"
-        filename = "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/response.mp3"
-        boosted_file = "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/boosted_response.mp3"
-
-        try:
-            tts = edge_tts.Communicate(text, voice)
-            await tts.save(filename)
-
-            # Placeholder for amplify_audio (assumed to be defined elsewhere)
-            self.amplify_audio(filename, boosted_file, gain_db=20)
-
-            pygame.mixer.music.load(boosted_file)
-            pygame.mixer.music.set_volume(1.0)
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                await asyncio.sleep(0.25)
-
-            pygame.mixer.music.stop()
-            pygame.mixer.music.unload()
-
-            if os.path.exists(filename):
-                os.remove(filename)
-            if os.path.exists(boosted_file):
-                os.remove(boosted_file)
-        except Exception as e:
-            print(f"Error in speak_text: {e}")
-
-    def amplify_audio(self, input_path, output_path, gain_db):
-        """Placeholder for amplifying audio. Replace with actual implementation."""
-        # Assuming pydub is used; provide actual implementation if available
-        try:
-            from pydub import AudioSegment
-            audio = AudioSegment.from_file(input_path)
-            boosted_audio = audio + gain_db
-            boosted_audio.export(output_path, format="mp3")
-        except Exception as e:
-            print(f"Error amplifying audio: {e}")
-            # Copy original file as fallback
-            import shutil
-            shutil.copy(input_path, output_path)
-
     def initialize_firebase(self):
-        """Initialize Firebase with the provided service account key."""
         if not firebase_admin._apps:
             try:
                 if not os.path.exists(self.SERVICE_ACCOUNT_PATH):
                     print(f"Service account key not found at {self.SERVICE_ACCOUNT_PATH}")
                     raise FileNotFoundError(f"Service account key not found at {self.SERVICE_ACCOUNT_PATH}")
-                
                 cred = credentials.Certificate(self.SERVICE_ACCOUNT_PATH)
                 firebase_admin.initialize_app(cred, {'databaseURL': self.DATABASE_URL})
                 print("Firebase initialized successfully")
@@ -266,12 +182,11 @@ class CombinedFaceTracking:
                 raise
 
     def get_ip_address(self, ifname='wlan0'):
-        """Retrieve the IP address of the specified network interface."""
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             ip = socket.inet_ntoa(fcntl.ioctl(
                 s.fileno(),
-                0x8915,  # SIOCGIFADDR
+                0x8915,
                 struct.pack('256s', bytes(ifname[:15], 'utf-8'))
             )[20:24])
             return ip
@@ -280,7 +195,6 @@ class CombinedFaceTracking:
             return None
 
     def get_wifi_ssid(self):
-        """Retrieve the current Wi-Fi SSID."""
         try:
             result = subprocess.run(['iwgetid', '-r'], capture_output=True, text=True, timeout=5)
             ssid = result.stdout.strip()
@@ -293,20 +207,18 @@ class CombinedFaceTracking:
             return None
 
     def store_ip_to_firebase(self, user_id, device_id, ip_address, ssid):
-        """Store IP address and SSID in Firebase for the given user and device."""
         try:
             ref = db.reference(f'users/{user_id}/peboDevices/{device_id}')
             ref.update({
                 'ipAddress': ip_address or 'Disconnected',
                 'ssid': ssid or 'Unknown',
-                'lastUpdated': int(time.time() * 1000)  # Timestamp in milliseconds
+                'lastUpdated': int(time.time() * 1000)
             })
             print(f"Stored IP {ip_address or 'Disconnected'} and SSID {ssid or 'Unknown'} for user {user_id}, device {device_id}")
         except Exception as e:
             print(f"Error storing data to Firebase: {e}")
 
     def load_config(self):
-        """Load existing configuration from pebo_config.json."""
         try:
             if os.path.exists(self.JSON_CONFIG_PATH):
                 with open(self.JSON_CONFIG_PATH, 'r') as f:
@@ -317,29 +229,22 @@ class CombinedFaceTracking:
             return {}
 
     def save_to_json(self, data):
-        """Save the QR code data to a JSON file, overwriting existing SSID and password."""
         try:
             directory = os.path.dirname(self.JSON_CONFIG_PATH) or '.'
             os.makedirs(directory, exist_ok=True)
-            
             if not os.access(directory, os.W_OK):
                 print(f"Directory {directory} is not writable. Check permissions.")
                 return False
-            
-            # Load existing config to preserve other fields
             existing_config = self.load_config()
-            # Update only ssid, password, and timestamp
             existing_config.update({
                 "ssid": data.get("ssid"),
                 "password": data.get("password"),
                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
             })
-            # Ensure deviceId and userId are preserved if present
             if "deviceId" in data:
                 existing_config["deviceId"] = data["deviceId"]
             if "userId" in data:
                 existing_config["userId"] = data["userId"]
-            
             with open(self.JSON_CONFIG_PATH, 'w') as f:
                 json.dump(existing_config, f, indent=4)
             print(f"Successfully saved updated config to {self.JSON_CONFIG_PATH}")
@@ -352,19 +257,14 @@ class CombinedFaceTracking:
             return False
 
     def delete_all_wifi_connections(self, exclude_profile=PRECONFIGURED_PROFILE):
-        """Delete all Wi-Fi connection profiles except the specified profile."""
         try:
-            # List all connection profiles
             result = subprocess.run(['nmcli', '--terse', '--fields', 'NAME,TYPE', 'connection', 'show'], 
                                   capture_output=True, text=True)
             if result.returncode != 0:
                 print(f"Failed to list connections: {result.stderr}")
                 return False
-            
             connections = result.stdout.strip().split('\n')
             wifi_connections = [conn.split(':')[0] for conn in connections if conn and ':802-11-wireless' in conn]
-            
-            # Delete each Wi-Fi connection except the excluded profile
             for conn in wifi_connections:
                 if conn == exclude_profile:
                     print(f"Preserving preconfigured Wi-Fi connection: {conn}")
@@ -374,7 +274,6 @@ class CombinedFaceTracking:
                     print(f"Deleted Wi-Fi connection: {conn}")
                 except subprocess.CalledProcessError as e:
                     print(f"Failed to delete connection {conn}: {e}")
-            
             print("All non-excluded Wi-Fi connections deleted successfully")
             return True
         except Exception as e:
@@ -382,10 +281,8 @@ class CombinedFaceTracking:
             return False
 
     def connect_to_wifi(self, ssid, password, temp_profile="temp-qr-wifi"):
-        """Connect to the specified Wi-Fi network using a temporary profile."""
         try:
             print(f"Attempting to connect to Wi-Fi SSID: {ssid} using temporary profile")
-            # Create a temporary connection profile
             result = subprocess.run(
                 ['nmcli', 'connection', 'add', 'type', 'wifi', 'con-name', temp_profile, 
                  'ssid', ssid, 'wifi-sec.key-mgmt', 'wpa-psk', 'wifi-sec.psk', password],
@@ -394,8 +291,6 @@ class CombinedFaceTracking:
             if result.returncode != 0:
                 print(f"Failed to create temporary connection profile for SSID {ssid}: {result.stderr}")
                 return False
-            
-            # Connect to the temporary Wi-Fi profile
             result = subprocess.run(['nmcli', 'connection', 'up', temp_profile], 
                                   capture_output=True, text=True)
             if result.returncode == 0:
@@ -403,7 +298,6 @@ class CombinedFaceTracking:
                 return True
             else:
                 print(f"Failed to connect to Wi-Fi: {result.stderr}")
-                # Delete the temporary profile on failure
                 subprocess.run(['nmcli', 'connection', 'delete', temp_profile], check=False)
                 return False
         except subprocess.CalledProcessError as e:
@@ -416,27 +310,21 @@ class CombinedFaceTracking:
             return False
 
     def update_preconfigured_wifi(self, ssid, password):
-        """Update or create the preconfigured Wi-Fi profile."""
         try:
             print(f"Updating/creating preconfigured Wi-Fi profile for SSID: {ssid}")
-            # Check if the preconfigured profile exists
             result = subprocess.run(['nmcli', 'connection', 'show', self.PRECONFIGURED_PROFILE], 
                                   capture_output=True, text=True)
             if result.returncode == 0:
-                # Update existing preconfigured profile
                 print(f"Updating preconfigured profile: {self.PRECONFIGURED_PROFILE}")
                 subprocess.run(['nmcli', 'connection', 'modify', self.PRECONFIGURED_PROFILE, 
                                'wifi.ssid', ssid, 'wifi-sec.psk', password], check=True)
             else:
-                # Create new preconfigured profile
                 print(f"Creating new preconfigured profile: {self.PRECONFIGURED_PROFILE}")
                 subprocess.run(
                     ['nmcli', 'connection', 'add', 'type', 'wifi', 'con-name', self.PRECONFIGURED_PROFILE, 
                      'ssid', ssid, 'wifi-sec.key-mgmt', 'wpa-psk', 'wifi-sec.psk', password],
                     capture_output=True, text=True
                 )
-            
-            # Connect to the preconfigured Wi-Fi
             result = subprocess.run(['nmcli', 'connection', 'up', self.PRECONFIGURED_PROFILE], 
                                   capture_output=True, text=True)
             if result.returncode == 0:
@@ -453,7 +341,6 @@ class CombinedFaceTracking:
             return False
 
     def encrypt_image(self, input_path, output_path):
-        """Encrypt the captured image and save it."""
         try:
             aesgcm = AESGCM(self.key)
             with open(input_path, 'rb') as f:
@@ -468,7 +355,6 @@ class CombinedFaceTracking:
             print(f"Encryption error: {e}")
 
     def get_nearest_face(self, detections):
-        """Find the largest face that meets the minimum area threshold."""
         if not detections:
             return None
         min_area = (self.width * self.height) * (self.min_face_area_percent / 100.0)
@@ -492,45 +378,29 @@ class CombinedFaceTracking:
         return nearest_face
 
     def process_qr_code(self, qr_data):
-        """Process the QR code data, connect to Wi-Fi, and update preconfigured profile."""
         try:
             with self.qr_data_lock:
                 if self.qr_processed:
                     return False
-                self.qr_processed = True  # Mark QR as processed
-
-            # Decode JSON data from QR code
+                self.qr_processed = True
             qr_data = json.loads(qr_data)
             print(f"Decoded QR code data: {qr_data}")
-
-            # Extract fields
             ssid = qr_data.get('ssid')
             password = qr_data.get('password')
             device_id = qr_data.get('deviceId')
             user_id = qr_data.get('userId')
-
             if not all([ssid, password, device_id, user_id]):
                 print("Missing required fields in QR code data")
                 return False
-
-            # Log device and user info
             print(f"Device ID: {device_id}, User ID: {user_id}")
-
-            # Connect to the new Wi-Fi using a temporary profile
             temp_profile = "temp-qr-wifi"
             if not self.connect_to_wifi(ssid, password, temp_profile=temp_profile):
                 print("Failed to connect to new Wi-Fi, remaining on previous network")
                 return False
-
-            # Delete all Wi-Fi connections except the preconfigured profile
             if not self.delete_all_wifi_connections(exclude_profile=self.PRECONFIGURED_PROFILE):
                 print("Failed to delete non-excluded Wi-Fi connections, proceeding anyway")
-
-            # Delete the temporary profile
             subprocess.run(['nmcli', 'connection', 'delete', temp_profile], check=False)
             print(f"Deleted temporary Wi-Fi profile: {temp_profile}")
-
-            # Save updated config to JSON
             config_data = {
                 "ssid": ssid,
                 "password": password,
@@ -539,22 +409,16 @@ class CombinedFaceTracking:
             }
             if not self.save_to_json(config_data):
                 print("Continuing despite failure to save JSON")
-
-            # Update and connect to the preconfigured Wi-Fi
             if self.update_preconfigured_wifi(ssid, password):
                 print("Preconfigured Wi-Fi updated and connected successfully")
-                # Wait briefly to ensure network is stable
                 time.sleep(5)
-                # Get IP and SSID
                 ip_address = self.get_ip_address()
                 current_ssid = self.get_wifi_ssid()
-                # Store to Firebase
                 self.store_ip_to_firebase(user_id, device_id, ip_address, current_ssid)
                 return True
             else:
                 print("Failed to update/connect to preconfigured Wi-Fi")
                 return False
-
         except json.JSONDecodeError as e:
             print(f"Invalid JSON in QR code: {e}")
             return False
@@ -563,21 +427,79 @@ class CombinedFaceTracking:
             return False
         finally:
             with self.qr_data_lock:
-                self.qr_processed = False  # Reset for next QR scan
+                self.qr_processed = False
+
+    def normal(self):
+        pass  # Removed eyes-related functionality
+
+    def run_emotion(self, arm_func, duration=1):
+        if arm_func:
+            arm_thread = threading.Thread(target=arm_func, daemon=True)
+            arm_thread.start()
+        time.sleep(duration)
+        self.normal()
+
+    async def speak_text_async(self, text):
+        voice = "en-US-AnaNeural"
+        filename = "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/response.mp3"
+        boosted_file = "/home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/boosted_response.mp3"
+        try:
+            tts = edge_tts.Communicate(text, voice)
+            await tts.save(filename)
+            self.amplify_audio(filename, boosted_file, gain_db=20)
+            pygame.mixer.music.load(boosted_file)
+            pygame.mixer.music.set_volume(1.0)
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                await asyncio.sleep(0.25)
+            pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
+            if os.path.exists(filename):
+                os.remove(filename)
+            if os.path.exists(boosted_file):
+                os.remove(boosted_file)
+        except Exception as e:
+            print(f"Error in speak_text: {e}")
+
+    def speak_text(self, text):
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(self.speak_text_async(text))
+        loop.close()
+
+    def amplify_audio(self, input_path, output_path, gain_db):
+        try:
+            from pydub import AudioSegment
+            audio = AudioSegment.from_file(input_path)
+            boosted_audio = audio + gain_db
+            boosted_audio.export(output_path, format="mp3")
+        except Exception as e:
+            print(f"Error amplifying audio: {e}")
+            import shutil
+            shutil.copy(input_path, output_path)
+
+    def respond_to_palm(self):
+        with self.greeting_lock:
+            self.current_greeting = random.choice(self.GREETINGS)
+            print(f"Palm detected, responding with greeting: {self.current_greeting}")
+        speech_thread = threading.Thread(target=self.speak_text, args=(self.current_greeting,))
+        speech_thread.daemon = True
+        speech_thread.start()
+        self.run_emotion(say_hi, duration=1)
 
     def face_detection_thread(self):
-        """Detect faces, hands/palms, and QR codes in frames."""
-        def run_hi_function():
-            """Run the hi function in a separate thread."""
-            if self.hi_func:
-                try:
-                    self.hi_func()
-                except Exception as e:
-                    print(f"Error calling hi: {e}")
-
         while self.running:
             try:
                 frame = self.picam2.capture_array()
+                if frame is None or len(frame.shape) < 2:
+                    print("Invalid frame captured, skipping")
+                    time.sleep(0.1)
+                    continue
+                if len(frame.shape) == 3 and frame.shape[2] == 4:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+                elif len(frame.shape) == 3 and frame.shape[2] != 3:
+                    print(f"Unexpected frame channels: {frame.shape[2]}, skipping")
+                    time.sleep(0.1)
+                    continue
                 frame = cv2.resize(frame, (self.width, self.height))
                 frame = cv2.rotate(frame, cv2.ROTATE_180)
                 image_input = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -596,21 +518,11 @@ class CombinedFaceTracking:
                 hands_results = self.mp_hands.process(image_input)
                 current_time = time.time()
                 if hands_results.multi_hand_landmarks and (current_time - self.last_palm_time) >= self.palm_greeting_interval:
-                    with self.greeting_lock:
-                        self.current_greeting = random.choice(self.GREETINGS)
-                        print(f"Palm detected, speaking greeting: {self.current_greeting}")
-                        self.last_palm_time = current_time
-                        # Start hi function in a separate thread for parallel execution
-                        hi_thread = threading.Thread(target=run_hi_function, daemon=True)
-                        hi_thread.start()
-                        # Speak the greeting
-                        try:
-                            asyncio.run(self.speak_text(self.current_greeting))
-                        except Exception as e:
-                            print(f"Error speaking greeting: {e}")
+                    self.last_palm_time = current_time
+                    threading.Thread(target=self.respond_to_palm, daemon=True).start()
                 
                 # QR code detection
-                gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 decoded_objects = pyzbar.decode(gray)
                 qr_data = None
                 if decoded_objects:
@@ -618,7 +530,6 @@ class CombinedFaceTracking:
                     print(f"QR code detected: {qr_data}")
                     self.process_qr_code(qr_data)
                 
-                # Add frame to queue for display
                 if not self.frame_queue.full():
                     self.frame_queue.put((frame, face_results.detections, nearest_face, decoded_objects, hands_results))
                 time.sleep(0.01)
@@ -627,7 +538,6 @@ class CombinedFaceTracking:
                 time.sleep(0.1)
 
     def dual_servo_thread(self):
-        """Control dual servos for face tracking."""
         face_timeout = 2.0
         def set_angle_smooth_fast(servo_obj, current_angle, target_angle, step=2):
             if current_angle == target_angle:
@@ -676,7 +586,6 @@ class CombinedFaceTracking:
                 time.sleep(0.1)
 
     def center_servo_thread(self):
-        """Control center servo for fine face tracking."""
         face_timeout = 5.0
         def set_angle_smooth_slow(servo_obj, current_angle, target_angle, step=2):
             if abs(current_angle - target_angle) < step:
@@ -714,7 +623,6 @@ class CombinedFaceTracking:
                 time.sleep(0.1)
 
     def display_thread(self):
-        """Display frames with face, palm/hand, QR code annotations, and greetings."""
         while self.running:
             try:
                 if not self.frame_queue.empty():
@@ -765,24 +673,18 @@ class CombinedFaceTracking:
                     else:
                         cv2.putText(frame, "No qualifying faces", (10, 70),
                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
-                    
-                    # Draw hand/palm rectangles and display greeting
                     if hands_results.multi_hand_landmarks:
                         for hand_landmarks in hands_results.multi_hand_landmarks:
-                            # Compute bounding box from landmarks
                             x_min = min([lm.x for lm in hand_landmarks.landmark]) * self.width
                             y_min = min([lm.y for lm in hand_landmarks.landmark]) * self.height
                             x_max = max([lm.x for lm in hand_landmarks.landmark]) * self.width
                             y_max = max([lm.y for lm in hand_landmarks.landmark]) * self.height
                             x, y, w, h = int(x_min), int(y_min), int(x_max - x_min), int(y_max - y_min)
-                            cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 255), 2)  # Magenta rectangle for palms
-                            # Display greeting above palm
+                            cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 255), 2)
                             with self.greeting_lock:
                                 if self.current_greeting and (current_time - self.last_palm_time) < self.palm_greeting_interval:
                                     cv2.putText(frame, self.current_greeting, (x, y - 30),
                                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
-                    
-                    # Draw QR code rectangles
                     for qr in qr_codes:
                         points = qr.polygon
                         if len(points) >= 4:
@@ -797,9 +699,9 @@ class CombinedFaceTracking:
                     direction_text = "Normal" if self.direction_multiplier == 1 else "Reversed"
                     cv2.putText(frame, f"Direction: {direction_text}",
                                 (self.width - 200, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
-                    cv2.putText(frame, "Combined Face Tracking & QR", (self.width//2 - 150, self.height - 20),
+                    cv2.putText(frame, "Combined Face Tracking & QR & Palm", (self.width//2 - 150, self.height - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-                    cv2.imshow("Combined Face Tracking & QR", frame)
+                    cv2.imshow("Combined Face Tracking & QR & Palm", frame)
                     key = cv2.waitKey(1) & 0xFF
                     if key == 27:
                         self.running = False
@@ -818,7 +720,6 @@ class CombinedFaceTracking:
                 time.sleep(0.1)
 
     def stop_servo(self, servo_channel):
-        """De-energize a servo channel."""
         try:
             self.pwm.channels[servo_channel].duty_cycle = 0
             print(f"Servo channel {servo_channel} de-energized")
@@ -826,7 +727,6 @@ class CombinedFaceTracking:
             print(f"Error stopping servo channel {servo_channel}: {e}")
 
     def cleanup(self):
-        """Clean up servos, camera, Firebase, and pygame mixer."""
         print("Returning servos to safe positions...")
         try:
             def set_angle_smooth(servo_obj, current_angle, target_angle, step=2):
@@ -872,7 +772,6 @@ class CombinedFaceTracking:
         print("Cleanup complete")
 
     def run(self):
-        """Start all threads for face tracking, palm detection, and QR scanning."""
         threads = [
             threading.Thread(target=self.face_detection_thread, daemon=True),
             threading.Thread(target=self.dual_servo_thread, daemon=True),
