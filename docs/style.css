@@ -226,10 +226,13 @@ body {
 #testing,
 .bg-dark,
 #team,
-#features,
-#links {
+#features
+{
   background-color: #121212 !important;
   color: #f1f1f1;
+}
+#links {
+  background: transparent !important;
 }
 
 #solution-architecture ul,
@@ -257,7 +260,8 @@ body {
 }
 
 /* Team Section */
-#team {
+#team 
+{
   background-color: #121212;
 }
 
@@ -279,12 +283,7 @@ body {
   text-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff;
 }
 
-/* Links Section */
-#links {
-  background-color: #121212;
-  color: #fff;
-  padding: 60px 0;
-}
+
 
 #links .list-inline-item {
   margin-right: 10px;
@@ -1066,4 +1065,35 @@ section p {
     .stack-item img {
         margin-bottom: 1rem;
     }
+}
+
+
+/* Neon title variant reusing heading theme */
+.neon-title {
+  color: #ff6fe6;
+  text-shadow: 0 0 10px #ff6fe6, 0 0 20px #ff6fe6, 0 0 35px rgba(255,111,230,0.7);
+  letter-spacing: 1px;
+}
+
+/* Well-organized uniform grid */
+.gallery-grid .gallery-thumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;          /* consistent card size */
+  object-fit: cover;            /* crop nicely */
+  display: block;
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+  transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+  backdrop-filter: blur(0);     /* keeps glass vibe around */
+}
+
+.gallery-grid .gallery-thumb:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+  filter: brightness(1.05);
+}
+
+/* Optional tighter gutters on large screens */
+@media (min-width: 1200px) {
+  .gallery-grid { --bs-gutter-x: 1.25rem; --bs-gutter-y: 1.25rem; }
 }

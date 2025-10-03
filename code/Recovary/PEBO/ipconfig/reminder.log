@@ -1,0 +1,51 @@
+2025-07-16 21:06:19,271 - INFO - Firebase initialized successfully
+2025-07-16 21:06:19,272 - INFO - Checking for reminders...
+2025-07-16 21:07:20,850 - INFO - Checking for reminders...
+2025-07-16 21:07:21,055 - INFO - Reminder triggered for task: Test 1
+2025-07-16 21:07:21,063 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:07:33,899 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:07:52,281 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:08:02,458 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:08:08,291 - INFO - Tap detected: 1/2
+2025-07-16 21:08:08,473 - INFO - Tap detected: 2/2
+2025-07-16 21:08:08,625 - INFO - Double-tap detected, stopping reminder
+2025-07-16 21:09:13,820 - INFO - Checking for reminders...
+2025-07-16 21:09:14,371 - INFO - Reminder triggered for task: Test 2
+2025-07-16 21:09:14,372 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:09:25,819 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:09:36,782 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:09:44,571 - INFO - Firebase app cleaned up
+2025-07-16 21:09:44,702 - INFO - Program terminated
+2025-07-16 21:18:48,328 - INFO - Firebase initialized successfully
+2025-07-16 21:18:48,329 - INFO - Checking for reminders...
+2025-07-16 21:19:49,678 - INFO - Checking for reminders...
+2025-07-16 21:19:49,894 - INFO - Reminder triggered for task: Test 3
+2025-07-16 21:19:49,901 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:20:00,909 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:20:11,018 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:20:22,320 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:20:32,503 - ERROR - Reminder sound file /home/pi/Documents/GitHub/e20-3yp-P-E-BO-Desk-Companion/code/PEBO/reminder.wav not found
+2025-07-16 21:20:40,320 - INFO - Firebase app cleaned up
+2025-07-16 21:20:40,454 - INFO - Program terminated
+2025-07-16 21:22:27,816 - INFO - Firebase initialized successfully
+2025-07-16 21:22:27,817 - INFO - Checking for reminders...
+2025-07-16 21:23:28,921 - INFO - Checking for reminders...
+2025-07-16 21:23:29,115 - INFO - Reminder triggered for task: Test4
+2025-07-16 21:24:37,279 - INFO - Tap detected: 1/2
+2025-07-16 21:24:37,562 - INFO - Tap detected: 2/2
+2025-07-16 21:24:37,745 - INFO - Double-tap detected, stopping reminder
+2025-07-16 21:25:18,840 - INFO - Firebase app cleaned up
+2025-07-16 21:25:18,969 - INFO - Program terminated
+2025-07-16 21:41:05,328 - INFO - Firebase initialized successfully
+2025-07-16 21:41:05,330 - INFO - Checking for reminders...
+2025-07-16 21:42:06,602 - INFO - Checking for reminders...
+2025-07-16 21:43:06,863 - INFO - Checking for reminders...
+2025-07-16 21:44:07,075 - INFO - Checking for reminders...
+2025-07-16 21:45:07,354 - INFO - Checking for reminders...
+2025-07-16 21:45:07,584 - INFO - Reminder triggered for task: Project presentation end time
+2025-07-16 21:47:19,147 - INFO - Checking for reminders...
+2025-07-16 21:48:24,925 - INFO - Checking for reminders...
+2025-07-16 21:48:25,275 - INFO - Reminder triggered for task: Test4
+2025-07-16 21:50:34,985 - INFO - Checking for reminders...
+2025-07-16 21:50:48,892 - INFO - Firebase app cleaned up
+2025-07-16 21:50:49,019 - INFO - Program terminated

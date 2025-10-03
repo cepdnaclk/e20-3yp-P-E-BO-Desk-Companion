@@ -1,3 +1,4 @@
+# sender.py
 import socket
 import pyaudio
 import threading
@@ -6,11 +7,11 @@ import queue
 import RPi.GPIO as GPIO
 
 class AudioNode:
+
     def __init__(self, listen_port=8888, target_host='192.168.248.94', target_port=8889, touch_pin=17):
         # Audio settings to match Pi's Bluetooth speaker (48kHz)
         self.CHUNK = 2048  # Increased buffer size for Bluetooth
         self.FORMAT = pyaudio.paInt16
-        self.CHANNELS = 1
         self.RATE = 48000  # Changed from 44100 to match Pi speakers
         
         # Network settings
@@ -231,9 +232,9 @@ def start_audio_node(listen_port=8888, target_host='192.168.248.94', target_port
 
 if __name__ == "__main__":
     # Replace with your laptop's IP address
-    LAPTOP_IP = "172.20.10.11"  # Change this!
-    
-    start_audio_node(
+    LAPTOP_IP = "192.168.124.94"  # Change this!
+
+    node = AudioNode(
         listen_port=8888,      # Pi listens on this port
         target_host=LAPTOP_IP, # Laptop IP
         target_port=8889,      # Laptop listens on this port

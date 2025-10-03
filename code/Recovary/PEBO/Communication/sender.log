@@ -1,0 +1,155 @@
+2025-06-03 12:43:53,679 - INFO - Audio streams initialized successfully
+2025-06-03 12:43:53,680 - INFO - Capturing noise profile (1 second, please stay silent)...
+2025-06-03 12:43:54,503 - INFO - Noise profile captured successfully
+2025-06-03 12:43:54,503 - INFO - Starting Pi audio node...
+2025-06-03 12:43:54,503 - INFO - Using 48kHz to match Pi Bluetooth speakers
+2025-06-03 12:43:54,504 - INFO - Listening for laptop connection on port 8888
+2025-06-03 12:43:56,583 - INFO - Connected to laptop at 192.168.248.94:8889
+2025-06-03 12:44:14,265 - INFO - Stopping audio node...
+2025-06-03 12:44:14,317 - INFO - Audio streams cleaned up
+2025-06-03 12:44:14,422 - INFO - GPIO cleaned up
+2025-06-03 12:44:15,497 - INFO - GPIO cleaned up in main
+2025-06-03 13:34:51,322 - INFO - Hardware initialized successfully
+2025-06-03 13:34:51,324 - INFO - Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...
+2025-06-03 13:34:51,970 - INFO - Listening… (attempt 1)
+2025-06-03 13:34:56,489 - INFO - You said: hello bebo
+2025-06-03 13:34:56,492 - INFO - Trigger phrase detected! Starting assistant...
+2025-06-03 13:34:56,492 - INFO - Using: Name=Bhagya, Emotion=Clam
+2025-06-03 13:35:04,998 - INFO - Initial Prompt: I am Bhagya. I need your assist.
+2025-06-03 13:35:06,207 - INFO - Normal:  Hello Bhagya, how can I assist you today?
+2025-06-03 13:35:11,721 - INFO - Firebase initialized successfully
+2025-06-03 13:35:12,357 - INFO - Listening… (attempt 1)
+2025-06-03 13:35:17,636 - INFO - You said: send message
+2025-06-03 13:35:27,462 - INFO - Listening… (attempt 1)
+2025-06-03 13:35:29,946 - INFO - You said: bedroom
+2025-06-03 13:35:29,947 - INFO - Selected Device: Location=BedRoom, IP=192.168.248.94
+2025-06-03 13:35:38,850 - INFO - GPIO initialized for touch sensor on pin 17
+2025-06-03 13:35:39,204 - INFO - Audio streams initialized successfully
+2025-06-03 13:35:39,207 - INFO - Capturing noise profile (1 second, please stay silent)...
+2025-06-03 13:35:39,987 - INFO - Noise profile captured successfully
+2025-06-03 13:35:39,988 - INFO - Starting Pi audio node...
+2025-06-03 13:35:39,988 - INFO - Using 48kHz to match Pi Bluetooth speakers
+2025-06-03 13:35:39,989 - INFO - Listening for connection on port 8888
+2025-06-03 13:35:42,138 - ERROR - Connection error: [Errno 111] Connection refused
+2025-06-03 13:35:56,993 - INFO - Tap started
+2025-06-03 13:35:57,134 - INFO - Valid tap detected
+2025-06-03 13:35:57,188 - INFO - Tap started
+2025-06-03 13:35:57,249 - INFO - Valid tap detected
+2025-06-03 13:35:57,249 - INFO - Double-tap detected!
+2025-06-03 13:35:57,249 - INFO - Stopping audio node...
+2025-06-03 13:35:57,261 - INFO - Audio streams cleaned up
+2025-06-03 13:35:57,365 - INFO - GPIO cleaned up
+2025-06-03 13:35:58,989 - INFO - Listening… (attempt 1)
+2025-06-03 13:36:03,104 - INFO - Connected from ('192.168.248.94', 37052)
+2025-06-03 13:36:03,641 - INFO - You said: send message
+2025-06-03 13:36:11,134 - INFO - Listening… (attempt 1)
+2025-06-03 13:36:15,439 - INFO - You said: bedroom
+2025-06-03 13:36:15,440 - INFO - Selected Device: Location=BedRoom, IP=192.168.248.94
+2025-06-03 13:36:24,631 - INFO - GPIO initialized for touch sensor on pin 17
+2025-06-03 13:36:24,983 - INFO - Audio streams initialized successfully
+2025-06-03 13:36:24,994 - INFO - Capturing noise profile (1 second, please stay silent)...
+2025-06-03 13:36:25,750 - INFO - Noise profile captured successfully
+2025-06-03 13:36:25,751 - INFO - Starting Pi audio node...
+2025-06-03 13:36:25,751 - INFO - Using 48kHz to match Pi Bluetooth speakers
+2025-06-03 13:36:25,752 - INFO - Listening for connection on port 8888
+2025-06-03 13:36:27,806 - INFO - Connected to target at 192.168.248.94:8889
+2025-06-03 13:37:02,500 - INFO - Tap started
+2025-06-03 13:37:02,621 - INFO - Valid tap detected
+2025-06-03 13:37:02,738 - INFO - Tap started
+2025-06-03 13:37:02,828 - INFO - Valid tap detected
+2025-06-03 13:37:02,828 - INFO - Double-tap detected!
+2025-06-03 13:37:02,830 - INFO - Stopping audio node...
+2025-06-03 13:37:02,872 - INFO - Audio streams cleaned up
+2025-06-03 13:37:02,979 - INFO - GPIO cleaned up
+2025-06-03 13:37:04,761 - INFO - Listening… (attempt 1)
+2025-06-03 13:37:12,226 - WARNING - Couldn’t understand audio
+2025-06-03 13:37:13,383 - INFO - Listening… (attempt 2)
+2025-06-03 13:37:16,794 - INFO - You said: exit
+2025-06-03 13:37:16,795 - INFO - Exiting assistant
+2025-06-03 13:37:23,159 - INFO - Firebase app cleaned up
+2025-06-03 13:37:23,173 - INFO - Cleaning up resources...
+2025-06-03 13:37:27,270 - INFO - Displays cleared
+2025-06-03 13:37:27,271 - INFO - I2C bus deinitialized, SCL and SDA cleared
+2025-06-03 13:37:27,373 - INFO - GPIO cleaned up
+2025-06-03 13:37:27,373 - INFO - Cleanup complete
+2025-06-03 13:37:28,877 - INFO - Cleaning up resources...
+2025-06-03 13:37:32,371 - INFO - Displays cleared
+2025-06-03 13:37:32,372 - INFO - I2C bus deinitialized, SCL and SDA cleared
+2025-06-03 13:37:32,373 - INFO - GPIO cleaned up
+2025-06-03 13:37:32,373 - INFO - Cleanup complete
+2025-06-03 13:37:32,378 - INFO - Cleaning up resources...
+2025-06-03 13:37:35,648 - INFO - Displays cleared
+2025-06-03 13:37:35,650 - INFO - I2C bus deinitialized, SCL and SDA cleared
+2025-06-03 13:37:35,650 - INFO - GPIO cleaned up
+2025-06-03 13:37:35,651 - INFO - Cleanup complete
+2025-06-03 13:37:35,652 - INFO - Program terminated
+2025-06-03 13:38:50,565 - INFO - GPIO initialized for touch sensor on pin 17
+2025-06-03 13:38:50,865 - INFO - Audio streams initialized successfully
+2025-06-03 13:38:50,867 - INFO - Capturing noise profile (1 second, please stay silent)...
+2025-06-03 13:38:51,690 - INFO - Noise profile captured successfully
+2025-06-03 13:38:51,691 - INFO - Starting Pi audio node...
+2025-06-03 13:38:51,691 - INFO - Using 48kHz to match Pi Bluetooth speakers
+2025-06-03 13:38:51,692 - INFO - Listening for connection on port 8888
+2025-06-03 13:38:53,765 - ERROR - Connection error: [Errno 111] Connection refused
+2025-06-03 13:39:02,340 - INFO - Stopping audio node...
+2025-06-03 13:39:02,411 - INFO - Audio streams cleaned up
+2025-06-03 13:39:02,520 - INFO - GPIO cleaned up
+2025-06-03 13:39:03,522 - INFO - GPIO cleaned up in main
+2025-06-03 13:42:23,010 - INFO - Hardware initialized successfully
+2025-06-03 13:42:23,017 - INFO - Waiting for trigger phrase (e.g., 'hi PEBO', 'PEBO')...
+2025-06-03 13:42:23,642 - INFO - Listening… (attempt 1)
+2025-06-03 13:42:27,865 - INFO - You said: hello vivo
+2025-06-03 13:42:27,868 - INFO - Trigger phrase detected! Starting assistant...
+2025-06-03 13:42:27,879 - INFO - Using: Name=Bhagya, Emotion=Clam
+2025-06-03 13:42:36,854 - INFO - Initial Prompt: I am Bhagya. I need your assist.
+2025-06-03 13:42:38,025 - INFO - Normal:  "Hello Bhagya, how can I assist you?"
+2025-06-03 13:42:43,397 - INFO - Firebase initialized successfully
+2025-06-03 13:42:44,033 - INFO - Listening… (attempt 1)
+2025-06-03 13:42:46,984 - INFO - You said: send message
+2025-06-03 13:42:56,341 - INFO - Listening… (attempt 1)
+2025-06-03 13:42:58,504 - WARNING - Couldn’t understand audio
+2025-06-03 13:42:59,629 - INFO - Listening… (attempt 2)
+2025-06-03 13:43:02,792 - INFO - You said: bedroom
+2025-06-03 13:43:02,793 - INFO - Selected Device: Location=BedRoom, IP=192.168.248.94
+2025-06-03 13:43:11,730 - INFO - GPIO initialized for touch sensor on pin 17
+2025-06-03 13:43:12,106 - INFO - Audio streams initialized successfully
+2025-06-03 13:43:12,109 - INFO - Starting Pi audio node...
+2025-06-03 13:43:12,113 - INFO - Using 48kHz to match Pi Bluetooth speakers
+2025-06-03 13:43:12,117 - INFO - Listening for connection on port 8888
+2025-06-03 13:43:12,141 - INFO - Tap started
+2025-06-03 13:43:12,193 - INFO - Valid tap detected
+2025-06-03 13:43:12,219 - INFO - Tap started
+2025-06-03 13:43:12,272 - INFO - Tap started
+2025-06-03 13:43:12,328 - INFO - Tap started
+2025-06-03 13:43:12,389 - INFO - Valid tap detected
+2025-06-03 13:43:12,389 - INFO - Double-tap detected!
+2025-06-03 13:43:12,390 - INFO - Stopping audio node...
+2025-06-03 13:43:12,408 - INFO - Audio streams cleaned up
+2025-06-03 13:43:12,519 - INFO - GPIO cleaned up
+2025-06-03 13:43:14,198 - INFO - Connected to target at 192.168.248.94:8889
+2025-06-03 13:43:15,144 - INFO - Listening… (attempt 1)
+2025-06-03 13:43:22,132 - WARNING - Couldn’t understand audio
+2025-06-03 13:43:23,266 - INFO - Listening… (attempt 2)
+2025-06-03 13:43:26,254 - INFO - You said: send message
+2025-06-03 13:43:33,391 - INFO - Listening… (attempt 1)
+2025-06-03 13:43:36,646 - INFO - Connected from ('192.168.248.94', 40542)
+2025-06-03 13:43:36,656 - INFO - You said: bedroom
+2025-06-03 13:43:36,657 - INFO - Selected Device: Location=BedRoom, IP=192.168.248.94
+2025-06-03 13:43:46,832 - INFO - GPIO initialized for touch sensor on pin 17
+2025-06-03 13:43:47,152 - INFO - Audio streams initialized successfully
+2025-06-03 13:43:47,153 - INFO - Starting Pi audio node...
+2025-06-03 13:43:47,156 - INFO - Using 48kHz to match Pi Bluetooth speakers
+2025-06-03 13:43:47,167 - INFO - Listening for connection on port 8888
+2025-06-03 13:43:47,174 - INFO - Tap started
+2025-06-03 13:43:47,701 - INFO - Tap started
+2025-06-03 13:43:47,821 - INFO - Valid tap detected
+2025-06-03 13:43:47,831 - INFO - Tap started
+2025-06-03 13:43:49,267 - INFO - Connected to target at 192.168.248.94:8889
+2025-06-03 13:43:52,428 - INFO - Tap started
+2025-06-03 13:43:53,830 - INFO - Tap started
+2025-06-03 13:43:53,854 - INFO - Tap started
+2025-06-03 13:43:53,950 - INFO - Valid tap detected
+2025-06-03 13:43:53,971 - INFO - Tap started
+2025-06-03 13:43:54,033 - INFO - Valid tap detected
+2025-06-03 13:43:54,034 - INFO - Double-tap detected!
+2025-06-03 13:43:54,034 - INFO - Stopping audio node...
